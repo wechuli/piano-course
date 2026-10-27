@@ -1082,6 +1082,405 @@ def make_unit3(part, rng):
     raise RuntimeError(f"could not generate exercise for part {part['name']}")
 
 
+
+# ---------------------------------------------------------------- chromatic harmony (Unit 4)
+# Feature 5. Keyboard-style four-part harmony: the right hand plays three upper voices in close
+# position, the left hand the bass. A chord is a set of spelled tones (letter, pitch class) with
+# roles (root, 3rd, 5th, 7th ...), the tone in the bass, and tendencies (+1 must rise, -1 must fall,
+# by one or two semitones) that apply when the chord moves to its target. A dynamic-programming
+# search voices the whole progression: every chord complete (the 5th may be left out), no doubled
+# tendency tone, no parallel 5ths or octaves between any two voices, smooth inner voices.
+DOM7 = [(0, 0), (2, 4), (4, 7), (6, 10)]
+DIM7 = [(0, 0), (2, 3), (4, 6), (6, 9)]
+MAJ = [(0, 0), (2, 4), (4, 7)]
+MIN = [(0, 0), (2, 3), (4, 7)]
+DIM = [(0, 0), (2, 3), (4, 6)]
+ROLES = ("r", "3", "5", "7")
+TEXT_NAME = {"vii7": "vii°7", "It6": "It+6", "Ger6": "Ger+6", "Fr6": "Fr+6", "N6": "N6", "I64": "I6/4",
+             "i64": "i6/4"}
+
+
+def key_root(key):
+    return key.tpc, (gen5.NAT[key.tpc] + key.talt) % 12
+
+
+def tone(letter, pc):
+    letter %= 7
+    alt = (pc - gen5.NAT[letter]) % 12
+    if alt > 6:
+        alt -= 12
+    assert -2 <= alt <= 2, "unspellable"
+    return (letter, pc % 12)
+
+
+def build(name, rl, rpc, pattern, bass="r", tend=None, target=None, roles=ROLES):
+    tones = [tone(rl + a, rpc + b) for a, b in pattern]
+    return {"name": name, "tones": dict(zip(roles, tones)), "bass": bass, "tend": tend or {}, "target": target}
+
+
+def degree_tone(key, d, raise7=False):
+    L0, S0 = key_root(key)
+    sc = gen5.SCALES[key.mode]
+    semi = S0 + sc[d % 7] + (1 if raise7 and key.mode == "minor" and d % 7 == 6 else 0)
+    return (L0 + d) % 7, semi % 12
+
+
+TRIAD_DEG = {"I": 0, "ii": 1, "iii": 2, "IV": 3, "V": 4, "vi": 5, "i": 0, "iv": 3, "VI": 5, "III": 2}
+
+
+def triad(key, name, bass="r"):
+    d = TRIAD_DEG[name]
+    raise7 = name == "V"
+    tones = [degree_tone(key, d + 2 * i, raise7) for i in range(3)]
+    return {"name": name, "tones": dict(zip(("r", "3", "5"), tones)), "bass": bass, "tend": {}, "target": None}
+
+
+def chord6(key, name, bass="r"):
+    """Any chord of Unit 4 by name: diatonic triads, V7, vii7 (the diminished seventh), secondary
+    dominants V7/x and vii7/x, N6, It6, Fr6, Ger6 and the cadential I64."""
+    L0, S0 = key_root(key)
+    if name in TRIAD_DEG:
+        return triad(key, name, bass)
+    if name in ("I64", "i64"):
+        c = triad(key, "I" if key.mode == "major" else "i", bass="5")
+        c["name"], c["tend"], c["target"] = name, {"r": -1, "3": -1}, "V"
+        return c
+    if name == "V7":
+        l, p = degree_tone(key, 4)
+        return build("V7", l, p, DOM7, bass, {"3": 1, "7": -1}, "I")
+    if name == "vii7":
+        l, p = degree_tone(key, 6, raise7=True)
+        if key.mode == "major":
+            p = (S0 + 11) % 12
+        return build("vii7", l, p, DIM7, bass, {"r": 1, "7": -1}, "I")
+    if "/" in name:
+        kind, x = name.split("/")
+        xl, xp = degree_tone(key, TRIAD_DEG[x])
+        if kind == "V7":
+            return build(name, xl + 4, xp + 7, DOM7, bass, {"3": 1, "7": -1}, x)
+        return build(name, xl - 1, xp - 1, DIM7, bass, {"r": 1, "7": -1}, x)
+    if name == "N6":
+        return build("N6", L0 + 1, S0 + 1, MAJ, "3", {"r": -1}, "V")
+    b6 = (L0 + 5, S0 + 8)
+    if name == "It6":
+        return {"name": name, "tones": {"r": tone(*b6), "3": tone(L0, S0), "#4": tone(L0 + 3, S0 + 6)}, "bass": "r",
+                "tend": {"r": -1, "#4": 1}, "target": "V"}
+    if name == "Fr6":
+        return {"name": name, "tones": {"r": tone(*b6), "3": tone(L0, S0), "5": tone(L0 + 1, S0 + 2),
+                                        "#4": tone(L0 + 3, S0 + 6)}, "bass": "r", "tend": {"r": -1, "#4": 1}, "target": "V"}
+    if name == "Ger6":
+        return {"name": name, "tones": {"r": tone(*b6), "3": tone(L0, S0), "5": tone(L0 + 2, S0 + 3),
+                                        "#4": tone(L0 + 3, S0 + 6)}, "bass": "r", "tend": {"r": -1, "#4": 1},
+                "target": "I64" if key.mode == "major" else "i64"}
+    raise KeyError(name)
+
+
+def spelled(t, midi_):
+    """(step, alt) for a tone (letter, pc) sounding at midi_."""
+    letter, pc = t
+    alt = (pc - gen5.NAT[letter]) % 12
+    if alt > 6:
+        alt -= 12
+    octv = (midi_ - alt - gen5.NAT[letter] - 12) // 12
+    return (7 * octv + letter, alt)
+
+
+def tone_midis(t, lo, hi):
+    letter, pc = t
+    return [m for m in range(lo, hi + 1) if m % 12 == pc]
+
+
+def voicings(ch, bass_lo=36, bass_hi=55, up_lo=55, up_hi=81):
+    """Every (bass, upper) voicing of a chord: the upper three voices in close position (within an
+    octave), above the bass; every tone present (the 5th may be missing), no tendency tone doubled."""
+    tones = ch["tones"]
+    bt = tones[ch["bass"]]
+    out = []
+    must = {r for r in tones if r not in ("5",)} | ({"5"} if ch["name"] in ("It6", "Fr6", "Ger6") else set())
+    for bm in tone_midis(bt, bass_lo, bass_hi):
+        cands = sorted({(m, r) for r, t in tones.items() for m in tone_midis(t, max(up_lo, bm + 3), up_hi)})
+        n = len(cands)
+        for i in range(n):
+            for j in range(i + 1, n):
+                for k in range(j + 1, n):
+                    trio = (cands[i], cands[j], cands[k])
+                    ms = [m for m, _ in trio]
+                    if len(set(ms)) < 3 or ms[2] - ms[0] > 12:
+                        continue
+                    roles = [r for _, r in trio] + [ch["bass"]]
+                    if not must <= set(roles):
+                        continue
+                    if any(roles.count(r) > 1 for r in ch["tend"]):
+                        continue
+                    if len(tones) == 4 and len(set(roles)) < 4 and ch["name"] not in ("V7",):
+                        continue
+                    out.append(((bm, ch["bass"]),) + trio)
+    return out
+
+
+def leap_ok(a, b, voice):
+    (m1, t1), (m2, t2) = a, b
+    d = abs(m2 - m1)
+    lim = {0: 12, 1: 5, 2: 5, 3: 8}[voice]
+    if d > lim:
+        return False
+    l1, l2 = t1[0], t2[0]
+    steps = (l2 - l1) % 7
+    steps = min(steps, 7 - steps)
+    if voice and ((steps == 1 and d == 3) or (steps == 3 and d == 6)):
+        return False  # augmented 2nd or 4th
+    return True
+
+
+def transition_ok(c1, v1, c2, v2):
+    pairs = list(zip(v1, v2))
+    # tendencies
+    if c1.get("target") is not None and c2["name"] == c1["target"] or \
+            (c1.get("target") == "I" and c2["name"] in ("I", "i", "vi", "VI")) or \
+            (c1.get("target") == "V" and c2["name"] in ("V", "V7", "I64", "i64")):
+        for (m1, r1), (m2, r2) in pairs:
+            dirn = c1["tend"].get(r1)
+            if dirn == 1 and not 1 <= m2 - m1 <= 2:
+                return False
+            if dirn == -1 and not 1 <= m1 - m2 <= 2:
+                return False
+    for i in range(4):
+        for j in range(i + 1, 4):
+            a1, a2 = pairs[i][0][0], pairs[j][0][0]
+            b1, b2 = pairs[i][1][0], pairs[j][1][0]
+            if a1 == b1 and a2 == b2:
+                continue
+            iv1, iv2 = (a2 - a1) % 12, (b2 - b1) % 12
+            if iv1 == iv2 and iv1 in (0, 7) and (a1 != b1 or a2 != b2):
+                return False
+    return True
+
+
+def voice_progression(chords, rng, end_tonic=None):
+    """Dynamic programming over the voicings of each chord: the cheapest smooth progression that
+    keeps every rule. end_tonic: the pitch class the soprano must end on."""
+    layers = []
+    for ch in chords:
+        vs = []
+        for v in voicings(ch):
+            bass, t, a, sop = v
+            vs.append(((bass[0], ch["tones"][bass[1]]), (t[0], ch["tones"][t[1]]), (a[0], ch["tones"][a[1]]),
+                       (sop[0], ch["tones"][sop[1]]), v))
+        layers.append(vs)
+    if end_tonic is not None:
+        layers[-1] = [v for v in layers[-1] if v[3][0] % 12 == end_tonic]
+    best = [{i: (rng.random() * 2 + abs(v[3][0] - 74) * 0.3, None) for i, v in enumerate(layers[0])}]
+    for k in range(1, len(chords)):
+        cur = {}
+        for j, v2 in enumerate(layers[k]):
+            roles2 = [r for _, r in v2[4]]
+            for i, (cost1, _) in best[-1].items():
+                v1 = layers[k - 1][i]
+                roles1 = [r for _, r in v1[4]]
+                ok = all(leap_ok(v1[x], v2[x], x) for x in range(4))
+                if not ok or not transition_ok(chords[k - 1], list(zip([x[0] for x in v1[:4]], roles1)),
+                                               chords[k], list(zip([x[0] for x in v2[:4]], roles2))):
+                    continue
+                c = cost1 + sum(abs(v2[x][0] - v1[x][0]) for x in (1, 2)) + 0.6 * abs(v2[3][0] - v1[3][0]) \
+                    + 0.2 * abs(v2[0][0] - v1[0][0]) + (1.5 if v2[3][0] == v1[3][0] else 0) + rng.random()
+                if j not in cur or c < cur[j][0]:
+                    cur[j] = (c, i)
+        if not cur:
+            return None
+        best.append(cur)
+    j = min(best[-1], key=lambda x: best[-1][x][0])
+    path = []
+    for k in range(len(chords) - 1, -1, -1):
+        path.append(layers[k][j])
+        j = best[k][j][1]
+    return path[::-1]
+
+
+SECONDARY_TARGETS = {"major": ["ii", "iii", "IV", "V", "vi"], "minor": ["iv", "V", "VI"]}
+
+
+def plan_secondary(key, rng):
+    """Part A: I, six pairs (a secondary dominant or diminished seventh and its chord), V7, I."""
+    I = "I" if key.mode == "major" else "i"
+    seq = [(I, "r")]
+    last = None
+    for _ in range(6):
+        x = rng.choice([t for t in SECONDARY_TARGETS[key.mode] if t != last])
+        kind = rng.choice(["V7", "V7", "vii7"])
+        seq.append((f"{kind}/{x}", rng.choice(["r", "3"]) if kind == "V7" else "r"))
+        seq.append((x, "r"))
+        last = x
+    seq += [("V7", "r"), (I, "r")]
+    return seq
+
+
+def plan_predominant(key, rng):
+    """Part B (minor keys): diatonic chords and three cadences, each a Neapolitan sixth or an
+    augmented sixth going to V (the German sixth through the cadential 6/4)."""
+    blocks = rng.sample(["N6", "It6", "Fr6", "Ger6"], 3)
+    seq = [("i", "r")]
+    for b in blocks:
+        filler = rng.choice([["iv"], ["VI"], ["iv", "VI"], ["VI", "iv"], []])
+        seq += [(c, "r") for c in filler]
+        seq += [(b, None)] + ([("i64", "5")] if b == "Ger6" else []) + [("V7" if rng.random() < 0.5 else "V", "r"),
+                                                                       ("i", "r")]
+    return seq
+
+
+def related_pivots(k1, k2):
+    """Triads diatonic in both keys: [(name in k1, name in k2)], the new key's name a pre-dominant."""
+    out = []
+    n1 = ["I", "ii", "iii", "IV", "V", "vi"] if k1.mode == "major" else ["i", "iv", "VI", "III"]
+    n2 = ["ii", "IV", "vi"] if k2.mode == "major" else ["iv", "VI"]
+    for a in n1:
+        t1 = sorted(chord6(k1, a)["tones"].values())
+        for b in n2:
+            if sorted(chord6(k2, b)["tones"].values()) == t1:
+                out.append((a, b))
+    return out
+
+
+def key_from(letter, pc, mode):
+    letter %= 7
+    alt = (pc - gen5.NAT[letter]) % 12
+    if alt > 6:
+        alt -= 12
+    if abs(alt) > 1:
+        raise KeyError("no such key")
+    return gen5.Key(gen5.LETTERS[letter] + gen5.ACC[alt], mode)
+
+
+def plan_modulation(key, rng, how):
+    """Part C: three bars in the old key, a pivot bar, four bars in the new key (with its key
+    signature). how: "pivot" (a chord common to both keys) or "dim7" (a diminished seventh
+    respelled as the diminished seventh of a key a minor third away)."""
+    L0, S0 = key_root(key)
+    I = "I" if key.mode == "major" else "i"
+    pre = rng.choice(["IV", "ii", "vi"] if key.mode == "major" else ["iv", "VI"])
+    c5 = rng.choice(["IV", "vi", "ii"] if key.mode == "major" else ["iv", "VI"])
+    old = [(I, "r"), (pre, "r"), ("V7", "r"), (I, "r"), (c5, "r"), (I, "r"), (I, "r")]  # the last is replaced
+    if how == "pivot":
+        opts = []
+        for dl, ds in ((4, 7), (3, 5), (5, 9), (1, 2), (2, 4)):
+            for mode in ("major", "minor"):
+                try:
+                    k2 = key_from(L0 + dl, S0 + ds, mode)
+                    pv = related_pivots(key, k2)
+                except (AssertionError, KeyError):
+                    continue
+                if pv and k2.accidentals() <= 6:
+                    opts.append((k2, pv))
+        k2, pv = rng.choice(opts)
+        a, b = rng.choice(pv)
+        old[-1] = (a, "r")
+        new_I = "I" if k2.mode == "major" else "i"
+        newseq = [("V7", "r"), (new_I, "r"), (b, "r"), ("V7", "3"), (new_I, "r"),
+                  ("i64" if k2.mode == "minor" else "I64", "5"), ("V7", "r"), (new_I, "r")]
+        return key, k2, old, newseq
+    # the diminished seventh: vii7 of the old key, respelled as vii7 of the key a minor third up or down
+    up = rng.random() < 0.5
+    try:
+        k2 = key_from(L0 + (2 if up else -2), S0 + (3 if up else -3), key.mode)
+        assert k2.accidentals() <= 6
+    except (AssertionError, KeyError):
+        k2 = key_from(L0 + (-2 if up else 2), S0 + (-3 if up else 3), key.mode)
+    new_I = "I" if k2.mode == "major" else "i"
+    old[-1] = ("vii7", "r")
+    newseq = [("vii7", "r"), (new_I, "r"), (rng.choice(["IV", "ii"] if k2.mode == "major" else ["iv", "VI"]), "r"),
+              ("V7", "r"), (new_I, "r"), ("i64" if k2.mode == "minor" else "I64", "5"), ("V7", "r"), (new_I, "r")]
+    return key, k2, old, newseq
+
+
+def harmony_events(path, chords, durs, labels=False):
+    rh, lh = [], []
+    for v, ch, d in zip(path, chords, durs):
+        bass = v[0]
+        ups = v[1:4]
+        lh.append(gen5.ev(d, [spelled(bass[1], bass[0])]))
+        rh.append(gen5.ev(d, [spelled(t, m) for m, t in ups]))
+        if labels:
+            nm = ch["name"]
+            text = nm if "/" not in nm else nm.split("/")[0] + "/" + nm.split("/")[1]
+            text = TEXT_NAME.get(nm, text.replace("vii7", "vii°7"))
+            lh[-1]["post"].append(f'_\\markup \\small "{text}"')
+    return rh, lh
+
+
+def to_bars(evs, bar=Fr(1)):
+    out, cur, acc = [], [], Fr(0)
+    for e in evs:
+        cur.append(e)
+        acc += e["d"]
+        if acc == bar:
+            out.append(cur)
+            cur, acc = [], Fr(0)
+    assert not cur
+    return out
+
+
+def make_harmony(part, key, rng):
+    how = part["harmony"]
+    labels = part.get("labels", False)
+    if how == "secondary":
+        seq = plan_secondary(key, rng)
+        keys = [key] * len(seq)
+    elif how == "predominant":
+        seq = plan_predominant(key, rng)
+        if len(seq) > 15:
+            return None
+        while len(seq) < 15:  # pad at the start with tonic and subdominant chords
+            seq.insert(1, ("VI" if seq[1][0] == "iv" else "iv", "r"))
+        keys = [key] * len(seq)
+    else:
+        k1, k2, old, new = plan_modulation(key, rng, how)
+        seq = old + new
+        keys = [k1] * len(old) + [k2] * len(new)
+    if len(seq) != 15:
+        return None
+    chords = []
+    for (nm, bass), k in zip(seq, keys):
+        c = chord6(k, nm)
+        if bass:
+            c["bass"] = bass if bass in c["tones"] else c["bass"]
+        chords.append(c)
+    if how == "dim7":
+        # the same diminished seventh twice: spelled in the old key, then in the new
+        chords[len(old) - 1]["target"] = None
+        chords[len(old) - 1]["tend"] = {}
+    path = voice_progression(chords, rng, end_tonic=key_root(keys[-1])[1])
+    if path is None:
+        return None
+    durs = [Fr(1, 2)] * 14 + [Fr(1)]
+    rh, lh = harmony_events(path, chords, durs, labels)
+    rh, lh = to_bars(rh), to_bars(lh)
+    got = {"rh": [rh], "lh": [lh], "plan": [c["name"] for c in chords], "end_key": keys[-1], "meters": ["4/4"] * 8}
+    if how not in ("secondary", "predominant"):
+        k2 = keys[-1]
+        rh[4][0]["pre"].insert(0, f"\\key {k2.lily}")
+        lh[4][0]["pre"].insert(0, f"\\key {k2.lily}")
+        if labels:
+            note = "pivot" if how == "pivot" else "respelled"
+            rh[3][1 if how == "dim7" else 0]["post"].append(f'^\\markup \\small \\italic "{note}"')
+    return got
+
+
+def make_unit4(part, rng):
+    key = gen5.Key(*part["key"])
+    for _ in range(200):
+        got = make_harmony(part, key, rng)
+        if not got:
+            continue
+        got["key"] = key
+        try:
+            validate6(part, got["end_key"], got)
+        except AssertionError as e:
+            gen5.STATS[str(e)] = gen5.STATS.get(str(e), 0) + 1
+            continue
+        got["v6"] = True
+        return got
+    raise RuntimeError(f"could not generate exercise for part {part['name']}")
+
+
 # ---------------------------------------------------------------- one exercise
 def make_exercise(part, rng):
     if part.get("texture") in THREE_VOICES:
@@ -1090,6 +1489,8 @@ def make_exercise(part, rng):
         return make_v6(part, rng)
     if part.get("texture") == "meters":
         return make_unit3(part, rng)
+    if part.get("texture") == "harmony":
+        return make_unit4(part, rng)
     return layout(part, gen5.make_exercise(part, rng))
 
 

@@ -11,15 +11,15 @@ A print-ready A4 course book, typeset with LilyPond.
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
-| 6 · Reading Like a Professional | in progress: Units 1-3 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 3: 14 pp.) | 3 units, 72 exercises, 12 pieces |
+| 6 · Reading Like a Professional | in progress: Units 1-4 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 4: 14 pp.) | 4 units, 96 exercises, 16 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The five-volume course is complete. Next: Volume 6** (Levels 7-8, an extension beyond the
 original plan): the full plan is in "Volume 6 plan" below. The shared groundwork is in place
 (see "Groundwork (done)" in the plan): `course/gen6.py` multi-staff scores, the Volume 6
-checker and build changes, and `course/test_gen6.py`. Units 1-3 are finished: see the
-"Unit N (done)" sections in the plan. Next: Unit 4 (Chromatic Harmony).
+checker and build changes, and `course/test_gen6.py`. Units 1-4 are finished: see the
+"Unit N (done)" sections in the plan. Next: Unit 5 (Big Textures).
 All five volumes are protected by
 `course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
 original plan follows it for reference.
@@ -467,6 +467,40 @@ CC BY-SA 4.0); original Dance in Seven (7/8); Scarborough Fair (traditional, D D
 - `build.py`: a piece without a meter now hides the time signature (it printed LilyPond's default
   4/4).
 - The "New:" lines of Units 3-8 in `units.py` were shortened to fit the unit's title page.
+
+### Unit 4 (done)
+
+**Generator (`course/gen6.py`, section "chromatic harmony").** Tested by `test_harmony`.
+`texture: "harmony"` writes keyboard-style four-part harmony: three upper voices in close position
+in the right hand, the bass in the left, half-note chords (the last a whole note).
+- Chords (`chord6`) are spelled tones (letter, pitch class) with roles, a bass role and
+  tendencies (+1 rises, -1 falls by one or two semitones when the chord goes to its target): the
+  diatonic triads, V7, vii7 (the diminished seventh), `V7/x` and `vii7/x` for every degree, N6 (the
+  third in the bass), It6, Fr6, Ger6 (to the cadential 6/4) and I64 / i64. Spelling comes from
+  intervals, so double sharps and flats appear where they belong (B-sharp in E major's V7/vi).
+- `voice_progression`: dynamic programming over every voicing of every chord (the upper voices
+  within an octave; every tone present, the 5th optional; no tendency tone doubled), with leaps
+  limited per voice, no melodic augmented 2nds or 4ths, tendencies resolved, and no parallel 5ths
+  or octaves between any two voices; the soprano ends on the tonic.
+- `harmony: "secondary"` (I, six secondary dominants or diminished sevenths each with its chord,
+  V7, I), `"predominant"` (minor keys: three cadences prepared by N6, It6, Fr6 or Ger6, padded with
+  iv and VI), `"pivot"` and `"dim7"` (modulation: three bars in the old key, a pivot bar, the new
+  key's signature in bar 5; the pivot is a triad common to both keys, found by `related_pivots`; the
+  diminished seventh is respelled as that of a key a minor third away). `labels: True` prints the
+  chord names under the bass (and "pivot" / "respelled").
+
+**Pieces.** Chopin, Prelude Op. 28 No. 20, bars 1-8 and the closing chord (Mutopia 472, PD);
+Beethoven, Sonata Op. 13, Grave, bars 1-4 and the E-flat chord of bar 5, the run simplified
+(Mutopia 299, PD); Grieg, Album Leaf Op. 12 No. 7, the first section (Mutopia 2194, CC BY-SA 4.0);
+original Modulation Study (C major to E-flat major by a respelled diminished seventh, back by a pivot).
+
+**Changes from plan.**
+- Liszt's Consolation No. 3 is replaced by Chopin's Prelude in C minor: the Consolation's texture
+  (a melody in an inner voice inside layered accompaniment voices) is a Unit 5 problem, while the
+  Prelude is a pure chord study with a Neapolitan chord and secondary dominants. The Consolation is
+  a spare.
+- In the Pathetique, Beethoven's run of 64ths and 128ths in bar 4 is written as eight 32nds.
+- Part C's title was shortened to fit the tempo mark on the line.
 
 ## Volume 5 plan (as written before it was built)
 

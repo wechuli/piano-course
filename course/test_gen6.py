@@ -287,6 +287,45 @@ def test_meters():
     return scores
 
 
+def test_harmony():
+    """Unit 4 (plan feature 5): chromatic chords in four parts, voice leading, modulation."""
+    scores = []
+    sec = dict(name="A", title="Secondary", count=3, bars=8, meter="4/4", texture="harmony", harmony="secondary",
+               tempo=56, key=("e", "major"), labels=True)
+    pre = dict(sec, harmony="predominant", key=("f", "minor"))
+    piv = dict(sec, harmony="pivot", key=("d", "major"))
+    dim = dict(sec, harmony="dim7", key=("bes", "major"))
+    c = gen6.chord6(gen5.Key("c"), "V7/V")
+    assert sorted(gen5.LETTERS[l] + str(pc) for l, pc in c["tones"].values()) == ["a9", "c0", "d2", "f6"], "D7 in C"
+    e = gen6.chord6(gen5.Key("e"), "vii7/vi")
+    assert ("b", 0) in [(gen5.LETTERS[l], pc) for l, pc in e["tones"].values()], "B-sharp in E major (a double sharp's cousin)"
+    a6 = gen6.chord6(gen5.Key("a", "minor"), "Ger6")
+    assert {gen5.LETTERS[l] for l, _ in a6["tones"].values()} == {"f", "a", "c", "d"}, "German sixth F A C D-sharp"
+    for part in (sec, pre, piv, dim):
+        for k, ex in enumerate(gen6.generate_part(dict(part), random.Random(6004), set())):
+            voices = []
+            for b in range(8):
+                for re_, le in zip(ex["rh"][0][b], ex["lh"][0][b]):
+                    voices.append([gen5.midi(le["n"][0])] + sorted(gen5.midi(n) for n in re_["n"]))
+            for v1, v2 in zip(voices, voices[1:]):
+                for i in range(4):
+                    for j in range(i + 1, 4):
+                        moved = v1[i] != v2[i] or v1[j] != v2[j]
+                        same = (v1[j] - v1[i]) % 12 == (v2[j] - v2[i]) % 12 in (0, 7)
+                        assert not (moved and same and v1[i] != v2[i]), "parallel fifths or octaves"
+            names = ex["plan"]
+            for n1, n2, v1, v2 in zip(names, names[1:], voices, voices[1:]):
+                if n1.startswith(("V7/", "vii7/")) and n2 == n1.split("/")[1]:
+                    assert any(b - a == 1 for a, b in zip(v1, v2)), "the leading note rises"
+            code = gen6.lily_exercise(part, ex, f"99.H{k}")[0]
+            if part in (piv, dim):
+                assert code.count(f"\\key {ex['end_key'].lily}") >= 2 and ex["end_key"].lily != ex["key"].lily, \
+                    "the new key signature"
+            scores.append(code)
+    print("chromatic harmony: secondary, N6/aug6, pivot, dim7     OK")
+    return scores
+
+
 if __name__ == "__main__":
     test_passthrough()
     exs, scores = test_open_score()
@@ -297,6 +336,7 @@ if __name__ == "__main__":
     scores += test_three_voices()
     scores += test_rhythms()
     scores += test_meters()
+    scores += test_harmony()
     test_build_compiles(scores)
     test_checker()
     print("OK")
