@@ -17,10 +17,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "content"))
-from units import VOLUME1, VOLUME2, VOLUME3, VOLUME4, VOLUME5, POSITIONS  # noqa: E402
+from units import VOLUME1, VOLUME2, VOLUME3, VOLUME4, VOLUME5, VOLUME6, POSITIONS  # noqa: E402
 
 VOLS = {1: (VOLUME1, "unit"), 2: (VOLUME2, "v2unit"), 3: (VOLUME3, "v3unit"), 4: (VOLUME4, "v4unit"),
-        5: (VOLUME5, "v5unit")}
+        5: (VOLUME5, "v5unit"), 6: (VOLUME6, "v6unit")}
 # Largest leap allowed (in diatonic steps) by the end of each unit
 MAX_LEAP = {1: {1: 1, 2: 1, 3: 1, 4: 2, 5: 2, 6: 2, 7: 2, 8: 4, 9: 4, 10: 4},
             2: {i: 4 for i in range(1, 11)},
@@ -180,23 +180,13 @@ LISTENER = r"""
 """
 
 
-def v5_events(pieces):
-    """Compile the pieces (without output) and collect every note LilyPond reads, per staff, plus
-    LilyPond's warnings (a bar check that fails means a bar of the wrong length)."""
+def compile_events(parts):
+    """Compile LilyPond input (without output) and collect every note the listener reports,
+    per staff id, plus LilyPond's warnings."""
     import subprocess
     import tempfile
     from fractions import Fraction
     import build
-    parts = ['\\version "2.24.0"', LISTENER]
-    for i, pc in enumerate(pieces):
-        pre = "\\once \\override Staff.TimeSignature.style = #'C " if pc.get("cut") else ""
-        pc = dict(pc)
-        for k in ("rh", "lh"):  # cross-staff notes: the staves are called "up" and "down" in the book
-            pc[k] = pc[k].replace('Staff = "down"', f'Staff = "p{i}lh"').replace('Staff = "up"', f'Staff = "p{i}rh"')
-        parts.append(f"""\\score {{ \\new PianoStaff <<
-  \\new Staff = "p{i}rh" {{ \\clef treble \\key {pc.get('key', 'c \\major')} {pre}\\time {pc['meter']} {pc['rh']} }}
-  \\new Staff = "p{i}lh" {{ \\clef bass \\key {pc.get('key', 'c \\major')} {pre}\\time {pc['meter']} {pc['lh']} }}
->> \\layout {{ }} }}""")
     with tempfile.TemporaryDirectory() as d:
         ly = os.path.join(d, "check.ly")
         open(ly, "w").write("\n".join(parts))
@@ -211,6 +201,22 @@ def v5_events(pieces):
             ev.setdefault(sid, []).append((Fraction(mom), grace == "1", int(pitch), Fraction(dur)))
     warns = [w for w in r.stderr.splitlines() if "warning" in w.lower()]
     return ev, warns
+
+
+def v5_events(pieces):
+    """Compile the pieces (without output) and collect every note LilyPond reads, per staff, plus
+    LilyPond's warnings (a bar check that fails means a bar of the wrong length)."""
+    parts = ['\\version "2.24.0"', LISTENER]
+    for i, pc in enumerate(pieces):
+        pre = "\\once \\override Staff.TimeSignature.style = #'C " if pc.get("cut") else ""
+        pc = dict(pc)
+        for k in ("rh", "lh"):  # cross-staff notes: the staves are called "up" and "down" in the book
+            pc[k] = pc[k].replace('Staff = "down"', f'Staff = "p{i}lh"').replace('Staff = "up"', f'Staff = "p{i}rh"')
+        parts.append(f"""\\score {{ \\new PianoStaff <<
+  \\new Staff = "p{i}rh" {{ \\clef treble \\key {pc.get('key', 'c \\major')} {pre}\\time {pc['meter']} {pc['rh']} }}
+  \\new Staff = "p{i}lh" {{ \\clef bass \\key {pc.get('key', 'c \\major')} {pre}\\time {pc['meter']} {pc['lh']} }}
+>> \\layout {{ }} }}""")
+    return compile_events(parts)
 
 
 def check_unit_v5(unit, content):
@@ -274,6 +280,150 @@ def check_unit_v5(unit, content):
     return problems
 
 
+# ---------------------------------------------------------------- Volume 6
+# Volume 6 reads music written for anyone: every key (and, from Unit 3, every mode) from the
+# start, but each notation feature is gated to the unit that teaches it. A piece may define
+# "staves" (a list of {name, clef, music}, with "hand": "rh"/"lh" on the piano staves, "solo",
+# "instrument", "lyrics", and clef "chords" for a ChordNames line) instead of "rh"/"lh".
+# Spans and leaps are checked only on staves that belong to a hand: a solo or vocal staff is
+# read, not played. "meter" may be left out when the music is unbarred (\cadenzaOn), and the
+# bar checks then come from LilyPond itself, which skips them inside a cadenza.
+V6_METERS = V5_METERS_U4                                             # Volume 5's full set
+V6_METERS_U3 = V6_METERS | {"5/4", "6/4", "7/8", "5/8", "3/2", "4/2"}  # changing meters (Unit 3)
+V6_FEATURES = [  # (pattern, first unit, name)
+    (r"\\tuplet\s+(?!3/2[\s{])\S+|\\times\s+(?!2/3[\s{])\S+", 2, "tuplets other than triplets"),
+    (r"\\cadenzaOn", 3, "unbarred music"),
+    (r"\\key\s+\S+\s+\\(dorian|phrygian|lydian|mixolydian|aeolian|ionian|locrian)", 3, "modes"),
+    (r"\\ottava", 5, "ottava (8va/8vb) signs"),
+    (r"\\addlyrics|\\lyricmode", 6, "lyrics"),
+    (r"\\chordmode", 8, "chord symbols"),
+]
+V6_MAX_LEAP = 24       # semitones: Volume 5's final level (two octaves with the pedal)
+V6_GROUPS = {"piano": "PianoStaff", "choir": "ChoirStaff", "quartet": "StaffGroup"}
+V6_CLEFS = {"treble": "treble", "bass": "bass", "treble_8": '"treble_8"', "alto": "alto", "tenor": "tenor"}
+
+
+def v6_staves(pc):
+    """A piece's staves, whether it defines "staves" or the usual "rh"/"lh"."""
+    if pc.get("staves"):
+        return pc["staves"]
+    return [{"name": "up", "clef": "treble", "music": pc["rh"], "hand": "rh"},
+            {"name": "down", "clef": "bass", "music": pc["lh"], "hand": "lh"}]
+
+
+def v6_events(pieces):
+    """Compile every piece with its real staves and groups; the listener reads every staff."""
+    parts = ['\\version "2.24.0"', LISTENER]
+    for i, pc in enumerate(pieces):
+        staves = v6_staves(pc)
+        ids = {st["name"]: f"p{i}v{j}" for j, st in enumerate(staves) if st.get("name")}
+        pre = "\\once \\override Staff.TimeSignature.style = #'C " if pc.get("cut") else ""
+        tsig = f"\\time {pc['meter']} " if pc.get("meter") else ""
+        key = pc.get("key", "c \\major")
+        solo, grouped = [], []
+        for j, st in enumerate(staves):
+            music = st["music"]
+            for nm, sid in ids.items():  # cross-staff notes point at the book's staff names
+                music = music.replace(f'Staff = "{nm}"', f'Staff = "{sid}"')
+            if st.get("clef") == "chords":
+                grouped.append(f"\\new ChordNames {{ {music} }}")
+                continue
+            code = (f'\\new Staff = "p{i}v{j}" {{ \\clef {V6_CLEFS[st.get("clef", "treble")]} '
+                    f"\\key {key} {pre}{tsig}{music} }}")
+            if st.get("lyrics"):
+                code += f" \\addlyrics {{ {st['lyrics']} }}"
+            (solo if st.get("solo") else grouped).append(code)
+        body = f"\\new {V6_GROUPS[pc.get('group', 'piano')]} << " + " ".join(grouped) + " >>"
+        if solo:
+            body = "<< " + " ".join(solo) + " " + body + " >>"
+        parts.append(f"\\score {{ {body} \\layout {{ }} }}")
+    return compile_events(parts)
+
+
+def check_unit_v6(unit, content):
+    from fractions import Fraction
+    uid = unit["id"]
+    problems = []
+    pieces = content.PIECES
+    ev, warns = v6_events(pieces)
+    benign = ("compress", "has been compressed")  # page layout of the test book, not the music
+    for w in warns:
+        if not any(b in w for b in benign):
+            problems.append("LilyPond: " + w.split("warning:")[-1].strip())
+    for i, pc in enumerate(pieces):
+        t = pc["title"]
+        staves = v6_staves(pc)
+        music = " ".join(st["music"] for st in staves)
+        allow = pc.get("allow", ())
+        # time signatures, changing meters, beat groups, unbarred music
+        meters = ([pc["meter"]] if pc.get("meter") else []) + re.findall(r"\\time\s+(?:[\d,]+\s+)?(\d+/\d+)", music)
+        for m in meters:
+            if m not in (V6_METERS_U3 if uid >= 3 else V6_METERS):
+                problems.append(f"{t}: time signature {m} not taught yet")
+        if uid < 3:
+            if len(set(meters)) > 1 and "changing meters" not in allow:
+                problems.append(f"{t}: changing meters not taught yet")
+            if not pc.get("meter"):
+                problems.append(f"{t}: unbarred music (no meter) not taught yet")
+            if re.search(r"\\time\s+[\d,]+\s+\d+/\d+", music):
+                problems.append(f"{t}: beat groups (\\time 2,2,3 ...) not taught yet")
+        for pat, first, what in V6_FEATURES:
+            if uid < first and re.search(pat, music) and what not in allow:
+                problems.append(f"{t}: {what} not taught yet")
+        # the score's shape
+        real = [st for st in staves if st.get("clef") != "chords"]
+        hands = [st for st in real if st.get("hand")]
+        if uid < 5 and pc.get("group", "piano") == "piano" and len(hands) > 2:
+            problems.append(f"{t}: three-staff piano writing not taught yet")
+        if uid < 6 and len(real) > len(hands):
+            problems.append(f"{t}: a solo or vocal staff not taught yet")
+        if uid < 6 and any(st.get("lyrics") for st in staves):
+            problems.append(f"{t}: lyrics not taught yet")
+        if uid < 7 and len(real) >= 4:
+            problems.append(f"{t}: four staves (open score) not taught yet")
+        c_clefs = ({st.get("clef") for st in staves} | set(re.findall(r'\\clef\s+"?(\w+)', music)))
+        if uid < 7 and c_clefs & {"alto", "tenor", "treble_8"} and "C clefs" not in allow:
+            problems.append(f"{t}: the alto, tenor and vocal tenor clefs not taught yet")
+        if uid < 8 and len(real) < len(staves):
+            problems.append(f"{t}: chord symbols not taught yet")
+        # spans and leaps, per hand, on the piano staves only
+        bar_len = Fraction(*map(int, pc["meter"].split("/"))) if pc.get("meter") else None
+        up = Fraction(*map(int, pc["upbeat"].split("/"))) if pc.get("upbeat") else 0
+        for hand in ("rh", "lh"):
+            sids = [f"p{i}v{j}" for j, st in enumerate(staves) if st.get("hand") == hand]
+            notes = [x for sid in sids for x in ev.get(sid, []) if not x[1]]
+            if not notes:
+                continue
+            span_max = pc.get("allow_span", 12)
+            hand_music = " ".join(st["music"] for st in staves if st.get("hand") == hand)
+            pedal = "sustainOn" in hand_music  # with the pedal: struck notes only
+            for m, _, p, d in notes:
+                sounding = [p2 for m2, _, p2, d2 in notes if (m2 == m if pedal else m2 <= m < m2 + d2)]
+                if max(sounding) - min(sounding) > span_max:
+                    if bar_len:
+                        where = (m - up) / bar_len
+                        at = f"bar {int(where) + 1} (beat {float((where - int(where)) * bar_len * 4) + 1:g})"
+                    else:
+                        at = f"whole note {float(m):g} in (unbarred)"
+                    problems.append(f"{t} {hand}: span of {max(sounding) - min(sounding)} semitones at {at}")
+                    if not VERBOSE:
+                        break
+            onsets = sorted({m for m, _, _, _ in notes})
+            leap = 0
+            for a, b in zip(onsets, onsets[1:]):
+                before = [(p, m2 + d2) for m2, _, p, d2 in notes if m2 <= a < m2 + d2]
+                if max(e for _, e in before) < b:
+                    continue  # a rest in between: the hand has time to move
+                new = [p for m2, _, p, _ in notes if m2 == b]
+                leap = max(leap, min(abs(x - y) for x, _ in before for y in new))
+            if leap > pc.get("allow_leap", V6_MAX_LEAP):
+                problems.append(f"{t} {hand}: leap of {leap} semitones")
+            short = min(d for _, _, _, d in notes)
+            if short < Fraction(1, 16) and not pc.get("allow_32"):
+                problems.append(f"{t} {hand}: notes shorter than a sixteenth")
+    return problems
+
+
 def Fraction_(a, b):
     from fractions import Fraction
     return Fraction(a, b)
@@ -290,7 +440,9 @@ if __name__ == "__main__":
     for uid in ids:
         unit = next(u for u in units if u["id"] == uid)
         try:
-            if vol >= 5:
+            if vol >= 6:
+                probs = check_unit_v6(unit, importlib.import_module(f"{VOLS[vol][1]}{uid:02d}"))
+            elif vol == 5:
                 probs = check_unit_v5(unit, importlib.import_module(f"{VOLS[vol][1]}{uid:02d}"))
             else:
                 probs = check_unit(unit, vol)
