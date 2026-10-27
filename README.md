@@ -8,7 +8,7 @@ A print-ready A4 course book, typeset with LilyPond.
 | --- | --- | --- | --- |
 | 1 · First Steps | complete | `build/Read at Sight - Volume 1.pdf` (130 pp.) | 10 units, 322 exercises, 39 pieces |
 | 2 · Moving Hands | complete | `build/Read at Sight - Volume 2.pdf` (133 pp.) | 10 units, 306 exercises, 35 pieces |
-| 3 · Two Voices | in progress: Unit 1 done | `build/units/Read at Sight - Vol3 - Unit 1.pdf` (19 pp.) | Unit 1: 36 exercises, 4 pieces |
+| 3 · Two Voices | in progress: Units 1-2 done | `build/units/` (Vol3 - Unit 1, Unit 2) | Units 1-2: 70 exercises, 8 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
@@ -40,7 +40,7 @@ re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
 | Unit | Title | New | Generator features it needs |
 | --- | --- | --- | --- |
 | 1 (done) | Broken Chords | Triads; LH plays I, IV, V7 one note at a time; C, G, F major | `chords`, `bass: "broken"` (done) |
-| 2 | The Alberti Bass | Broken chords in eighths: low, high, middle, high | `("alberti", "4/4")` in `BASS_PATTERNS`; maybe two chords per bar |
+| 2 (done) | The Alberti Bass | Broken chords in eighths: low, high, middle, high | `bass: "alberti"`, `bass_leap` (done) |
 | 3 | Six-Eight Time | 6/8: two beats, each split in three | `"6/8"` in `BAR_LEN`, `FULL_REST`, rhythm table `R68`, cadences; 6/8 bass patterns; checker `BAR` |
 | 4 | D Major | Two sharps; D major chords | positions/keys exist (`RH_D`, `LH_D`, `KEY_D`); LH chord shapes in D |
 | 5 | B-flat Major | Two flats | new `RH_Bb`/`LH_Bb` positions, `KEY_BB` (`{"b": "es", "e": "es"}`) |

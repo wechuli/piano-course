@@ -391,6 +391,35 @@ BASS_PATTERNS = {
     ("broken", "3/4"): ([2, 2, 2], [0, 1, 2]),
 }
 CHORD_MAX_LEAP = 5  # largest leap (a sixth) in a broken-chord bass, including into the next bar
+BASS_PATTERNS.update({
+    ("alberti", "4/4"): ([1] * 8, [0, 2, 1, 2, 0, 2, 1, 2]),   # C G E G C G E G
+    ("alberti", "3/4"): ([1] * 6, [0, 2, 1, 2, 1, 2]),         # C G E G E G
+    ("broken", "6/8"): ([1] * 6, [0, 1, 2, 1, 2, 1]),          # C E G E G E (rolling eighths)
+    ("lilt", "6/8"): ([2, 1, 2, 1], [0, 2, 1, 2]),             # C(quarter) G(eighth) E G: long-short
+})
+
+# 6/8: two beats of three eighths. Durations are in eighths, so a bar is 6.
+R68 = {
+    "basic68": [[3, 3], [6], [2, 1, 3], [3, 2, 1], [2, 1, 2, 1]],
+    "e68":     [[1, 1, 1, 3], [3, 1, 1, 1], [1, 1, 1, 2, 1], [2, 1, 3], [3, 3]],
+}
+CADENCE68 = [[6], [3, 3], [2, 1, 3]]
+FINAL68 = [[6]]
+
+# Volume 3 keys and positions
+A2_ = 19
+E5_, F5 = 37, 38
+POSITIONS.update({
+    "RH_Bb": {"hand": "RH", "low": B4, "high": F5, "label": "Right hand B-flat position", "acc": {B4: "es", E5_: "es"}},
+    "LH_Bb": {"hand": "LH", "low": B2, "high": F3, "label": "Left hand B-flat position", "acc": {B2: "es", E3: "es"}},
+    "RH_Bm": {"hand": "RH", "low": B4, "high": F5, "label": "Right hand B position", "acc": {C5: "is", F5: "is"}},
+    "LH_Bm": {"hand": "LH", "low": B2, "high": F3, "label": "Left hand B position", "acc": {C3: "is", F3: "is"}},
+    "RH_Gm": {"hand": "RH", "low": G4, "high": D5, "label": "Right hand G position", "acc": {B4: "es"}},
+    "LH_Gm": {"hand": "LH", "low": G2, "high": D3, "label": "Left hand G position", "acc": {B2: "es"}},
+})
+KEY_BB = {"key": "bes \\major", "key_acc": {"b": "es", "e": "es"}}
+KEY_BM = {"key": "b \\minor", "key_acc": {"f": "is", "c": "is"}}
+KEY_GM = {"key": "g \\minor", "key_acc": {"b": "es", "e": "es"}}
 
 VOLUME3 = [
     {"id": 1, "title": "Broken Chords", "new": "Triads; the left hand plays I, IV and V7 one note at a time",
@@ -411,7 +440,23 @@ VOLUME3 = [
               repeat_prob=0.4, **KEY_F),
      ]},
     # Units 2-10 are planned here (titles feed the contents page); each gets its parts when it is built.
-    {"id": 2, "title": "The Alberti Bass", "new": "Broken chords in eighth notes: low, high, middle, high", "parts": []},
+    {"id": 2, "title": "The Alberti Bass", "new": "Broken chords in eighth notes: low, high, middle, high",
+     "parts": [
+         dict(name="A", title="Alberti bass under long notes", count=8, bars=4, mode="together", rh="RH_C",
+              lh="LH_C", chords=["I", "V7"], bass="alberti", bass_leap=6, chord_fingers=True, meter="4/4",
+              rhythms="half", motion=STEPS_SKIPS, tempo=56),
+         dict(name="B", title="I, IV and V7 in C major", count=10, bars=8, mode="together", rh="RH_C",
+              lh="LH_C", chords=["I", "IV", "V7"], bass="alberti", bass_leap=6, chord_fingers=True,
+              meter="4/4", rhythms="q_rich", motion=STEPS_SKIPS, tempo=60, dynamics=True, repeat_prob=0.4),
+         dict(name="C", title="Alberti bass in 3/4", count=8, bars=8, mode="together", rh="RH_G",
+              lh="LH_G", chords=["I", "IV", "V7"], bass="alberti", bass_leap=6, chord_fingers=True,
+              meter="3/4", rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=66, tonic=G4,
+              artic=ART_LIGHT, repeat_prob=0.4, **KEY_G),
+         dict(name="D", title="F major, the right hand on the move", count=8, bars=8, mode="together",
+              rh_positions=["RH_F", "RH_C"], lh="LH_F", chords=["I", "IV", "V7"], bass="alberti", bass_leap=6,
+              chord_fingers=True, meter="4/4", rhythms=["q_rich", "dotted"], motion=UP_TO_FIFTH, tempo=60,
+              tonic=F4, dynamics=True, artic=ART_LIGHT, repeat_prob=0.3, **KEY_F),
+     ]},
     {"id": 3, "title": "Six-Eight Time", "new": "6/8: two beats in a bar, each beat split into three eighths", "parts": []},
     {"id": 4, "title": "D Major", "new": "Two sharps (F-sharp and C-sharp); D major and its chords", "parts": []},
     {"id": 5, "title": "B-flat Major", "new": "Two flats (B-flat and E-flat); B-flat major and its chords", "parts": []},

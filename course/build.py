@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "content"))
 
 from units import VOLUME1, VOLUME2, VOLUME3, POSITIONS, CHORDS  # noqa: E402
-from generator import generate_unit, lily_exercise, chord_fingers, lily_pitch  # noqa: E402
+from generator import generate_unit, lily_exercise, chord_fingers, lily_pitch, raised_pitch  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BUILD = os.path.join(HERE, "..", "build")
@@ -134,8 +134,8 @@ def boxed_list(title, items, numbered=True):
             + " ".join(rows) + " } }")
 
 
-def tempo_mk(bpm):
-    return f"\\concat {{ \\general-align #Y #DOWN \\fontsize #-2 \\note {{4}} #UP \" = {bpm}\" }}"
+def tempo_mk(bpm, unit="4"):
+    return f"\\concat {{ \\general-align #Y #DOWN \\fontsize #-2 \\note {{{unit}}} #UP \" = {bpm}\" }}"
 
 
 # ---------------------------------------------------------------- keyboard diagram
@@ -245,28 +245,38 @@ def note_map_score(pos_keys):
 
 
 def chord_shapes(group):
-    """The left hand's chord shapes in one key: [(name markup, [(step, acc, finger)])]."""
-    title, lh, key, key_acc = group
+    """The left hand's chord shapes in one key: [(label, name markup, [(step, acc, finger)], [lily names])].
+    group = (title, lh position, lily key, key_acc[, minor]); in a minor key the chords are i, iv and V7,
+    and V7's bottom note (the leading note) is raised."""
+    title, lh, key, key_acc = group[:4]
+    minor = len(group) > 4 and group[4]
     out = []
     for c in ("I", "IV", "V7"):
         notes = [POSITIONS[lh]["low"] + v for v in CHORDS[c]["voicing"]]
         accs = [key_acc.get("cdefgab"[st % 7]) for st in notes]
+        lily = [lily_pitch(st, key_acc) for st in notes]
+        if minor and c == "V7":
+            accs[0] = {"es": None, None: "is"}[accs[0]]
+            lily[0] = raised_pitch(notes[0], key_acc)
         root = {"I": notes[0], "IV": notes[1], "V7": notes[0] - 2}[c]  # C E G = C; C F A = F; B F G = G7
         root_acc = key_acc.get("cdefgab"[root % 7])
         name = note_name_markup(root, root_acc)
         if c == "V7":
             name = f"\\concat {{ {name} \"7\" }}"
-        out.append((c, name, list(zip(notes, accs, chord_fingers(notes)))))
+        elif minor:
+            name = f"\\concat {{ {name} \"m\" }}"
+        label = c.lower() if minor and c != "V7" else c
+        out.append((label, name, list(zip(notes, accs, chord_fingers(notes))), lily))
     return out
 
 
 def chord_shapes_markup(group):
     """Three small keyboards (I, IV, V7) side by side for one key, left hand."""
     shapes = chord_shapes(group)
-    steps = [st for _, _, ns in shapes for st, _, _ in ns]
+    steps = [st for _, _, ns, _ in shapes for st, _, _ in ns]
     lo, hi = min(steps) - 1, max(steps) + 1
     cells = []
-    for c, name, ns in shapes:
+    for c, name, ns, _ in shapes:
         kb = keyboard_markup(lo, hi, [(st, acc, f, "LH") for st, acc, f in ns], {})
         cells.append(f"\\center-column {{ {kb} \\vspace #0.6 \\line {{ \\bold {c} \\hspace #0.6 = \\hspace #0.6 {name} }} }}")
     return (f"\\markup \\column {{ \\vspace #0.8 \\fontsize #1 \\bold {s(group[0] + ': left-hand chord shapes')} \\vspace #0.6 "
@@ -277,10 +287,9 @@ def chord_map_score(groups):
     """All the chord shapes as block chords on one bass staff, key by key."""
     music = []
     for group in groups:
-        title, lh, key, key_acc = group
-        music.append(f"\\key {key}")
-        for c, name, ns in chord_shapes(group):
-            inner = " ".join(lily_pitch(st, key_acc) for st, _, _ in ns)
+        music.append(f"\\key {group[2]}")
+        for c, name, ns, lily in chord_shapes(group):
+            inner = " ".join(lily)
             music.append(f"<{inner}>1^\\markup \\bold {c} _\\markup {name}")
         music.append('\\bar "||"')
     nostime = "\\with { \\remove \"Time_signature_engraver\" }"
@@ -418,7 +427,7 @@ def unit_pages(unit, vol=1):
     for part, exercises in generate_unit(unit, seed=vol * 1000 + unit["id"]):
         out.append(f"""\\markup \\column {{
   \\vspace #0.6
-  \\line {{ \\fontsize #4 \\bold {s('Part ' + part['name'] + ': ' + part['title'])} \\hspace #3 \\fontsize #1 {tempo_mk(part['tempo'])} }}
+  \\line {{ \\fontsize #4 \\bold {s('Part ' + part['name'] + ': ' + part['title'])} \\hspace #3 \\fontsize #1 {tempo_mk(part['tempo'], part.get('tempo_unit', '4'))} }}
   \\vspace #0.2
   {para(content.PART_NOTES.get(part['name'], ''), 0)}
   \\vspace #0.3
@@ -441,7 +450,7 @@ def unit_pages(unit, vol=1):
         out.append(f"""\\score {{
   \\header {{
     piece = \\markup \\column {{
-      \\line {{ \\fontsize #3 \\bold {s(pc_['title'])} \\hspace #2 \\fontsize #0 {tempo_mk(pc_['tempo'])} }}
+      \\line {{ \\fontsize #3 \\bold {s(pc_['title'])} \\hspace #2 \\fontsize #0 {tempo_mk(pc_['tempo'], pc_.get('tempo_unit', '4'))} }}
       \\fontsize #-1 \\italic {s(pc_['credit'])}
       \\override #'(line-width . {TEXT_WIDTH}) \\fontsize #-1 \\wordwrap-string #{s(pc_['note'])}
     }}
