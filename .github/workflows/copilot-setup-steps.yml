@@ -1,0 +1,40 @@
+# Prepares the GitHub Copilot coding agent's environment before it starts work.
+# The job must be called "copilot-setup-steps". It also runs on its own when this
+# file changes, so the setup can be tested from the Actions tab.
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install LilyPond (bundled in the pip package)
+        run: python -m pip install lilypond
+
+      - name: Install PDF tools (pdftoppm and pdftotext, for checking pages)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils
+
+      - name: Check that LilyPond runs
+        run: python -c "import lilypond, subprocess; subprocess.run([str(lilypond.executable()), '--version'], check=True)"
+
+      - name: Check that Volumes 1-5 still generate identically
+        working-directory: course
+        run: python check_identical.py
