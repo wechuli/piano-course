@@ -545,7 +545,7 @@ def add_rh_chords(part, bars, mel, hands, plan, chords, ties, repeat, rng):
             if s is None or not where or (b, i) in tied or pc(s) not in tones or rng.random() >= cfg["prob"]:
                 continue
             below = [x for x in range(s - 1, max(lo_pos, s - 5) - 1, -1) if pc(x) in tones]
-            if below:
+            if len(below) >= cfg.get("size", 3) - 1:  # a full chord or none
                 out[(b, i)] = tuple(sorted(below[:cfg.get("size", 3) - 1]))
     return out
 

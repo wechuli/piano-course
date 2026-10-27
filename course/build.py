@@ -5,6 +5,7 @@ Output: ../build/read-at-sight-volN[-unitM].pdf
 """
 import importlib
 import os
+import re
 import subprocess
 import sys
 
@@ -467,6 +468,7 @@ def unit_pages(unit, vol=1):
         pkey = pc_.get('key', 'c \\major')
         prh = pc_['rh'].replace('\\break', '\\break \\noPageBreak')
         lpre = "\\set fingeringOrientations = #'(left) " if vol >= 4 else ""  # fingers beside LH chords
+        rpre = lpre if re.search(r"<[^>]*-\d", pc_['rh']) else ""  # and RH chords that carry fingers
         out.append(f"""\\score {{
   \\header {{
     piece = \\markup \\column {{
@@ -476,7 +478,7 @@ def unit_pages(unit, vol=1):
     }}
   }}
   \\new PianoStaff <<
-    \\new Staff {{ \\autoLineBreaksOff \\clef treble \\key {pkey} \\time {pc_['meter']} {prh} }}
+    \\new Staff {{ \\autoLineBreaksOff \\clef treble \\key {pkey} \\time {pc_['meter']} {rpre}{prh} }}
     \\new Staff {{ \\clef bass \\key {pkey} \\time {pc_['meter']} {lpre}{pc_['lh']} \\bar "|." }}
   >>
   \\layout {{ }}
