@@ -161,7 +161,7 @@ V5_FEATURES = [  # (pattern, first unit, name)
     (r"\\trill|\\prall|\\mordent|\\turn|\\acciaccatura|\\appoggiatura|\\grace", 8, "ornaments"),
 ]
 VERBOSE = "--verbose" in sys.argv
-V5_MAX_LEAP = {u: (12 if u < 7 else 24) for u in range(1, 9)}     # semitones; two octaves with the pedal
+V5_MAX_LEAP = {u: (12 if u < 7 else 24) for u in range(1, 9)}     # semitones (left hand: a tenth); two octaves with the pedal
 
 LISTENER = r"""
 #(define (v5-listener context)
@@ -250,10 +250,17 @@ def check_unit_v5(unit, content):
                     if not VERBOSE:
                         break
             onsets = sorted({m for m, _, _, _ in notes})
-            # the top of whatever sounds at each new note (a held tenor stays on top while the bass moves)
-            tops = [max(p for m2, _, p, d2 in notes if m2 <= m < m2 + d2) for m in onsets]
-            leap = max([abs(a - b) for a, b in zip(tops, tops[1:])] or [0])
-            if leap > pc.get("allow_leap", V5_MAX_LEAP[uid]):
+            # how far the hand must jump: from what sounds just before each new note (or chord) to its
+            # nearest note (so an oom-pah bass or a held voice is not counted as a leap)
+            leap = 0
+            for a, b in zip(onsets, onsets[1:]):
+                before = [(p, m2 + d2) for m2, _, p, d2 in notes if m2 <= a < m2 + d2]
+                if max(e for _, e in before) < b:
+                    continue  # a rest in between: the hand has time to move
+                new = [p for m2, _, p, _ in notes if m2 == b]
+                leap = max(leap, min(abs(x - y) for x, _ in before for y in new))
+            limit = V5_MAX_LEAP[uid] + (4 if hand == "lh" and uid < 7 else 0)  # oom-pah: bass to chord, a tenth
+            if leap > pc.get("allow_leap", limit):
                 problems.append(f"{t} {hand}: leap of {leap} semitones")
             short = min(d for _, _, _, d in notes)
             if short < Fraction_(1, 16) and not pc.get("allow_32"):

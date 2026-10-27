@@ -551,6 +551,9 @@ def unit_pages(unit, vol=1):
         lpre = "\\set fingeringOrientations = #'(left) " if vol >= 4 else ""  # fingers beside LH chords
         rpre = lpre if re.search(r"<[^>]*-\d", pc_['rh']) else ""  # and RH chords that carry fingers
         tpre = ""
+        endbar = '\\bar "|." '
+        if vol >= 5 and pc_['lh'].rstrip().endswith("}") and "\\repeat volta" in pc_['lh']:
+            endbar = ""  # the piece ends with a repeat sign, which the final bar line would hide
         if vol >= 5:  # Volume 5: alla breve sign, bracket pedal marks, reminders after accidentals
             tpre = "\\once \\override Staff.TimeSignature.style = #'C " if pc_.get('cut') else ""
             rpre = "\\accidentalStyle modern " + rpre
@@ -565,7 +568,7 @@ def unit_pages(unit, vol=1):
   }}
   \\new PianoStaff <<
     \\new Staff {{ \\autoLineBreaksOff \\clef treble \\key {pkey} {tpre}\\time {pc_['meter']} {rpre}{prh} }}
-    \\new Staff {{ \\clef bass \\key {pkey} {tpre}\\time {pc_['meter']} {lpre}{pc_['lh']} \\bar "|." }}
+    \\new Staff {{ \\clef bass \\key {pkey} {tpre}\\time {pc_['meter']} {lpre}{pc_['lh']} {endbar}}}
   >>
   \\layout {{ }}
 }}""")
