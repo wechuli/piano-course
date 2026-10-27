@@ -2,7 +2,7 @@
 
 A print-ready A4 course book, typeset with LilyPond.
 
-## Status (2026-10-27)
+## Status (2026-10-28)
 
 | Volume | Status | Book | Contents |
 | --- | --- | --- | --- |
@@ -12,12 +12,14 @@ A print-ready A4 course book, typeset with LilyPond.
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
 | 6 · Reading Like a Professional | complete | `build/Read at Sight - Volume 6.pdf` (133 pp.) | 8 units, 192 exercises, 33 pieces |
+| 7 · Repertoire | planned (see "Volume 7 plan") | Books 7A and 7B | 71 complete pieces from Mutopia, Levels 7-10 |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The course is complete: six volumes.** Volume 6 (Levels 7-8, an extension beyond the original
 five-volume plan) is described in "Volume 6 (done)" below, followed by its plan as written before it
-was built, with a "Unit N (done)" section for each unit.
+was built, with a "Unit N (done)" section for each unit. **Next: Volume 7**, a repertoire book of 71
+complete pieces (no exercises), printed as two books by level: see "Volume 7 plan".
 All six volumes are protected by
 `course/check_identical.py` (see "Build"). Volumes 5 and 6 are described in "Volume 5 (done)" and "Volume 6 (done)"
 below; the original plans follow them for reference.
@@ -26,7 +28,7 @@ Note: the Volume 1 PDFs were built before two small layout tweaks (the "What is 
 now stays with its first item, and keyboards widen to fit every key). Rebuilding Volume 1
 would only change the page layout; exercises are identical.
 
-## Course plan (five volumes, then a sixth)
+## Course plan (five volumes, then a sixth and a seventh)
 
 | Volume | Levels | Main new skills | Units |
 | --- | --- | --- | --- |
@@ -36,6 +38,7 @@ would only change the page layout; exercises are identical.
 | 4 · Patterns and Keys (done) | 4 | Chords in both hands, syncopation, sixteenths, ledger lines, changing key mid-piece | 8 |
 | 5 · Repertoire Reading (done) | 5–6 | 3–4 voices, chromatic notes, all keys, chorales | 8 |
 | 6 · Reading Like a Professional (done) | 7–8 | Three-voice counterpoint, cross-rhythms, changing meters, chromatic harmony, big textures, accompanying, open score and C clefs, lead sheets | 8 |
+| 7 · Repertoire (planned) | 7–10 | Complete pieces to learn: Bach to Debussy and Joplin, 71 pieces in two books (7A: Levels 7–8, 7B: Levels 9–10) | 5 sections |
 
 Volumes 1–2 are mostly generated exercises. Volumes 3–4 are about half generated, half
 re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
@@ -186,6 +189,223 @@ Mutopia source (after `convert-ly`) into absolute pitches.
 
 The build now reports LilyPond warnings (it used `-s`, which hid them); only page-compression notices
 are filtered.
+
+## Volume 7 plan (Repertoire, Levels 7-10)
+
+**Goal.** A book of real music to learn and keep: 71 complete pieces and movements by 21 great
+keyboard composers, from Bach to Joplin, at and above the level a reader reaches by the end of
+Volume 6. Volumes 1-6 build reading; Volume 7 is where the reading pays off. It is a repertoire
+book, not a practice book: no exercises, no generated music, no originals. Every piece is printed
+complete (whole pieces or whole movements, never excerpts), so the book never runs out.
+
+**Who it is for.** Readers who passed the Volume 6 checkpoint. Start-of-book text: "Volumes 1-6
+taught you to read. This book is music to learn: each piece will take from a few days to a few
+weeks. Start with the Level 7 pieces in any section; the Level 10 pieces are goals, not homework."
+
+**Size.** 71 pieces in 5 sections by era, about 290 pages of
+music. That is too much for one printed book, so Volume 7 is printed as **two books with the same
+five sections**, split by level:
+
+| Book | Levels | Pieces | Pages of music (measured) | With section pages and front matter |
+| --- | --- | --- | --- | --- |
+| 7A | 7-8 | 45 | about 122 | about 135 |
+| 7B | 9-10 | 26 | about 169 | about 180 |
+
+Book 7A is the one to start with straight after Volume 6; 7B holds the long movements (Schubert
+Impromptus, the Moonlight finale, Fantaisie-Impromptu). The page counts were measured, not guessed:
+every source in the tables was fetched from the Mutopia repository and compiled here with LilyPond
+2.25 at its own layout (A4 or letter, staff size 18-20), before this plan was written; two that did
+not compile yet are estimated (marked ~). No seeds: Volume 7 has no generated exercises.
+
+### Levels
+
+The course's level scale continues: Volume 6 ended at Level 8 sight-reading. A piece's level here
+is the level at which it can be *learned* in one to three weeks, not sight-read:
+
+| Level | Meaning | Rough equivalent |
+| --- | --- | --- |
+| 7 | Learnable in days after Volume 6: two or three voices, moderate tempo, few hand shifts | ABRSM Grade 5-6 |
+| 8 | A week or two: faster passagework, wider stretches, pedal and voicing matter | Grade 6-7 |
+| 9 | Two to three weeks: virtuosic passages, dense chords, long forms | Grade 7-8 |
+| 10 | A long-term goal: concert repertoire (Moonlight finale, Fantaisie-Impromptu) | Grade 8-diploma |
+
+Levels are estimates from the score; each is checked when the piece is engraved and adjusted in
+"Changes from plan". The contents page lists every piece with its level, and an index at the back of each
+book lists its pieces by level ("a suggested order").
+
+### Sections
+
+Each section opens with one page: the era in four or five sentences, what its music asks of the
+player (Baroque: independent voices, articulation without pedal; Classical: clean passagework and
+balance; Romantic: singing tone, pedal, rubato; Modern: colour, pedal layers, syncopation), and the
+section's pieces in order. Within a section, pieces are grouped by composer, easiest first.
+
+#### Section 1: Baroque (Bach, Handel, Scarlatti, Rameau): 16 pieces, about 32 pages
+
+| # | Piece | Composer | Level | Book | Pages | Mutopia | Licence | Source |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Little Prelude in D minor, BWV 926 | J. S. Bach | 7 | A | 2 | 69 | PD | builds |
+| 2 | Little Prelude in C, BWV 933 | J. S. Bach | 7 | A | 1 | 1537 | CC BY-SA | builds |
+| 3 | Invention No. 1 in C, BWV 772 | J. S. Bach | 7 | A | 2 | 40 | CC BY-SA | builds |
+| 4 | Invention No. 4 in D minor, BWV 775 | J. S. Bach | 7 | A | 2 | 67 | PD | builds |
+| 5 | Invention No. 8 in F, BWV 779 | J. S. Bach | 7 | A | 2 | 61 | PD | builds |
+| 6 | Invention No. 13 in A minor, BWV 784 | J. S. Bach | 8 | A | 2 | 59 | PD | builds |
+| 7 | Sinfonia No. 2 in C minor, BWV 788 | J. S. Bach | 8 | A | 3 | 140 | PD | builds |
+| 8 | Prelude in C, WTC I No. 1, BWV 846 | J. S. Bach | 7 | A | 2 | 5 | PD | builds |
+| 9 | Prelude in C minor, WTC I No. 2, BWV 847 | J. S. Bach | 8 | A | 2 | 550 | PD | fix |
+| 10 | Fugue in C minor, WTC I No. 2, BWV 847 | J. S. Bach | 9 | B | 2 | 1941 | CC BY-SA | builds |
+| 11 | French Suite No. 5: Gavotte, BWV 816 | J. S. Bach | 7 | A | 1 | 99 | PD | builds |
+| 12 | Goldberg Variations: Aria, BWV 988 | J. S. Bach | 8 | A | 2 | 979 | CC BY-SA | builds |
+| 13 | Air with variations (Aylesford Pieces) | G. F. Handel | 7 | A | 2 | 165 | PD | builds |
+| 14 | Sonata in C minor, K. 11 | D. Scarlatti | 8 | A | 1 | 141 | PD | builds |
+| 15 | Sonata in G, K. 455 | D. Scarlatti | 9 | B | 4 | 2104 | CC BY-SA | builds |
+| 16 | Tambourin | J.-P. Rameau | 8 | A | 2 | 487 | PD | builds |
+
+#### Section 2: Classical (Haydn, Mozart, Beethoven): 16 pieces, about 94 pages
+
+| # | Piece | Composer | Level | Book | Pages | Mutopia | Licence | Source |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 17 | Fur Elise, WoO 59 | L. van Beethoven | 7 | A | 3 | 931 | PD | builds |
+| 18 | Sonata Op. 49 No. 2, I: Allegro ma non troppo | L. van Beethoven | 7 | A | 4 | 776 | PD | builds |
+| 19 | Sonata Op. 49 No. 2, II: Tempo di menuetto | L. van Beethoven | 7 | A | 4 | 777 | PD | builds |
+| 20 | Sonata in C, K. 545, I: Allegro | W. A. Mozart | 7 | A | 5 | 998 | CC BY-SA | builds |
+| 21 | Sonata in C, K. 545, II: Andante | W. A. Mozart | 7 | A | 4 | 1007 | CC BY-SA | builds |
+| 22 | Sonata in C, K. 545, III: Rondo | W. A. Mozart | 8 | A | 3 | 1027 | CC BY-SA | builds |
+| 23 | Sonata in G, Hob. XVI:27, III: Presto | J. Haydn | 8 | A | 3 | 187 | PD | builds |
+| 24 | Fantasia in D minor, K. 397 | W. A. Mozart | 8 | A | 6 | 2034 | PD | builds |
+| 25 | Sonata Op. 27 No. 2 'Moonlight', I: Adagio sostenuto | L. van Beethoven | 8 | A | 5 | 276 | CC BY-SA 2.5 | fix |
+| 26 | Sonata Op. 13 'Pathetique', II: Adagio cantabile | L. van Beethoven | 8 | A | 5 | 295 | PD | builds |
+| 27 | Sonata in A, K. 331, III: Rondo alla turca | W. A. Mozart | 9 | B | 5 | 108 | PD | builds |
+| 28 | Sonata Op. 79, I: Presto alla tedesca | L. van Beethoven | 9 | B | 6 | 955 | PD | builds |
+| 29 | Sonata Op. 13 'Pathetique', III: Rondo | L. van Beethoven | 9 | B | 8 | 296 | PD | builds |
+| 30 | Sonata Op. 13 'Pathetique', I: Grave - Allegro | L. van Beethoven | 10 | B | 9 | 299 | PD | builds |
+| 31 | Sonata in C minor, K. 457, I: Molto allegro | W. A. Mozart | 10 | B | 8 | 356 | PD | builds |
+| 32 | Sonata Op. 27 No. 2 'Moonlight', III: Presto agitato | L. van Beethoven | 10 | B | 16 | 276 | CC BY-SA 2.5 | fix |
+
+#### Section 3: Early Romantic (Schubert, Field, Mendelssohn, Schumann, Chopin): 21 pieces, about 92 pages
+
+| # | Piece | Composer | Level | Book | Pages | Mutopia | Licence | Source |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 33 | Moment musical No. 3 in F minor, D. 780 | F. Schubert | 7 | A | 3 | 1023 | PD | builds |
+| 34 | Impromptu in A-flat, D. 935 No. 2 | F. Schubert | 8 | A | 5 | 1195 | PD | builds |
+| 35 | Impromptu in G-flat, D. 899 No. 3 | F. Schubert | 9 | B | 9 | 1193 | PD | builds |
+| 36 | Impromptu in E-flat, D. 899 No. 2 | F. Schubert | 10 | B | 11 | 1551 | PD | fix |
+| 37 | Impromptu in A-flat, D. 899 No. 4 | F. Schubert | 10 | B | 12 | 1552 | PD | fix |
+| 38 | Nocturne No. 5 in B-flat, H. 37 | J. Field | 8 | A | 2 | 2137 | CC BY-SA | builds |
+| 39 | Song without Words Op. 19 No. 6 'Venetian Gondola Song' | F. Mendelssohn | 8 | A | 2 | 1679 | CC BY 3.0 | builds |
+| 40 | Song without Words Op. 30 No. 6 'Venetian Gondola Song' | F. Mendelssohn | 8 | A | 2 | 1741 | PD | builds |
+| 41 | Song without Words Op. 53 No. 5 'Folk Song' | F. Mendelssohn | 9 | B | 4 | 592 | PD | builds |
+| 42 | Kinderszenen No. 1: Of Foreign Lands and Peoples | R. Schumann | 7 | A | 1 | 354 | PD | builds |
+| 43 | Kinderszenen No. 7: Traumerei | R. Schumann | 7 | A | 2 | 504 | PD | builds |
+| 44 | Romance in F-sharp, Op. 28 No. 2 | R. Schumann | 9 | B | 2 | 314 | PD | builds |
+| 45 | Prelude in E minor, Op. 28 No. 4 | F. Chopin | 7 | A | 1 | 468 | PD | builds |
+| 46 | Prelude in B minor, Op. 28 No. 6 | F. Chopin | 7 | A | 2 | 469 | PD | builds |
+| 47 | Prelude in A, Op. 28 No. 7 | F. Chopin | 7 | A | 1 | 470 | PD | fix |
+| 48 | Prelude in D-flat 'Raindrop', Op. 28 No. 15 | F. Chopin | 8 | A | 5 | 471 | PD | builds |
+| 49 | Waltz in B minor, Op. 69 No. 2 | F. Chopin | 8 | A | 4 | 511 | PD | builds |
+| 50 | Nocturne in E-flat, Op. 9 No. 2 | F. Chopin | 8 | A | 3 | 1590 | CC BY-SA | fix |
+| 51 | Nocturne in E minor, Op. 72 No. 1 | F. Chopin | 9 | B | 4 | 509 | CC BY-SA | builds |
+| 52 | Waltz in D-flat 'Minute', Op. 64 No. 1 | F. Chopin | 9 | B | ~4 | 483 | PD | fix |
+| 53 | Fantaisie-Impromptu, Op. 66 | F. Chopin | 10 | B | 13 | 1693 | PD | builds |
+
+#### Section 4: Late Romantic (Brahms, Liszt, Grieg, Tchaikovsky, Scriabin, Rachmaninoff): 9 pieces, about 39 pages
+
+| # | Piece | Composer | Level | Book | Pages | Mutopia | Licence | Source |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 54 | Waltz in A-flat, Op. 39 No. 15 | J. Brahms | 7 | A | 2 | 794 | PD | builds |
+| 55 | Intermezzo in A, Op. 118 No. 2 | J. Brahms | 9 | B | 5 | 535 | PD | builds |
+| 56 | Consolation No. 1 in E, S. 172 | F. Liszt | 8 | A | 1 | 1654 | CC BY 3.0 | builds |
+| 57 | Consolation No. 3 in D-flat, S. 172 | F. Liszt | 9 | B | 4 | 1647 | CC BY 3.0 | builds |
+| 58 | In the Hall of the Mountain King (Peer Gynt), piano | E. Grieg | 8 | A | 4 | 1888 | PD | builds |
+| 59 | Wedding Day at Troldhaugen, Op. 65 No. 6 | E. Grieg | 9 | B | 13 | 781 | PD | builds |
+| 60 | The Seasons: January 'By the Hearth', Op. 37a No. 1 | P. I. Tchaikovsky | 9 | B | 5 | 1171 | PD | fix |
+| 61 | Prelude in C, Op. 11 No. 1 | A. Scriabin | 9 | B | 1 | 1779 | PD | builds |
+| 62 | Prelude in C-sharp minor, Op. 3 No. 2 | S. Rachmaninoff | 10 | B | 4 | 2033 | CC BY-SA | builds |
+
+#### Section 5: Into the 20th century (Satie, Joplin, Debussy): 9 pieces, about 34 pages
+
+| # | Piece | Composer | Level | Book | Pages | Mutopia | Licence | Source |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 63 | Gymnopedie No. 1 | E. Satie | 7 | A | 2 | 37 | PD | builds |
+| 64 | Gymnopedie No. 3 | E. Satie | 7 | A | 2 | 39 | PD | builds |
+| 65 | Gnossienne No. 1 | E. Satie | 7 | A | 2 | 2035 | CC BY-SA | builds |
+| 66 | The Entertainer | S. Joplin | 8 | A | 4 | 263 | PD | builds |
+| 67 | Elite Syncopations | S. Joplin | 8 | A | 4 | 1540 | PD | builds |
+| 68 | Maple Leaf Rag | S. Joplin | 9 | B | ~4 | 23 | PD | fix |
+| 69 | Arabesque No. 1 | C. Debussy | 9 | B | 5 | 1777 | PD | builds |
+| 70 | Arabesque No. 2 | C. Debussy | 9 | B | 7 | 1994 | CC BY-SA | builds |
+| 71 | Suite bergamasque: Clair de lune | C. Debussy | 9 | B | 4 | 1778 | PD | builds |
+
+"Level" is the estimated learning level (see Levels). "Book" follows from it. "Source": *builds* means
+the Mutopia file compiles cleanly after `convert-ly`; *fix* means it still needs hand fixes for
+syntax that `convert-ly` does not upgrade (old Scheme in `\paper`, removed commands such as
+`\partcombine` options or `unfold-repeats` arguments, inter-file includes). Pieces that appeared as
+excerpts in earlier volumes (Pathetique Grave, Nocturne Op. 9 No. 2, Wedding Day at Troldhaugen,
+Arabesque No. 1, Clair de lune) are printed complete here.
+
+### Each piece
+
+Title, composer and dates, work and movement, level, approximate duration, then a note of two or
+three sentences: what the piece is, the one or two places that need slow work, and the source
+(Mutopia number and licence), as in Volumes 5-6. Then the complete score. A piece longer than a page
+starts on a new page; pieces of a page or less may share a page.
+
+### Build: what changes (`course/build.py`, new `course/rep7.py`)
+
+1. **Sources are used as they are, not transcribed.** Volumes 3-6 retyped excerpts into
+   `content/*.py`; full pieces of 2-8 pages are too long for that, and retyping invites errors. Each
+   piece's Mutopia source is copied into `repertoire/<composer>/<piece>/`, upgraded with
+   `convert-ly`, and its `\header`, `\paper` and Mutopia footer are stripped by a small script
+   (`course/rep7.py import`), leaving the music and its `\score` body. The licence file and the
+   original header are kept beside it.
+2. **`content/v7secNN.py`** lists each section's pieces: source path, title, composer, dates, level,
+   duration, note, Mutopia ID and licence. No `rh`/`lh` strings.
+3. **`build.py --vol 7 --book A|B`**: title page and contents (with levels), then for each section
+   its opening page and its pieces of that book's levels; each piece is a heading markup and an
+   `\include` of its music in a `\score` with the book's layout (staff size 20, the Volume 6 header
+   and margins). A "Levels" index and a "Sources and licences" page close each book. Output:
+   `build/Read at Sight - Volume 7A.pdf` and `... 7B.pdf`.
+4. **Checks.** `check_pieces.py` does not apply (it compares retyped excerpts with the source);
+   instead `rep7.py check` compiles each piece on its own and fails on any LilyPond warning (bar
+   checks, collisions, unknown commands), and the build must have no `WARN:` lines as before. Every
+   page is looked at, as before.
+5. **Fingerprints.** `check_identical.py` gains Volume 7 when it is finished; Volumes 1-6 stay
+   identical (Volume 7 code touches no earlier path).
+
+**Licences.** 52 sources are public domain, 16 are CC BY-SA (2.5 to 4.0) and 3 are CC BY 3.0. CC BY-SA sources require attribution and that the adapted
+engraving be shared under the same licence: the "Sources and licences" page lists every piece's
+Mutopia number, typesetter and licence, and states that the Volume 7 book is released under CC BY-SA
+4.0 (compatible with the 2.5 and 3.0 sources' "or later" terms). Public-domain sources need nothing
+but are credited the same way.
+
+### Build order
+
+1. `rep7.py` (import, strip, check) and `build.py --vol 7 --book A` with Section 1 only; look at every
+   page.
+2. One section at a time: import its sources, fix the ones that do not compile as they are (listed in
+   the tables as "fix"), write `content/v7secNN.py`, build, look at every page, commit and push.
+3. Last: the Levels indexes, the Sources and licences pages, the two book PDFs, README, and
+   `check_identical.py --add 7`.
+
+**Risks.** Ten sources need hand fixes before they compile (marked *fix*); the two Schubert Impromptus and the Moonlight finale are the longest of them, so start those early. Mutopia layouts that force line or page breaks (`\break`, `\pageBreak`) are
+removed so the book's layout decides. Some sources print fingering or editorial marks of their
+own; these are kept (they help) unless they clash with the book's style. A few long pieces (Schubert
+Impromptus, Fantaisie-Impromptu, Troldhaugen, Moonlight finale) run to 9-16 pages: page turns should fall at rests or section breaks,
+using `\pageBreak` hints where needed.
+
+**Spares** (on Mutopia, not chosen; swap in if a source proves unusable): Bach: Invention 14, Sinfonias 5 and 9, WTC I Preludes 5, 6 and 8, English Suite 2 Bourrees;
+Handel: other Aylesford Pieces; Scarlatti K. 491; Rameau: Les Sauvages, Les tendres plaintes; Haydn:
+Sonata Hob. XVI:28; Mozart: K. 331 theme, K. 457 II and III; Beethoven: Op. 49 No. 1, Op. 79 III, Op. 2
+No. 1 I, Op. 10 No. 1 I, Rondo a capriccio Op. 129, Six Variations Op. 76; Schubert: Impromptus D. 899
+No. 1, D. 935 Nos. 3 and 4, Hungarian Melody D. 817; Chopin: Preludes 1, 9, 13, 17, 20, 21, Nocturnes Op.
+9 Nos. 1 and 3, Op. 27 No. 2, Mazurkas Op. 6 No. 1 and Op. 33 No. 1, Prelude Op. 45; Schumann: Album
+for the Young 16, 26, 32, Romance Op. 124 No. 16; Mendelssohn: Songs without Words Op. 19 No. 5, Op.
+85 No. 1, Op. 102 No. 3, Scherzo Op. 16; Liszt: Consolation No. 4; Brahms: Waltz Op. 39 No. 10;
+Tchaikovsky: The Seasons, February and August; Grieg: March of the Trolls, Mountaineer's Song;
+Scriabin: Preludes Op. 16; Rachmaninoff: Preludes Op. 23 Nos. 4 and 5; Satie: Gymnopedie No. 2,
+Gnossiennes 2-3, Trois valses distinguees; Debussy: Preludes Book 1, Nos. 1-4; Joplin: Solace, Bethena,
+Peacherine, Sugar Cane, Original Rags, Search-Light Rag; Albeniz: Rumores de la Caleta. About 70 more
+pieces: enough for a second repertoire volume later.
 
 ## Volume 6 (done)
 
