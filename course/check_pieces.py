@@ -17,9 +17,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "content"))
-from units import VOLUME1, VOLUME2, VOLUME3, VOLUME4, POSITIONS  # noqa: E402
+from units import VOLUME1, VOLUME2, VOLUME3, VOLUME4, VOLUME5, POSITIONS  # noqa: E402
 
-VOLS = {1: (VOLUME1, "unit"), 2: (VOLUME2, "v2unit"), 3: (VOLUME3, "v3unit"), 4: (VOLUME4, "v4unit")}
+VOLS = {1: (VOLUME1, "unit"), 2: (VOLUME2, "v2unit"), 3: (VOLUME3, "v3unit"), 4: (VOLUME4, "v4unit"),
+        5: (VOLUME5, "v5unit")}
 # Largest leap allowed (in diatonic steps) by the end of each unit
 MAX_LEAP = {1: {1: 1, 2: 1, 3: 1, 4: 2, 5: 2, 6: 2, 7: 2, 8: 4, 9: 4, 10: 4},
             2: {i: 4 for i in range(1, 11)},
@@ -146,8 +147,127 @@ def check_unit(unit, vol=1):
     return problems
 
 
+# ---------------------------------------------------------------- Volume 5
+# Volume 5 has no hand positions, so its pieces are checked for what has been taught instead: keys,
+# time signatures, triplets, pedal, clef changes and ornaments, and (from LilyPond's own reading of the
+# music) bar lengths, each hand's span at any moment and its largest leap.
+V5_MAX_ACC = {1: 3, 2: 3, 3: 3, 4: 3, 5: 4, 6: 7, 7: 7, 8: 7}       # sharps or flats in the key signature
+V5_METERS = {"4/4", "3/4", "2/4", "6/8"}
+V5_METERS_U4 = V5_METERS | {"3/8", "9/8", "12/8", "2/2"}            # new time signatures from Unit 4
+V5_FEATURES = [  # (pattern, first unit, name)
+    (r"\\tuplet|\\times", 4, "triplets"),
+    (r"\\sustainOn|\\sustainOff", 7, "pedal marks"),
+    (r"\\clef", 7, "clef changes"),
+    (r"\\trill|\\prall|\\mordent|\\turn|\\acciaccatura|\\appoggiatura|\\grace", 8, "ornaments"),
+]
+VERBOSE = "--verbose" in sys.argv
+V5_MAX_LEAP = {u: (12 if u < 7 else 24) for u in range(1, 9)}     # semitones; two octaves with the pedal
+
+LISTENER = r"""
+#(define (v5-listener context)
+  (let ((id (ly:context-id context)))
+    (make-engraver
+      (listeners
+        ((note-event engraver event)
+          (let* ((m (ly:context-current-moment (ly:translator-context engraver)))
+                 (p (ly:event-property event 'pitch))
+                 (d (ly:event-property event 'duration)))
+            (if (and (ly:pitch? p) (ly:duration? d))
+              (format #t "EV ~a ~a ~a ~a ~a\n" id (ly:moment-main m)
+                      (if (zero? (ly:moment-grace m)) 0 1)
+                      (+ 60 (ly:pitch-semitones p)) (ly:moment-main (ly:duration-length d))))))))))
+\layout { \context { \Staff \consists #v5-listener } }
+"""
+
+
+def v5_events(pieces):
+    """Compile the pieces (without output) and collect every note LilyPond reads, per staff, plus
+    LilyPond's warnings (a bar check that fails means a bar of the wrong length)."""
+    import subprocess
+    import tempfile
+    from fractions import Fraction
+    import build
+    parts = ['\\version "2.24.0"', LISTENER]
+    for i, pc in enumerate(pieces):
+        pre = "\\once \\override Staff.TimeSignature.style = #'C " if pc.get("cut") else ""
+        parts.append(f"""\\score {{ \\new PianoStaff <<
+  \\new Staff = "p{i}rh" {{ \\clef treble \\key {pc.get('key', 'c \\major')} {pre}\\time {pc['meter']} {pc['rh']} }}
+  \\new Staff = "p{i}lh" {{ \\clef bass \\key {pc.get('key', 'c \\major')} {pre}\\time {pc['meter']} {pc['lh']} }}
+>> \\layout {{ }} }}""")
+    with tempfile.TemporaryDirectory() as d:
+        ly = os.path.join(d, "check.ly")
+        open(ly, "w").write("\n".join(parts))
+        r = subprocess.run([build.lilypond_bin(), "-dno-print-pages", "-o", os.path.join(d, "out"), ly],
+                           capture_output=True, text=True, cwd=d)
+    if r.returncode != 0:
+        raise SystemExit(r.stderr[-3000:])
+    ev = {}
+    for line in r.stdout.splitlines():
+        if line.startswith("EV "):
+            _, sid, mom, grace, pitch, dur = line.split()
+            ev.setdefault(sid, []).append((Fraction(mom), grace == "1", int(pitch), Fraction(dur)))
+    warns = [w for w in r.stderr.splitlines() if "warning" in w.lower()]
+    return ev, warns
+
+
+def check_unit_v5(unit, content):
+    import gen5
+    uid = unit["id"]
+    problems = []
+    pieces = content.PIECES
+    ev, warns = v5_events(pieces)
+    for w in warns:
+        problems.append("LilyPond: " + w.split("warning:")[-1].strip())
+    for i, pc in enumerate(pieces):
+        t = pc["title"]
+        music = pc["rh"] + " " + pc["lh"]
+        keys = [pc.get("key", "c \\major")] + re.findall(r"\\key\s+(\S+\s+\\\w+)", music)
+        for k in keys:
+            name, mode = k.split()
+            n = gen5.Key(name, mode.lstrip("\\")).accidentals()
+            if n > V5_MAX_ACC[uid] and not pc.get("allow_key"):
+                problems.append(f"{t}: key {k} has {n} sharps or flats (Unit {uid} allows {V5_MAX_ACC[uid]})")
+        meters = [pc["meter"]] + re.findall(r"\\time\s+(\d+/\d+)", music)
+        for m in meters:
+            if m not in (V5_METERS_U4 if uid >= 4 else V5_METERS):
+                problems.append(f"{t}: time signature {m} not taught yet")
+        for pat, first, what in V5_FEATURES:
+            if uid < first and re.search(pat, music) and what not in pc.get("allow", ()):
+                problems.append(f"{t}: {what} not taught yet")
+        for hand in ("rh", "lh"):
+            notes = [x for x in ev.get(f"p{i}{hand}", []) if not x[1]]
+            if not notes:
+                continue
+            span_max = pc.get("allow_span", 12)
+            bar_len = Fraction_(*map(int, pc["meter"].split("/")))
+            up = Fraction_(*map(int, pc["upbeat"].split("/"))) if pc.get("upbeat") else 0
+            for m, _, p, d in notes:
+                sounding = [p2 for m2, _, p2, d2 in notes if m2 <= m < m2 + d2]
+                if max(sounding) - min(sounding) > span_max:
+                    where = (m - up) / bar_len
+                    problems.append(f"{t} {hand}: span of {max(sounding) - min(sounding)} semitones in bar "
+                                    f"{int(where) + 1} (beat {float((where - int(where)) * bar_len * 4) + 1:g})")
+                    if not VERBOSE:
+                        break
+            onsets = sorted({m for m, _, _, _ in notes})
+            # the top of whatever sounds at each new note (a held tenor stays on top while the bass moves)
+            tops = [max(p for m2, _, p, d2 in notes if m2 <= m < m2 + d2) for m in onsets]
+            leap = max([abs(a - b) for a, b in zip(tops, tops[1:])] or [0])
+            if leap > pc.get("allow_leap", V5_MAX_LEAP[uid]):
+                problems.append(f"{t} {hand}: leap of {leap} semitones")
+            short = min(d for _, _, _, d in notes)
+            if short < Fraction_(1, 16) and not pc.get("allow_32"):
+                problems.append(f"{t} {hand}: notes shorter than a sixteenth")
+    return problems
+
+
+def Fraction_(a, b):
+    from fractions import Fraction
+    return Fraction(a, b)
+
+
 if __name__ == "__main__":
-    args = sys.argv[1:]
+    args = [a for a in sys.argv[1:] if a != "--verbose"]
     vol = 1
     if args and args[0] == "--vol":
         vol, args = int(args[1]), args[2:]
@@ -157,7 +277,10 @@ if __name__ == "__main__":
     for uid in ids:
         unit = next(u for u in units if u["id"] == uid)
         try:
-            probs = check_unit(unit, vol)
+            if vol >= 5:
+                probs = check_unit_v5(unit, importlib.import_module(f"{VOLS[vol][1]}{uid:02d}"))
+            else:
+                probs = check_unit(unit, vol)
         except ModuleNotFoundError:
             print(f"Unit {uid}: not written yet")
             continue

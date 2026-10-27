@@ -12,7 +12,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "content"))
 
-from units import VOLUME1, VOLUME2, VOLUME3, VOLUME4, POSITIONS, CHORDS  # noqa: E402
+from units import VOLUME1, VOLUME2, VOLUME3, VOLUME4, VOLUME5, POSITIONS, CHORDS  # noqa: E402
 from generator import generate_unit, lily_exercise, chord_fingers, lily_pitch, raised_pitch  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -65,6 +65,33 @@ VOLUMES = {
              "F-sharp minor and C minor, and music that moves into a new key. 2/4 time joins 3/4, 4/4 and 6/8. "
              "Start this book when you can read Volume 3 music: broken-chord and Alberti basses, 6/8, keys with two "
              "sharps or flats, and two independent voices."),
+        ]},
+    5: {"units": VOLUME5, "subtitle": "Volume 5  -  Repertoire Reading", "content": "v5unit",
+        "blurb": ["Real piano music: two voices in one hand, chorales, chromatic notes, triplets,",
+                  "every key, the pedal and ornaments, with pieces by Bach, Beethoven, Schumann and Chopin."],
+        "replace": {
+            "Before every exercise: 10 seconds":
+                "Name the key (the key signature and the last bass note) and the time signature. Look at the left "
+                "hand's pattern: held chords, a waltz, a broken chord, a second voice? Find the highest and lowest "
+                "notes, any accidentals, and any bar that repeats an earlier one. Then count one bar in and play.",
+            "How each unit is laid out":
+                "A unit opens with what is new, short examples, and reading tips. Parts A to C (sometimes D) are "
+                "generated exercises that practise the new idea. The pieces come next: in this volume they are the "
+                "heart of each unit, and most are real music by the great composers. A checkpoint ends the unit.",
+            "A daily routine (15-20 minutes)":
+                "Warm up with the scale and the I, IV and V chords of the day's key (2 minutes). Read 4-6 new "
+                "exercises, one pass each (8 minutes). Then read one piece, or a page of one, and practise a "
+                "passage from it (8 minutes)."},
+        "skip": ["Why this book is built this way"],
+        "extra": [
+            ("What is new in Volume 5",
+             "This is the last volume. The hand positions of Volumes 1-4 give way to reading as pianists do: by key, "
+             "by chord shape and by pattern. Finger numbers now appear only where a passage needs a particular "
+             "fingering. You will read two voices in one hand, four-part chorales, chromatic notes, triplets and "
+             "four new time signatures, every major and minor key, the sustain pedal, clef changes and ornaments. "
+             "Most of the pieces are real music: Bach chorales and inventions, Beethoven, Schubert, Schumann, "
+             "Chopin and Satie. Start this book when you can read Volume 4 music: chords in both hands, ledger "
+             "lines, syncopation, sixteenths and keys with three sharps or flats."),
         ]},
 }
 
@@ -324,6 +351,45 @@ def chord_map_score(groups):
 }}"""
 
 
+def example_score(exm):
+    """A short example (Volume 5): title, music on one staff or a piano staff, and a caption."""
+    staff = exm.get("staff", "piano")
+    key = exm.get("key", "c \\major")
+    time = exm.get("time")
+    tsig = f"\\time {time} " if time else ""
+    nost = "" if time else "\\with { \\remove \"Time_signature_engraver\" } "
+    pre = "\\accidentalStyle modern \\set Staff.pedalSustainStyle = #'bracket "
+    if staff == "piano":
+        music = (f"\\new PianoStaff << \\new Staff {nost}{{ \\clef treble \\key {key} {tsig}{pre}{exm['rh']} }} "
+                 f"\\new Staff {nost}{{ \\clef bass \\key {key} {tsig}{pre}{exm['lh']} }} >>")
+    else:
+        music = f"\\new Staff {nost}{{ \\clef {staff} \\key {key} {tsig}{pre}{exm['rh']} }}"
+    cap = f"\\override #'(line-width . {TEXT_WIDTH}) \\fontsize #-1 \\wordwrap-string #{s(exm['text'])}" if exm.get("text") else ""
+    return f"""\\score {{
+  \\header {{ piece = \\markup \\column {{ \\fontsize #1 \\bold {s(exm['title'])} {cap} }} }}
+  {music}
+  \\layout {{ ragged-right = ##{'f' if exm.get('wide') else 't'} }}
+}}"""
+
+
+def key_picture(kp):
+    """One octave of a key's scale on the keyboard: scale degrees on the keys (Volume 5)."""
+    import gen5
+    title, name, mode = kp
+    k = gen5.Key(name, mode)
+    start = 28 + k.tpc if k.tpc <= 2 else 21 + k.tpc
+    keys = []
+    for i in range(8):
+        st = start + i
+        alt = k.sig[st % 7] + (1 if mode == "minor" and i == 6 else 0)
+        keys.append((st, {1: "is", -1: "es", 0: None, 2: "isis"}[alt], str(i % 7 + 1), "RH"))
+    lo, hi = start - 1, start + 8
+    kb = keyboard_markup(lo, hi, keys, {})
+    names = " ".join(gen5.LETTERS[(start + i) % 7].upper() + {1: "#", -1: "b", 0: "", 2: "x"}[keys[i][1] and (1 if keys[i][1] == "is" else -1) or 0] for i in range(8))
+    return (f"\\markup \\column {{ \\vspace #0.6 \\fill-line {{ \\fontsize #1 \\bold {s(title)} }} \\vspace #0.5 "
+            f"\\fill-line {{ {kb} }} \\vspace #0.8 \\fill-line {{ \\fontsize #-1 \\italic {s('Scale degrees on the keys: ' + names)} }} \\vspace #0.4 }}")
+
+
 # ---------------------------------------------------------------- front matter
 def title_page(vol):
     V = VOLUMES[vol]
@@ -416,7 +482,7 @@ def unit_pages(unit, vol=1):
     # Keyboard picture(s) of the hand position(s) used in this unit
     groups = getattr(content, "KEYBOARDS", None)
     if groups is None:  # KEYBOARDS = [] draws no position keyboard (e.g. a unit about chord shapes)
-        groups = [unit_positions(unit, content)]
+        groups = [unit_positions(unit, content)] if vol < 5 else []  # Volume 5 has no hand positions
     for pos_keys in groups:
         keys = [k for pk in pos_keys for k in position_keys(pk)]
         hands_here = {POSITIONS[pk]["hand"] for pk in pos_keys}
@@ -443,13 +509,23 @@ def unit_pages(unit, vol=1):
     for i, (head, body) in enumerate(content.NEW_IDEAS):
         lead = "\\vspace #0.5 \\fontsize #3 \\bold \"What is new\" \\vspace #0.3 " if i == 0 else ""
         out.append(f"\\markup \\override #'(line-width . {TEXT_WIDTH}) \\column {{ {lead}\\fontsize #1 \\bold {s(head)} {para(body, 0)} }}")
+    # Short examples (Volume 5): small scores with a caption, e.g. how an ornament is played
+    for exm in getattr(content, "EXAMPLES", []):
+        out.append(example_score(exm))
+    for kp in getattr(content, "KEY_PICTURES", []):
+        out.append(key_picture(kp))
     # Tips box
     out.append(boxed_list("Reading tips", content.TIPS))
     out.append("\\pageBreak")
 
     # Exercise parts
     n = 0
-    for part, exercises in generate_unit(unit, seed=vol * 1000 + unit["id"]):
+    if vol >= 5:
+        import gen5
+        gen_unit, emit = gen5.generate_unit, gen5.lily_exercise
+    else:
+        gen_unit, emit = generate_unit, (lambda p, e, label: [lily_exercise(p, e, label)])
+    for part, exercises in gen_unit(unit, seed=vol * 1000 + unit["id"]):
         out.append(f"""\\markup \\column {{
   \\vspace #0.6
   \\line {{ \\fontsize #4 \\bold {s('Part ' + part['name'] + ': ' + part['title'])} \\hspace #3 \\fontsize #1 {tempo_mk(part['tempo'], part.get('tempo_unit', '4'))} }}
@@ -459,7 +535,7 @@ def unit_pages(unit, vol=1):
 }}""")
         for ex in exercises:
             n += 1
-            out.append(lily_exercise(part, ex, f"{unit['id']}.{n}"))
+            out.extend(emit(part, ex, f"{unit['id']}.{n}"))
         out.append("\\pageBreak")
 
     # Pieces
@@ -471,9 +547,14 @@ def unit_pages(unit, vol=1):
 }}""")
     for pc_ in content.PIECES:
         pkey = pc_.get('key', 'c \\major')
-        prh = pc_['rh'].replace('\\break', '\\break \\noPageBreak')
+        prh = pc_['rh'] if pc_.get('long') else pc_['rh'].replace('\\break', '\\break \\noPageBreak')
         lpre = "\\set fingeringOrientations = #'(left) " if vol >= 4 else ""  # fingers beside LH chords
         rpre = lpre if re.search(r"<[^>]*-\d", pc_['rh']) else ""  # and RH chords that carry fingers
+        tpre = ""
+        if vol >= 5:  # Volume 5: alla breve sign, bracket pedal marks, reminders after accidentals
+            tpre = "\\once \\override Staff.TimeSignature.style = #'C " if pc_.get('cut') else ""
+            rpre = "\\accidentalStyle modern " + rpre
+            lpre = "\\accidentalStyle modern \\set Staff.pedalSustainStyle = #'bracket " + lpre
         out.append(f"""\\score {{
   \\header {{
     piece = \\markup \\column {{
@@ -483,8 +564,8 @@ def unit_pages(unit, vol=1):
     }}
   }}
   \\new PianoStaff <<
-    \\new Staff {{ \\autoLineBreaksOff \\clef treble \\key {pkey} \\time {pc_['meter']} {rpre}{prh} }}
-    \\new Staff {{ \\clef bass \\key {pkey} \\time {pc_['meter']} {lpre}{pc_['lh']} \\bar "|." }}
+    \\new Staff {{ \\autoLineBreaksOff \\clef treble \\key {pkey} {tpre}\\time {pc_['meter']} {rpre}{prh} }}
+    \\new Staff {{ \\clef bass \\key {pkey} {tpre}\\time {pc_['meter']} {lpre}{pc_['lh']} \\bar "|." }}
   >>
   \\layout {{ }}
 }}""")
@@ -513,12 +594,14 @@ def build(unit_ids, vol=1, front=None):
     ly = os.path.join(BUILD, name + ".ly")
     with open(ly, "w") as f:
         f.write("\n".join(parts))
-    r = subprocess.run([lilypond_bin(), "-s", "--pdf", "-o", os.path.join(BUILD, name), ly],
+    r = subprocess.run([lilypond_bin(), "-l", "WARNING", "--pdf", "-o", os.path.join(BUILD, name), ly],
                        capture_output=True, text=True)
     if r.returncode != 0:
         print(r.stderr[-4000:])
         raise SystemExit("LilyPond failed")
-    warnings = [line for line in r.stderr.splitlines() if "warning" in line.lower()]
+    benign = ("has been compressed", "page must be compressed")  # a page filled a little tighter: harmless
+    warnings = [line for line in r.stderr.splitlines() if "warning" in line.lower()
+                and not any(b in line for b in benign)]
     for w in warnings:
         print("WARN:", w)
     print("built", os.path.join(BUILD, name + ".pdf"))
