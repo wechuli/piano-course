@@ -8,7 +8,7 @@ A print-ready A4 course book, typeset with LilyPond.
 | --- | --- | --- | --- |
 | 1 · First Steps | complete | `build/Read at Sight - Volume 1.pdf` (130 pp.) | 10 units, 322 exercises, 39 pieces |
 | 2 · Moving Hands | complete | `build/Read at Sight - Volume 2.pdf` (133 pp.) | 10 units, 306 exercises, 35 pieces |
-| 3 · Two Voices | in progress: Units 1-6 done | `build/units/` (Vol3 - Unit 1 to 6) | Units 1-6: 206 exercises, 20 pieces |
+| 3 · Two Voices | in progress: Units 1-7 done | `build/units/` (Vol3 - Unit 1 to 7) | Units 1-7: 240 exercises, 23 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
@@ -45,7 +45,7 @@ re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
 | 4 (done) | D Major | Two sharps; D major chords | positions/keys exist (`RH_D`, `LH_D`, `KEY_D`); LH chord shapes in D |
 | 5 (done) | B-flat Major | Two flats | new `RH_Bb`/`LH_Bb` positions, `KEY_BB` (`{"b": "es", "e": "es"}`) |
 | 6 (done) | Accidentals | Accidentals inside the bar; raised 7th in minor | per-note accidentals in the melody and in V7 (minor keys); B minor and G minor |
-| 7 | Two Notes at Once | RH thirds and sixths | RH two-note chords (`<e' g'>`); checker must parse `< >` |
+| 7 (done) | Two Notes at Once | RH thirds and sixths | RH two-note chords (`<e' g'>`); checker must parse `< >` |
 | 8 | Two Independent Voices | LH melody against RH; contrary and parallel motion | a second melodic line with consonance rules (no parallel 5ths/8ves) |
 | 9 | Imitation | One hand answers the other | imitation: LH repeats the RH's bars 1-2 an octave lower, etc. |
 | 10 | Review | Everything in Volume 3 | - |

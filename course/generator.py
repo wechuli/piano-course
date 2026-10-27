@@ -453,7 +453,8 @@ def add_dyads(part, bars, mel, hands, plan, chords, ties, repeat, rng):
                         continue  # the bass has the leading note
                 opts.append(low)
             if opts:
-                out[(b, i)] = rng.choice(opts)
+                w = [cfg.get("weights", {}).get(s - low, 1.0) for low in opts]
+                out[(b, i)] = rng.choices(opts, w)[0]
     return out
 
 
@@ -741,6 +742,8 @@ def validate(part, ex):
         assert ex["melody"][b][-1] == ex["melody"][b + 1][0] is not None, "tie must join equal pitches"
     if part.get("chords"):
         validate_chords(part, ex)
+    if part.get("dyads"):
+        assert len(ex["dyads"]) >= part["dyads"].get("min", 2), "too few two-note chords"
 
 
 def add_ties(part, mel, hands, plan, repeat, rng):
