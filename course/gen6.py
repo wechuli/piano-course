@@ -1981,6 +1981,13 @@ def staff_code(st, key, meter, tsig, first=False, n=None, transpose=None, checks
     return out
 
 
+def name_indent(staves):
+    """Instrument names (Voice, Soprano, Violin 1) need an indent, or they run off the page."""
+    if any(st.get("instrument") for st in staves):
+        return "indent = 10\\mm "
+    return ""
+
+
 def score6(part, ex, label, own_tempo="", transpose=None):
     """A multi-staff score: solo staves above a PianoStaff, ChoirStaff or StaffGroup."""
     meter = ex["meters"][0] if ex.get("meters") else part["meter"]
@@ -2023,7 +2030,7 @@ def score6(part, ex, label, own_tempo="", transpose=None):
 \\score {{
   \\header {{ piece = \\markup \\line {{ \\exLabel "{label}" {own_tempo} }} }}
   {body}
-  \\layout {{ }}
+  \\layout {{ {name_indent(ex.get("staves", []))}}}
 }}
 """
 

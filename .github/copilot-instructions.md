@@ -1,19 +1,19 @@
 # Instructions for GitHub Copilot: "Read at Sight" piano course
 
-This repository builds a print-ready piano sight-reading course with LilyPond. Volumes 1-5
-are finished. **Volume 6 is planned but not built**: its full plan is the README section
-"Volume 6 plan (Reading Like a Professional, Levels 7-8)". Read the README first (status,
+This repository builds a print-ready piano sight-reading course with LilyPond. Volumes 1-6
+are finished (Volume 6 is described in the README sections "Volume 6 (done)" and "Volume 6 plan
+(as written before it was built)"). Read the README first (status,
 plan, generator options, build commands, QA checklist), then `CLAUDE.md`.
 
 ## Rules that must never be broken
 
-- **Never change the output of Volumes 1-5.** People may have printed them. Do not edit
-  `content/unitNN.py`, `content/v2..v5unitNN.py`, the Volume 1-5 entries in
-  `course/units.py`, or behaviour of `generator.py` / `gen5.py` that those volumes use.
+- **Never change the output of Volumes 1-6.** People may have printed them. Do not edit
+  `content/unitNN.py`, `content/v2..v6unitNN.py`, the Volume 1-6 entries in
+  `course/units.py`, or behaviour of `generator.py` / `gen5.py` / `gen6.py` that those volumes use.
 - New generator options must not consume randomness unless they are switched on.
 - Before every commit, from `course/`: `python check_identical.py` must print "identical" for
-  every volume. If it reports a difference in Volumes 1-5, undo the change that caused it.
-- Volume 6 code goes in a new `course/gen6.py` that imports and extends `gen5.py`.
+  every volume. If it reports a difference in any volume, undo the change that caused it.
+- A new volume gets its own generator module that imports and extends the last one (as `gen6.py` extends `gen5.py`).
 
 ## How to build and check (run from `course/`)
 
@@ -21,8 +21,7 @@ plan, generator options, build commands, QA checklist), then `CLAUDE.md`.
 python check_pieces.py --vol 6            # must print OK (add --verbose to see problems)
 python build.py --vol 6 1                 # one unit (Unit 1 includes the front matter)
 python build.py --vol 6 1 2 3 4 5 6 7 8   # the whole book
-python check_identical.py                 # Volumes 1-5 must stay identical
-python check_identical.py --add 6 N       # record Volume 6, Unit N once it is finished
+python check_identical.py                 # Volumes 1-6 must stay identical
 ```
 
 The build must print no `WARN:` lines (LilyPond reports bar-length errors as warnings).

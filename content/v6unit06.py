@@ -90,7 +90,7 @@ PIECES = [
     {
         "title": "An die Musik", "credit": "Franz Schubert (1817), An die Musik D. 547 (words by Franz von Schober) - "
                                            "the first verse",
-        "meter": "2/2", "cut": True, "tempo": 36, "tempo_unit": "2", "key": "d \\major",
+        "meter": "2/2", "cut": True, "tempo": 36, "tempo_unit": "2", "key": "d \\major", "long": True,
         "note": "\"To music\": a hymn of thanks. The piano's right hand repeats its chords in eighths while the "
                 "left hand's bass line sings against the voice (in bars 7-18 it moves in long notes, often by "
                 "half steps). Two bars of introduction; the voice rests in bar 10 (count it) and the piano closes "
@@ -98,10 +98,10 @@ PIECES = [
                 "better world.\" Source: Mutopia Project no. 1001 (public domain).",
         "staves": [
             {"name": "voice", "clef": "treble", "solo": True, "instrument": "Voice",
-             "music": "R1 | R1 | r4 a' d'' d'' | fis'2. b'4 | \\appoggiatura b'8 d'4. d'8 fis'8( e') d'( e') | "
-                      "fis'4 d' r2 | \\break r4 a' b' b' | cis'4. cis'8 d'4. d'8 | fis'8( e') d'( e') fis'2 | R1 | "
-                      "r4 d'' e''4. g'8 | \\break fis'4( a'2) b'8( cis'') | d''4. fis''8 e''( cis'') a'( g') | "
-                      "\\appoggiatura g'8 fis'4 fis' r a' | b'4. b'8 b'4 cis''8( d'') | \\break d''4. d''8 fis''4. e''8 | "
+             "music": "R1 | R1 | r4 a' d'' d'' | fis'2. b'4 | \\break \\appoggiatura b'8 d'4. d'8 fis'8( e') d'( e') | "
+                      "fis'4 d' r2 | r4 a' b' b' | cis'4. cis'8 d'4. d'8 | \\break fis'8( e') d'( e') fis'2 | R1 | "
+                      "r4 d'' e''4. g'8 | fis'4( a'2) b'8( cis'') | \\break d''4. fis''8 e''( cis'') a'( g') | "
+                      "\\appoggiatura g'8 fis'4 fis' r a' | b'4. b'8 b'4 cis''8( d'') | d''4. d''8 fis''4. e''8 | \\break "
                       "\\appoggiatura e''4 d''2 r8 b' cis'' d'' | d''4( fis'8) fis' a'4( cis'8) cis' | d'2 r2 | \\break "
                       "R1 | R1 | R1 | R1",
              "lyrics": "Du hol -- de Kunst, in wie -- viel grau -- en Stun -- den, Wo mich des Le -- bens wil -- der "
@@ -141,7 +141,7 @@ PIECES = [
     {
         "title": "Ich liebe dich", "credit": "Edvard Grieg (1864), Ich liebe dich Op. 5 No. 3 (German words by F. von "
                                              "Holstein) - the verse, from bar 3",
-        "meter": "3/4", "tempo": 60, "key": "bes \\major", "allow_span": 14,
+        "meter": "3/4", "tempo": 60, "key": "bes \\major", "allow_span": 14, "long": True, "new_page": True,
         "note": "\"I love you\": a romantic song in which the piano breathes with the singer. The right hand's chords "
                 "move in eighths, the left hand sings its own line (bars 2 and 9) and holds long basses with the "
                 "pedal. From bar 11 the music grows (cresc. sempre) to the top of the phrase in bar 15; then a "
@@ -149,10 +149,10 @@ PIECES = [
                 "last bar. Source: Mutopia Project no. 586 (public domain).",
         "staves": [
             {"name": "voice", "clef": "treble", "solo": True, "instrument": "Voice",
-             "music": "\\autoBeamOff \\dynamicUp r4 r8 f'8\\p fis' a' | a'8 g' d' e' f'! g' | f'4 ees'! r | r4 d'\\pp ees'8 f' | "
-                      "g'8 d' bes'4. g'8 | \\break d''8.\\f g'16 g'4 r | R2. | r4 r8 f'\\p fis' a' | a'8 g' d' e' f'! g' | "
-                      "f'4 ees'! r8 ees' | \\break g'8. d'16 d'4 r8 g' | bes'8. g'16 g'4 r8 bes' | d''8. g'16 g'8 g' a' bes' | "
-                      "d''8. c''16 c''4 r8 c''\\ff | \\break ees''8. ges'16 ges'8 f' a' d'' | c''8. bes'16 bes'4 r | R2. | R2. | "
+             "music": "\\autoBeamOff \\dynamicUp r4 r8 f'8\\p fis' a' | a'8 g' d' e' f'! g' | f'4 ees'! r | r4 d'\\pp ees'8 f' | \\break "
+                      "g'8 d' bes'4. g'8 | d''8.\\f g'16 g'4 r | R2. | r4 r8 f'\\p fis' a' | \\break a'8 g' d' e' f'! g' | "
+                      "f'4 ees'! r8 ees' | g'8. d'16 d'4 r8 g' | bes'8. g'16 g'4 r8 bes' | \\break d''8. g'16 g'8 g' a' bes' | "
+                      "d''8. c''16 c''4 r8 c''\\ff | ees''8. ges'16 ges'8 f' a' d'' | c''8. bes'16 bes'4 r | \\break R2. | R2. | "
                       "r4 r8\\fermata",
              "lyrics": "Du mein Ge -- dan -- ke, du mein Sein und Wer -- den! Du mei -- nes Her -- zens er -- ste "
                        "Se -- lig -- keit! Ich lie -- be dich wie nichts auf die -- ser Er -- den, ich lie -- be dich, "

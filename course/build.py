@@ -515,6 +515,7 @@ def piece_score_v6(pc_):
     printed name, "lyrics" for an \\addlyrics line, and clef "chords" for a ChordNames line
     (lead sheets). "group" picks the bracket: piano (default), choir or quartet. "meter" may
     be left out when the music is unbarred (\\cadenzaOn)."""
+    import gen6
     pkey = pc_.get("key", "c \\major")
     tpre = "\\once \\override Staff.TimeSignature.style = #'C " if pc_.get("cut") else ""
     tsig = f"\\time {pc_['meter']} " if pc_.get("meter") else "\\omit Staff.TimeSignature "
@@ -562,7 +563,7 @@ def piece_score_v6(pc_):
     }}
   }}
   {body}
-  \\layout {{ }}
+  \\layout {{ {gen6.name_indent(pc_.get('staves', []))}}}
 }}"""
 
 
@@ -659,6 +660,8 @@ def unit_pages(unit, vol=1):
         out.append("\\noPageBreak")  # keep the heading with the first piece
     for pc_ in content.PIECES:
         if vol >= 6:
+            if pc_.get("new_page"):  # a two-page piece starts on a fresh page
+                out.append("\\pageBreak")
             out.append(piece_score_v6(pc_))
             continue
         pkey = pc_.get('key', 'c \\major')

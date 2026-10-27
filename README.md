@@ -11,24 +11,22 @@ A print-ready A4 course book, typeset with LilyPond.
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
-| 6 · Reading Like a Professional | in progress: Units 1-8 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 8: 15 pp.) | 8 units, 192 exercises, 32 pieces |
+| 6 · Reading Like a Professional | complete | `build/Read at Sight - Volume 6.pdf` (133 pp.) | 8 units, 192 exercises, 33 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
-**The five-volume course is complete. Next: Volume 6** (Levels 7-8, an extension beyond the
-original plan): the full plan is in "Volume 6 plan" below. The shared groundwork is in place
-(see "Groundwork (done)" in the plan): `course/gen6.py` multi-staff scores, the Volume 6
-checker and build changes, and `course/test_gen6.py`. Units 1-8 are finished: see the
-"Unit N (done)" sections in the plan. Next: build the whole Volume 6 book.
-All five volumes are protected by
-`course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
-original plan follows it for reference.
+**The course is complete: six volumes.** Volume 6 (Levels 7-8, an extension beyond the original
+five-volume plan) is described in "Volume 6 (done)" below, followed by its plan as written before it
+was built, with a "Unit N (done)" section for each unit.
+All six volumes are protected by
+`course/check_identical.py` (see "Build"). Volumes 5 and 6 are described in "Volume 5 (done)" and "Volume 6 (done)"
+below; the original plans follow them for reference.
 
 Note: the Volume 1 PDFs were built before two small layout tweaks (the "What is new" heading
 now stays with its first item, and keyboards widen to fit every key). Rebuilding Volume 1
 would only change the page layout; exercises are identical.
 
-## Five-volume plan
+## Course plan (five volumes, then a sixth)
 
 | Volume | Levels | Main new skills | Units |
 | --- | --- | --- | --- |
@@ -37,7 +35,7 @@ would only change the page layout; exercises are identical.
 | 3 · Two Voices (done) | 3 | Real left-hand independence, Alberti and broken-chord basses, 6/8, keys up to 2 sharps or flats, simple counterpoint | 8–10 |
 | 4 · Patterns and Keys (done) | 4 | Chords in both hands, syncopation, sixteenths, ledger lines, changing key mid-piece | 8 |
 | 5 · Repertoire Reading (done) | 5–6 | 3–4 voices, chromatic notes, all keys, chorales | 8 |
-| 6 · Reading Like a Professional (planned) | 7–8 | Three-voice counterpoint, cross-rhythms, changing meters, chromatic harmony, big textures, accompanying, open score and C clefs, lead sheets | 8 |
+| 6 · Reading Like a Professional (done) | 7–8 | Three-voice counterpoint, cross-rhythms, changing meters, chromatic harmony, big textures, accompanying, open score and C clefs, lead sheets | 8 |
 
 Volumes 1–2 are mostly generated exercises. Volumes 3–4 are about half generated, half
 re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
@@ -189,7 +187,36 @@ Mutopia source (after `convert-ly`) into absolute pitches.
 The build now reports LilyPond warnings (it used `-s`, which hid them); only page-compression notices
 are filtered.
 
-## Volume 6 plan (Reading Like a Professional, Levels 7-8)
+## Volume 6 (done)
+
+Levels 7-8: reading like a professional. Seeds 6001-6008. Volume 6 has its own generator,
+**`course/gen6.py`**, which imports `gen5.py` and adds new tables under new keys only, so Volumes
+1-5 cannot change. `build.py` uses it for `--vol 6`; Volume 6 is set at staff size 20 so that
+four-staff systems fit A4. The book ends with an Answers appendix (the transposing exercises of
+Unit 7, written out in their target keys). 133 pages, 192 exercises (24 per unit), 33 pieces.
+
+| Unit | Title | Parts |
+| --- | --- | --- |
+| 1 | Three Voices | A: two voices in the right hand over a bass. B: the middle voice changes hands. C: fugue entries (subject, answer, countersubject) |
+| 2 | Rhythm Against Rhythm | A: two against three. B: duplets, three against four. C: runs of 5, 6 and 7 notes, hemiolas |
+| 3 | Changing Meters, Modes and No Key | A: 5/4 and 6/4 bars mixed. B: 7/8, 5/8 and the modes. C: unbarred pentatonic and whole-tone tunes |
+| 4 | Chromatic Harmony | A: secondary dominants and diminished sevenths. B: Neapolitan and augmented sixths. C: pivot-chord and enharmonic modulations |
+| 5 | Big Textures | A: octaves, 8va and 8vb. B: full chords, wide arpeggios, crossed hands. C: simplifying at sight (with a printed reduction) |
+| 6 | Accompanying | A: a singer's line over block chords. B: introductions, interludes, after-beats, arpeggios. C: doubling the tune, counting the singer's rests |
+| 7 | Open Score, C Clefs and Transposing | A: SATB on four staves. B: string quartet and the C clefs. C: transposing at sight (answers at the back) |
+| 8 | Lead Sheets, Simplifying and Review | A: lead sheets with triads. B: sevenths and slash chords. C: review, one exercise of each skill |
+
+The generator options, pieces and every change from the plan are in the "Unit N (done)" sections
+of the plan below. Piece options added for Volume 6: `staves` (any number of named staves, with
+`solo`, `instrument`, `lyrics`, clef `"chords"` for chord symbols), `group` (piano, choir,
+quartet, lead), a missing `meter` for unbarred music, `long` (may break across pages) and
+`new_page` (start the piece on a fresh page).
+
+Final layout pass (whole book): scores with instrument names (Voice, Soprano, Violin 1) get a 10 mm
+indent so the names stay on the page (`gen6.name_indent`), and part titles and "New:" lines that ran
+into the right margin were shortened. These change only layout and text, not the exercises.
+
+## Volume 6 plan (as written before it was built)
 
 **Goal.** A Level 8 reader can sight-read what a working pianist is handed: a Bach sinfonia or fugue
 exposition, Romantic and Impressionist pieces with cross-rhythms, changing meters and chromatic
@@ -559,6 +586,8 @@ Evening Song (sung to "la", with a fermata the pianist must follow).
   three voices in the right hand. Its inner voices in bar 9 are kept.
 - `build.py` (Volume 6 only): the "Pieces" heading is kept on the page of the first piece
   (`\noPageBreak`), and lyric lines get a little more space below them.
+- An die Musik and Ich liebe dich are printed four bars to a line (five did not fit the page width)
+  and run over two pages (`long`); Ich liebe dich starts on a new page (`new_page`).
 
 ### Unit 7 (done)
 
@@ -774,7 +803,7 @@ course/units.py         Course spec: hand positions, rhythm vocabularies, unit/p
 course/generator.py     Exercise generator + validator + LilyPond emitter (Volumes 1-4)
 course/gen5.py          Volume 5 generator (reading by key, chord and pattern)
 course/gen6.py          Volume 6 generator: imports gen5, adds multi-staff scores
-course/test_gen6.py     Tests for the Volume 6 groundwork (run from course/; must print OK)
+course/test_gen6.py     Tests for the Volume 6 generator (run from course/; must print OK)
 course/build.py         Page template, keyboard diagrams, front matter, contents, book assembly
 course/check_pieces.py  Checks hand-written pieces against what each unit has taught
 course/check_identical.py  Regression check: finished units must not change (fingerprints.json)
@@ -797,8 +826,8 @@ python3 build.py --vol 3 1                       # Volume 3, Unit 1 (with front 
 python3 build.py --vol 4 1 2 3 4 5 6 7 8        # Volume 4 book -> build/read-at-sight-vol4.pdf
 python3 check_pieces.py --vol 5                  # Volume 5 (add --verbose for every problem)
 python3 build.py --vol 5 1 2 3 4 5 6 7 8        # Volume 5 book -> build/read-at-sight-vol5.pdf
-python3 test_gen6.py                             # Volume 6 groundwork tests; must print OK
-python3 check_pieces.py --vol 6                  # Volume 6 (units not written yet are skipped)
+python3 test_gen6.py                             # Volume 6 generator tests; must print OK
+python3 check_pieces.py --vol 6                  # Volume 6
 python3 build.py --vol 6 1 2 3 4 5 6 7 8        # Volume 6 book (Answers appendix after Unit 8)
 python3 check_identical.py                       # every finished unit must print "identical"
 python3 check_identical.py --add 5 1             # record a newly finished unit (here Volume 5, Unit 1)
