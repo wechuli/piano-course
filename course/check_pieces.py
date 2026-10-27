@@ -17,16 +17,17 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "content"))
-from units import VOLUME1, VOLUME2, POSITIONS  # noqa: E402
+from units import VOLUME1, VOLUME2, VOLUME3, POSITIONS  # noqa: E402
 
-VOLS = {1: (VOLUME1, "unit"), 2: (VOLUME2, "v2unit")}
+VOLS = {1: (VOLUME1, "unit"), 2: (VOLUME2, "v2unit"), 3: (VOLUME3, "v3unit")}
 # Largest leap allowed (in diatonic steps) by the end of each unit
 MAX_LEAP = {1: {1: 1, 2: 1, 3: 1, 4: 2, 5: 2, 6: 2, 7: 2, 8: 4, 9: 4, 10: 4},
-            2: {i: 4 for i in range(1, 11)}}
-DOTTED_HALF_FROM = {1: 3, 2: 1}
-EIGHTH_FROM = {1: 9, 2: 1}
-DOTTED_QUARTER_FROM = {1: 99, 2: 3}
-STRETCH_FROM = {1: 99, 2: 2}  # from this unit a hand may reach one key beyond its positions
+            2: {i: 4 for i in range(1, 11)},
+            3: {i: 5 for i in range(1, 11)}}  # Volume 3: broken chords leap back a sixth
+DOTTED_HALF_FROM = {1: 3, 2: 1, 3: 1}
+EIGHTH_FROM = {1: 9, 2: 1, 3: 1}
+DOTTED_QUARTER_FROM = {1: 99, 2: 3, 3: 1}
+STRETCH_FROM = {1: 99, 2: 2, 3: 1}  # from this unit a hand may reach one key beyond its positions
 BAR = {"4/4": 8, "3/4": 6}
 TOKEN = re.compile(r"^(R|r|[a-g](?:is|es)?)([',]*)(\d+)?(\.?)(.*)$")
 DUR8 = {"1": 8, "2": 4, "4": 2, "8": 1}
@@ -133,7 +134,11 @@ if __name__ == "__main__":
     bad = 0
     for uid in ids:
         unit = next(u for u in units if u["id"] == uid)
-        probs = check_unit(unit, vol)
+        try:
+            probs = check_unit(unit, vol)
+        except ModuleNotFoundError:
+            print(f"Unit {uid}: not written yet")
+            continue
         print(f"Unit {uid}: {'OK' if not probs else str(len(probs)) + ' problem(s)'}")
         for p in probs:
             print("   ", p)

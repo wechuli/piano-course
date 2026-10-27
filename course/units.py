@@ -365,3 +365,59 @@ VOLUME2 = [
               artic=ART_LIGHT, tie_prob=0.15, rest_prob=0.06, repeat_prob=0.3),
      ]},
 ]
+
+
+# =========================================================================== Volume 3
+# Level 3: two voices. The left hand gets its own music. New part options:
+#   chords: chords the left hand may use, from CHORDS (e.g. ["I", "IV", "V7"])
+#   bass: "broken" (4/4: low-middle-high-middle quarters; 3/4: low-middle-high), one chord per bar
+#   require_chords: chords that must appear in every exercise
+#   chord_fingers: True prints a finger number on the first note of every new chord shape
+# Chord shapes are built on the left-hand position's lowest note (the tonic): "voicing" lists the
+# three notes in steps above it, "tones" the scale degrees (0 = tonic) that belong to the chord.
+CHORDS = {
+    "I":  {"tones": (0, 2, 4), "voicing": (0, 2, 4)},      # C E G   fingers 5 3 1
+    "IV": {"tones": (3, 5, 0), "voicing": (0, 3, 5)},      # C F A   fingers 5 2 1
+    "V7": {"tones": (4, 6, 1, 3), "voicing": (-1, 3, 4)},  # B F G   fingers 5 2 1 (G7 without its D)
+}
+CHORD_ORDER = ["I", "V7", "IV"]
+# Chord progressions are chosen bar by bar with these weights (V7 never goes to IV).
+CHORD_MOVES = {"I": {"I": 1.0, "IV": 2.0, "V7": 2.0},
+               "IV": {"I": 1.5, "IV": 0.7, "V7": 2.5},
+               "V7": {"I": 3.0, "V7": 1.0}}
+# Bass patterns: (durations in eighths, index into the chord's voicing: 0 low, 1 middle, 2 high)
+BASS_PATTERNS = {
+    ("broken", "4/4"): ([2, 2, 2, 2], [0, 1, 2, 1]),
+    ("broken", "3/4"): ([2, 2, 2], [0, 1, 2]),
+}
+CHORD_MAX_LEAP = 5  # largest leap (a sixth) in a broken-chord bass, including into the next bar
+
+VOLUME3 = [
+    {"id": 1, "title": "Broken Chords", "new": "Triads; the left hand plays I, IV and V7 one note at a time",
+     "parts": [
+         dict(name="A", title="Two chords under long notes", count=8, bars=4, mode="together", rh="RH_C",
+              lh="LH_C", chords=["I", "V7"], bass="broken", chord_fingers=True, meter="4/4",
+              rhythms="half", motion=STEPS_SKIPS, tempo=60),
+         dict(name="B", title="Adding the IV chord", count=10, bars=4, mode="together", rh="RH_C",
+              lh="LH_C", chords=["I", "IV", "V7"], require_chords=["IV"], bass="broken", chord_fingers=True,
+              meter="4/4", rhythms="q_rich", motion=STEPS_SKIPS, tempo=60),
+         dict(name="C", title="Waltz bass in G major", count=10, bars=8, mode="together", rh="RH_G",
+              lh="LH_G", chords=["I", "IV", "V7"], bass="broken", chord_fingers=True, meter="3/4",
+              rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=72, tonic=G4, dynamics=True,
+              repeat_prob=0.4, **KEY_G),
+         dict(name="D", title="Eight bars in F major", count=8, bars=8, mode="together", rh="RH_F",
+              lh="LH_F", chords=["I", "IV", "V7"], bass="broken", chord_fingers=True, meter="4/4",
+              rhythms=["q_rich", "dotted"], motion=UP_TO_FIFTH, tempo=66, tonic=F4, artic=ART_LIGHT,
+              repeat_prob=0.4, **KEY_F),
+     ]},
+    # Units 2-10 are planned here (titles feed the contents page); each gets its parts when it is built.
+    {"id": 2, "title": "The Alberti Bass", "new": "Broken chords in eighth notes: low, high, middle, high", "parts": []},
+    {"id": 3, "title": "Six-Eight Time", "new": "6/8: two beats in a bar, each beat split into three eighths", "parts": []},
+    {"id": 4, "title": "D Major", "new": "Two sharps (F-sharp and C-sharp); D major and its chords", "parts": []},
+    {"id": 5, "title": "B-flat Major", "new": "Two flats (B-flat and E-flat); B-flat major and its chords", "parts": []},
+    {"id": 6, "title": "Accidentals", "new": "Sharps, flats and naturals inside the bar; the raised 7th in minor keys", "parts": []},
+    {"id": 7, "title": "Two Notes at Once", "new": "Right-hand thirds and sixths: reading two notes together", "parts": []},
+    {"id": 8, "title": "Two Independent Voices", "new": "A left-hand melody against the right hand: contrary and parallel motion", "parts": []},
+    {"id": 9, "title": "Imitation", "new": "Simple counterpoint: one hand answers the other with the same tune", "parts": []},
+    {"id": 10, "title": "Review", "new": "Everything in Volume 3 together", "parts": []},
+]

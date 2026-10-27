@@ -11,6 +11,7 @@ import math
 import random
 
 from units import POSITIONS, R44, R34, CADENCE44, CADENCE34, FINAL44, FINAL34
+from units import CHORDS, CHORD_ORDER, CHORD_MOVES, BASS_PATTERNS, CHORD_MAX_LEAP
 
 NAMES = "cdefgab"
 BAR_LEN = {"4/4": 8, "3/4": 6}
@@ -135,8 +136,9 @@ def shift_into(prev, lo, hi):
 
 
 # ---------------------------------------------------------------- melody
-def gen_melody(part, bars, hands, plan, repeat, rng):
-    """Depth-first search for a melody that satisfies all constraints."""
+def gen_melody(part, bars, hands, plan, repeat, rng, chords=None):
+    """Depth-first search for a melody that satisfies all constraints.
+    With a chord plan, the first note of each bar and every long note belong to the bar's chord."""
     motion = part["motion"]
     shift_motion = part.get("shift_motion", DEFAULT_SHIFT_MOTION)
     t = tonic_pc(part)
@@ -156,6 +158,11 @@ def gen_melody(part, bars, hands, plan, repeat, rng):
     cad_ok = {(t + 1) % 7, (t + 2) % 7, (t + 4) % 7}
 
     mel = [None] * n
+    if chords:
+        lead = (t + 6) % 7
+        tones = [{(t + x) % 7 for x in CHORDS[c]["tones"]} for c in chords]
+        bar_start = [k for k, (b, i) in enumerate(slots) if i == 0]
+        bass = [chord_notes(part, c)[0] for c in chords]
 
     def where(k):
         b = slots[k][0]
@@ -213,6 +220,16 @@ def gen_melody(part, bars, hands, plan, repeat, rng):
             return False
         if k == cad_idx and pc(s) not in cad_ok:
             return False
+        if chords:
+            b, i = slots[k]
+            if (i == 0 or bars[b][i] >= 4) and pc(s) not in tones[b]:
+                return False
+            if i == 0 and chords[b] == "V7" and pc(s) == lead:
+                return False  # the bass already has the leading note
+            if i == 0 and b > 0:
+                m1, b1 = mel[bar_start[b - 1]], bass[b - 1]
+                if m1 != s and b1 != bass[b] and (m1 - b1) % 7 == (s - bass[b]) % 7 in (0, 4):
+                    return False  # parallel octaves or fifths
         return True
 
     budget = [20000]
@@ -276,6 +293,99 @@ def gen_bass(part, bars, melody):
     return out
 
 
+# ---------------------------------------------------------------- chord bass (Volume 3)
+def chord_notes(part, name):
+    """The three notes of a chord shape, low to high, built on the LH position's lowest note."""
+    root = POSITIONS[part["lh"]]["low"]
+    return [root + x for x in CHORDS[name]["voicing"]]
+
+
+def chord_fingers(notes):
+    """LH fingers for a three-note shape: 5 on the bottom, 1 on top, 3 or 2 in the middle."""
+    return [5, 3 if notes[1] - notes[0] == 2 else 2, 1]
+
+
+def chord_leap_ok(part, a, b):
+    """Can the hand get from the end of chord a's pattern to the start of chord b's?"""
+    _, idx = BASS_PATTERNS[(part["bass"], part["meter"])]
+    return abs(chord_notes(part, b)[idx[0]] - chord_notes(part, a)[idx[-1]]) <= CHORD_MAX_LEAP
+
+
+def gen_chord_plan(part, n, repeat, rng):
+    """One chord per bar, chosen before the melody. Starts on I, ends V7-I; in 8 bars,
+    bar 4 is a half close (V7) or a full close (I). Only called for parts with 'chords'."""
+    allowed = [c for c in CHORD_ORDER if c in part["chords"]]
+    for _ in range(100):
+        plan = ["I"]
+        for b in range(1, n):
+            if b == n - 1:
+                opts = ["I"]
+            elif b == n - 2:
+                opts = ["V7"]
+            elif n == 8 and b == 3:
+                opts = ["V7", "I"]
+            elif repeat and b in (4, 5):
+                opts = [plan[b - 4]]
+            else:
+                opts = allowed
+            opts = [c for c in opts if c in CHORD_MOVES[plan[-1]] and chord_leap_ok(part, plan[-1], c)]
+            if not opts:
+                break
+            w = [CHORD_MOVES[plan[-1]][c] for c in opts]
+            plan.append(rng.choices(opts, w)[0])
+        if len(plan) == n and all(c in plan for c in part.get("require_chords", ())):
+            return plan
+    raise RuntimeError(f"no chord plan for part {part['name']}")
+
+
+def gen_chord_bass(part, bars, chords):
+    """Left-hand broken chords. Returns (bars of (dur, step), {(bar, note): finger})."""
+    L = BAR_LEN[part["meter"]]
+    durs, idx = BASS_PATTERNS[(part["bass"], part["meter"])]
+    out, fingers = [], {}
+    n = len(bars)
+    for b, name in enumerate(chords):
+        notes = chord_notes(part, name)
+        fing = chord_fingers(notes)
+        if b == n - 1:
+            out.append([(L, notes[0])])
+        else:
+            out.append([(d, notes[i]) for d, i in zip(durs, idx)])
+        if b == 0 or (part.get("chord_fingers") and name != chords[b - 1]):
+            fingers[(b, 0)] = fing[0] if b == n - 1 else fing[idx[0]]
+    return out, fingers
+
+
+def validate_chords(part, ex):
+    """Extra rules for a broken-chord bass under the melody."""
+    t = tonic_pc(part)
+    chords, mel, lh = ex["chords"], ex["melody"], ex["lh_bars"]
+    n = len(chords)
+    lead = (t + 6) % 7
+    flat = [s for bar in lh for _, s in bar]
+    for a, c in zip(flat, flat[1:]):
+        assert abs(a - c) <= CHORD_MAX_LEAP, "bass leap too large"
+    tops = []
+    for b in range(n):
+        notes = chord_notes(part, chords[b])
+        assert all(s in notes for _, s in lh[b]), "bass note outside its chord"
+        top = mel[b][0]
+        tones = {(t + x) % 7 for x in CHORDS[chords[b]]["tones"]}
+        assert top is None or pc(top) in tones, "beat 1 of the melody must belong to the chord"
+        if chords[b] == "V7":
+            assert top is None or pc(top) != lead, "leading note doubled"
+        tops.append((top, lh[b][0][1]))
+    for (m1, b1), (m2, b2) in zip(tops, tops[1:]):
+        if None in (m1, m2) or m1 == m2 or b1 == b2:
+            continue
+        i1, i2 = (m1 - b1) % 7, (m2 - b2) % 7
+        assert not (i1 == i2 and i1 in (0, 4)), "parallel octaves or fifths between the hands"
+    used = set(chords[:-1])
+    assert len(used) >= 2, "too few chords"
+    for c in part.get("require_chords", ()):
+        assert c in used, f"chord {c} missing"
+
+
 # ---------------------------------------------------------------- validation
 def validate(part, ex):
     meter = part["meter"]
@@ -290,6 +400,8 @@ def validate(part, ex):
         for b, bar in enumerate(ex[staff]):
             if bar is None:
                 continue
+            if hand == "LH" and part.get("chords"):
+                continue  # broken-chord bass: checked by validate_chords
             pkey = part["lh"] if (hand == "LH" and part["mode"] == "together") else plan[hand][b]
             lo, hi = pos_range(part, pkey)
             for _, s in bar:
@@ -308,6 +420,8 @@ def validate(part, ex):
     assert len(set(sounding)) >= (4 if part["bars"] == 8 else 3), "too little variety"
     for b in ex.get("ties", ()):
         assert ex["melody"][b][-1] == ex["melody"][b + 1][0] is not None, "tie must join equal pitches"
+    if part.get("chords"):
+        validate_chords(part, ex)
 
 
 def add_ties(part, mel, hands, plan, repeat, rng):
@@ -420,7 +534,8 @@ def make_exercise(part, rng):
         bars, repeat = gen_rhythm(part, rng)
         hands = hand_plan(part, rng)
         plan = position_plan(part, repeat, rng)
-        mel = gen_melody(part, bars, hands, plan, repeat, rng)
+        chords = gen_chord_plan(part, len(bars), repeat, rng) if part.get("chords") else None
+        mel = gen_melody(part, bars, hands, plan, repeat, rng, chords)
         if mel is None:
             continue
         ties = add_ties(part, mel, hands, plan, repeat, rng)
@@ -436,10 +551,14 @@ def make_exercise(part, rng):
             else:
                 lh_bars.append(notes)
                 rh_bars.append(None)
-        if part["mode"] == "together":
+        extra = {}
+        if part["mode"] == "together" and part.get("chords"):
+            lh_bars, extra["lh_fingers"] = gen_chord_bass(part, bars, chords)
+            extra["chords"] = chords
+        elif part["mode"] == "together":
             lh_bars = gen_bass(part, bars, mel)
         ex = {"rh_bars": rh_bars, "lh_bars": lh_bars, "melody": mel, "hands": hands,
-              "plan": plan, "repeat": repeat, "ties": ties, "artic": artic, "dyn": dyn}
+              "plan": plan, "repeat": repeat, "ties": ties, "artic": artic, "dyn": dyn, **extra}
         try:
             validate(part, ex)
         except AssertionError:
@@ -479,6 +598,7 @@ def staff_music(part, ex, hand, key_acc, melody_hand=True):
     together_bass = hand == "LH" and part["mode"] == "together"
     artic = ex.get("artic", {}) if melody_hand else {}
     dyn = ex.get("dyn", {}) if melody_hand else {}
+    fingers = ex.get("lh_fingers") if together_bass else None  # chord bass: fingers chosen per shape
     n = len(bars)
 
     # Build per-note tokens first, then add slurs/staccato by two-bar segment.
@@ -498,7 +618,10 @@ def staff_music(part, ex, hand, key_acc, melody_hand=True):
             suf = []
             if j == 0 and b in dyn:
                 suf.append(dyn[b])
-            if s is not None and not marked and (prev_none or new_pos):
+            if fingers is not None:
+                if (b, j) in fingers:
+                    suf.insert(0, "_" + str(fingers[(b, j)]))
+            elif s is not None and not marked and (prev_none or new_pos):
                 suf.insert(0, ("^" if hand == "RH" else "_") + str(finger_for(part, pkey, s)))
                 marked = True
             if s is not None and b in ties and j == len(bar) - 1 and melody_hand:

@@ -8,14 +8,15 @@ A print-ready A4 course book, typeset with LilyPond.
 | --- | --- | --- | --- |
 | 1 · First Steps | complete | `build/Read at Sight - Volume 1.pdf` (130 pp.) | 10 units, 322 exercises, 39 pieces |
 | 2 · Moving Hands | complete | `build/Read at Sight - Volume 2.pdf` (133 pp.) | 10 units, 306 exercises, 35 pieces |
+| 3 · Two Voices | in progress: Unit 1 done | `build/units/Read at Sight - Vol3 - Unit 1.pdf` (19 pp.) | Unit 1: 36 exercises, 4 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
-**Next: Volume 3** (see the plan below). Add `VOLUME3` to `course/units.py`, a `3:` entry to
-`VOLUMES` in `course/build.py` and `VOLS` in `course/check_pieces.py` (plus its rows in
-`MAX_LEAP`, `DOTTED_*_FROM`, `EIGHTH_FROM`, `STRETCH_FROM`), then write `content/v3unitNN.py`.
-Volume 3 needs new generator features: 6/8 time, Alberti/broken-chord left hand, keys with
-2 sharps or flats, and two independent voices.
+**Next: Volume 3, Unit 2** (see "Volume 3 plan" below). Volume 3 is wired into `units.py`
+(`VOLUME3`), `build.py` (`VOLUMES[3]`) and `check_pieces.py` (`VOLS[3]` and its rows). Units
+2-10 are listed in `VOLUME3` with title and "new" line only (`"parts": []`); give a unit its parts
+and its generator features when you build it, then write `content/v3unitNN.py`. Unit 1 is
+finished: don't change its parts.
 
 Note: the Volume 1 PDFs were built before two small layout tweaks (the "What is new" heading
 now stays with its first item, and keyboards widen to fit every key). Rebuilding Volume 1
@@ -33,6 +34,25 @@ would only change the page layout; exercises are identical.
 
 Volumes 1–2 are mostly generated exercises. Volumes 3–4 are about half generated, half
 re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
+
+## Volume 3 plan
+
+| Unit | Title | New | Generator features it needs |
+| --- | --- | --- | --- |
+| 1 (done) | Broken Chords | Triads; LH plays I, IV, V7 one note at a time; C, G, F major | `chords`, `bass: "broken"` (done) |
+| 2 | The Alberti Bass | Broken chords in eighths: low, high, middle, high | `("alberti", "4/4")` in `BASS_PATTERNS`; maybe two chords per bar |
+| 3 | Six-Eight Time | 6/8: two beats, each split in three | `"6/8"` in `BAR_LEN`, `FULL_REST`, rhythm table `R68`, cadences; 6/8 bass patterns; checker `BAR` |
+| 4 | D Major | Two sharps; D major chords | positions/keys exist (`RH_D`, `LH_D`, `KEY_D`); LH chord shapes in D |
+| 5 | B-flat Major | Two flats | new `RH_Bb`/`LH_Bb` positions, `KEY_BB` (`{"b": "es", "e": "es"}`) |
+| 6 | Accidentals | Accidentals inside the bar; raised 7th in minor | per-note accidentals in the melody and in V7 (minor keys); B minor and G minor |
+| 7 | Two Notes at Once | RH thirds and sixths | RH two-note chords (`<e' g'>`); checker must parse `< >` |
+| 8 | Two Independent Voices | LH melody against RH; contrary and parallel motion | a second melodic line with consonance rules (no parallel 5ths/8ves) |
+| 9 | Imitation | One hand answers the other | imitation: LH repeats the RH's bars 1-2 an octave lower, etc. |
+| 10 | Review | Everything in Volume 3 | - |
+
+Pieces: about half re-engraved public-domain music from Unit 3 on (Unit 1 has Ode to Joy and
+Jingle Bells plus two originals). Unit titles are already on the Volume 3 contents page, so keep
+them unless there is a good reason to change them.
 
 ## Files
 
@@ -55,8 +75,11 @@ python3 check_pieces.py --vol 2                  # Volume 2
 python3 build.py 3                               # one unit -> build/read-at-sight-vol1-unit3.pdf
 python3 build.py 1 2 3 4 5 6 7 8 9 10            # whole book -> build/read-at-sight-vol1.pdf
 python3 build.py --vol 2 1 2 3 4 5 6 7 8 9 10    # Volume 2 book -> build/read-at-sight-vol2.pdf
+python3 check_pieces.py --vol 3 1                # Volume 3 (units not written yet are skipped)
+python3 build.py --vol 3 1                       # Volume 3, Unit 1 (with front matter)
 ```
-Content modules: Volume 1 uses `content/unitNN.py`; Volume 2 uses `content/v2unitNN.py`.
+Content modules: Volume 1 uses `content/unitNN.py`; Volume 2 uses `content/v2unitNN.py`;
+Volume 3 uses `content/v3unitNN.py`.
 Seeds are `volume * 1000 + unit id`.
 - The front matter (title, how-to, contents) is included only when Unit 1 is part of the
   build.
@@ -89,6 +112,13 @@ added; new options only use the random generator when they are switched on.
 | `extend` | (Vol 2) `1` lets a hand reach one key beyond its position; the stretch note is fingered 1 or 5 |
 | `artic` | (Vol 2) `{"slur": p, "stacc": p}` per two-bar segment: a slur over the whole segment (only if it has no rests), or staccato dots on quarters and eighths |
 | `dynamics` | (Vol 2) `True` adds a starting dynamic; 8-bar exercises get a hairpin in bar 3 leading to a new level in bar 5 |
+| `chords` | (Vol 3) Chords the LH plays, from `CHORDS` in units.py: `I`, `IV`, `V7`. A chord plan is chosen first (start on I, end V7-I, bar 4 of 8 is V7 or I, never V7 -> IV, weights in `CHORD_MOVES`); the melody then puts a chord tone on beat 1 and on every half note or longer, never doubles the leading note over V7, and avoids parallel 5ths/8ves with the bass on beat 1 |
+| `bass` | (Vol 3) With `chords`: `broken` = one chord per bar, 4/4 bottom-middle-top-middle quarters, 3/4 bottom-middle-top (`BASS_PATTERNS`); the last bar holds the root. LH leaps stay within a sixth (`CHORD_MAX_LEAP`) |
+| `require_chords` | (Vol 3) Chords that must appear in every exercise, e.g. `["IV"]` |
+| `chord_fingers` | (Vol 3) Print a LH finger number on the first note of every new chord shape |
+
+Chord shapes are built on the LH position's lowest note: I = 1-3-5 (fingers 5 3 1), IV = 1-4-6
+(5 2 1), V7 = 7-4-5 (5 2 1, the dominant seventh without its fifth), e.g. C E G / C F A / B F G.
 
 A finger number is printed on the first note of every hand entry **and every shift**, so in
 Volume 2 a mid-line finger number means "move the hand". Rhythm vocabularies added for
@@ -109,6 +139,9 @@ Use the same names as the existing files:
 - `CHECKPOINT` — pass criteria; optional `CHECKPOINT_TITLE`
 - optional `KEYBOARDS` — list of position groups to draw, e.g. `[["LH_D","RH_D"],["LH_F","RH_F"]]`
 - optional `STRETCH` — `(step, finger, hand)` keys drawn pale on the keyboard (stretch notes)
+- optional `CHORD_SHAPES` — (Vol 3) `(title, lh position, lily key, key_acc)` per key: draws the
+  LH's I, IV and V7 shapes as keyboards, then all of them on one bass staff. Use `KEYBOARDS = []`
+  to draw no position keyboard.
 - piece options: `positions` (extra position keys the checker allows for that piece, e.g.
   `["LH_MC"]`), `allow_range: True` (skip the range check, e.g. for a challenge piece), and
   `allow_leap: N`. Every exception should be explained in the piece's `note`.
@@ -119,8 +152,10 @@ Use the same names as the existing files:
 - Put a finger number on the first note of each hand's entry: `e'4^3` for RH, `c4_5` for LH.
 - Use only notes, rhythms and leaps taught by that unit. `check_pieces.py` enforces this.
   In Volume 2 a hand may reach one key beyond its positions from Unit 2, and dotted quarters
-  are allowed from Unit 3. Slurs `(` `)`, staccato `-.`, dynamics `\p` and hairpins `\<` `\>`
-  are written straight into the piece strings.
+  are allowed from Unit 3. In Volume 3 the stretch, eighths and dotted rhythms are allowed from
+  Unit 1, and leaps up to a sixth (broken chords leap back to the bottom note).
+  Slurs `(` `)`, staccato `-.`, dynamics `\p` and hairpins `\<` `\>` are written straight into
+  the piece strings.
 - **Public-domain pieces:** only use melodies whose notes are certain (folk tunes, famous
   themes), or transcribe from a verified source such as Mutopia. Say "simplified" in
   `credit` whenever anything was changed.
