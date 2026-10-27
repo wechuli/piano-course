@@ -190,6 +190,9 @@ def v5_events(pieces):
     parts = ['\\version "2.24.0"', LISTENER]
     for i, pc in enumerate(pieces):
         pre = "\\once \\override Staff.TimeSignature.style = #'C " if pc.get("cut") else ""
+        pc = dict(pc)
+        for k in ("rh", "lh"):  # cross-staff notes: the staves are called "up" and "down" in the book
+            pc[k] = pc[k].replace('Staff = "down"', f'Staff = "p{i}lh"').replace('Staff = "up"', f'Staff = "p{i}rh"')
         parts.append(f"""\\score {{ \\new PianoStaff <<
   \\new Staff = "p{i}rh" {{ \\clef treble \\key {pc.get('key', 'c \\major')} {pre}\\time {pc['meter']} {pc['rh']} }}
   \\new Staff = "p{i}lh" {{ \\clef bass \\key {pc.get('key', 'c \\major')} {pre}\\time {pc['meter']} {pc['lh']} }}

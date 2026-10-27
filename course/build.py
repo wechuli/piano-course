@@ -551,6 +551,7 @@ def unit_pages(unit, vol=1):
         lpre = "\\set fingeringOrientations = #'(left) " if vol >= 4 else ""  # fingers beside LH chords
         rpre = lpre if re.search(r"<[^>]*-\d", pc_['rh']) else ""  # and RH chords that carry fingers
         tpre = ""
+        sup, sdown = (' = "up"', ' = "down"') if vol >= 5 else ("", "")  # named, for cross-staff notes
         endbar = '\\bar "|." '
         if vol >= 5 and pc_['lh'].rstrip().endswith("}") and "\\repeat volta" in pc_['lh']:
             endbar = ""  # the piece ends with a repeat sign, which the final bar line would hide
@@ -567,8 +568,8 @@ def unit_pages(unit, vol=1):
     }}
   }}
   \\new PianoStaff <<
-    \\new Staff {{ \\autoLineBreaksOff \\clef treble \\key {pkey} {tpre}\\time {pc_['meter']} {rpre}{prh} }}
-    \\new Staff {{ \\clef bass \\key {pkey} {tpre}\\time {pc_['meter']} {lpre}{pc_['lh']} {endbar}}}
+    \\new Staff{sup} {{ \\autoLineBreaksOff \\clef treble \\key {pkey} {tpre}\\time {pc_['meter']} {rpre}{prh} }}
+    \\new Staff{sdown} {{ \\clef bass \\key {pkey} {tpre}\\time {pc_['meter']} {lpre}{pc_['lh']} {endbar}}}
   >>
   \\layout {{ }}
 }}""")
