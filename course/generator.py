@@ -649,7 +649,7 @@ def make_imitation(part, rng):
     def tune(last_bar, end_ok):
         r = [list(rng.choice(vocab)), list(rng.choice(last_bar))]
         m = gen_melody(sub, r, ["RH", "RH"], one, False, rng, end_ok=end_ok)
-        if m is None:
+        if m is None or len({x for bar in m for x in bar}) < 3:
             return None, None, None
         low = transpose_into(m, llo, lhi)
         return (r, m, low) if low else (None, None, None)
@@ -658,13 +658,16 @@ def make_imitation(part, rng):
         rb = [list(rng.choice(rhythm_vocab(part, "counter_rhythms"))), list(rng.choice(last_fin))]
         c = gen_counter(part, hand, timed(r_main, m_main), rb, [part["rh" if hand == "RH" else "lh"]] * 2,
                         rng, prev=prev, end_pcs=end_pcs)
-        return (rb, c) if c else (None, None)
+        flat = [x for bar in c or [] for x in bar]
+        if not c or len(set(flat)) < min(3, len(flat)):
+            return None, None  # a counter-melody that only repeats one note is no melody
+        return rb, c
 
     if n == 4:
-        ra, ma, la = tune(fin, {t})
+        ra, ma, la = tune(cad, {t})
         if ma is None:
             return None
-        rc, mc = counter("RH", ra, la, ma[-1][-1], {t}, fin)
+        rc, mc = counter("RH", ra, la, ma[-1][-1], {t}, cad)
         if mc is None:
             return None
         rh_bars = [list(zip(r, m)) for r, m in zip(ra + rc, ma + mc)]
@@ -676,7 +679,7 @@ def make_imitation(part, rng):
     rc, mc = counter("RH", ra, la, ma[-1][-1], {(t + 1) % 7, (t + 2) % 7, (t + 4) % 7}, cad)
     if mc is None:
         return None
-    rb_, mb, lb = tune(fin, {t})
+    rb_, mb, lb = tune(cad, {t})
     if mb is None or abs(mb[0][0] - mc[-1][-1]) > 4:
         return None
     rd, md = counter("LH", rb_, mb, la[-1][-1], None, cad)
