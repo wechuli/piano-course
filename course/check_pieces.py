@@ -17,28 +17,32 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "content"))
-from units import VOLUME1, VOLUME2, VOLUME3, POSITIONS  # noqa: E402
+from units import VOLUME1, VOLUME2, VOLUME3, VOLUME4, POSITIONS  # noqa: E402
 
-VOLS = {1: (VOLUME1, "unit"), 2: (VOLUME2, "v2unit"), 3: (VOLUME3, "v3unit")}
+VOLS = {1: (VOLUME1, "unit"), 2: (VOLUME2, "v2unit"), 3: (VOLUME3, "v3unit"), 4: (VOLUME4, "v4unit")}
 # Largest leap allowed (in diatonic steps) by the end of each unit
 MAX_LEAP = {1: {1: 1, 2: 1, 3: 1, 4: 2, 5: 2, 6: 2, 7: 2, 8: 4, 9: 4, 10: 4},
             2: {i: 4 for i in range(1, 11)},
-            3: {1: 5, 2: 6, 3: 6, 4: 6, 5: 6, 6: 6, 7: 6, 8: 7, 9: 7, 10: 7}}  # Vol 3: broken chords, Alberti; octaves from Unit 8
-DOTTED_HALF_FROM = {1: 3, 2: 1, 3: 1}
-EIGHTH_FROM = {1: 9, 2: 1, 3: 1}
-DOTTED_QUARTER_FROM = {1: 99, 2: 3, 3: 1}
-STRETCH_FROM = {1: 99, 2: 2, 3: 1}  # from this unit a hand may reach one key beyond its positions
-BAR = {"4/4": 8, "3/4": 6, "6/8": 6}
+            3: {1: 5, 2: 6, 3: 6, 4: 6, 5: 6, 6: 6, 7: 6, 8: 7, 9: 7, 10: 7},
+            4: {i: 7 for i in range(1, 9)}}  # Vol 4: octave moves  # Vol 3: broken chords, Alberti; octaves from Unit 8
+DOTTED_HALF_FROM = {1: 3, 2: 1, 3: 1, 4: 1}
+EIGHTH_FROM = {1: 9, 2: 1, 3: 1, 4: 1}
+SIXTEENTH_FROM = {1: 99, 2: 99, 3: 99, 4: 6}
+DOTTED_QUARTER_FROM = {1: 99, 2: 3, 3: 1, 4: 1}
+STRETCH_FROM = {1: 99, 2: 2, 3: 1, 4: 1}  # from this unit a hand may reach one key beyond its positions
+BAR = {"4/4": 8, "3/4": 6, "6/8": 6, "2/4": 4}
 TOKEN = re.compile(r"^(R|r|[a-g](?:is|es)?)([',]*)(\d+)?(\.?)(.*)$")
-DUR8 = {"1": 8, "2": 4, "4": 2, "8": 1}
+DUR8 = {"1": 8, "2": 4, "4": 2, "8": 1, "16": 0.5}
 
 
 def parse(music):
     """Yield bars as lists of (step or None, eighths, raw)."""
     bars, cur, last = [], [], "4"
     music = re.sub(r'\\bar\s+"[^"]*"', " ", music)
+    music = re.sub(r"\\key\s+\S+\s+\\\w+", " ", music)  # key changes inside a piece
+    music = re.sub(r"\\time\s+\S+", " ", music)
     # a two-note chord <e' g'>4 becomes one token "e'+g'4"; its notes are checked one by one
-    music = re.sub(r"(?<!\\)<([^<>\\]*)>", lambda m: "+".join(m.group(1).split()), music)
+    music = re.sub(r"(?<!\\)<([^<>\\]*)>", lambda m: "+".join(re.sub(r"-\d", "", m.group(1)).split()), music)
     for tok in music.replace("|", " | ").split():
         if tok == "|":
             bars.append(cur)
@@ -57,13 +61,13 @@ def parse(music):
         name, marks, dur, dot, _ = m.groups()
         if name == "R":
             # full-bar rest like R1 or R2.
-            d = DUR8[dur] + (DUR8[dur] // 2 if dot else 0)
+            d = DUR8[dur] + (DUR8[dur] / 2 if dot else 0)
             cur.append((None, d, tok, True))
             continue
         if dur:
             last = dur + dot
         base = DUR8[last.rstrip(".")]
-        d = base + (base // 2 if last.endswith(".") else 0)
+        d = base + (base / 2 if last.endswith(".") else 0)
         if name == "r":
             cur.append((None, d, tok, False))
             continue
@@ -84,6 +88,9 @@ def unit_ranges(unit, content, extra=(), stretch=0):
             if p.get(k):
                 keys.add(p[k])
             keys.update(p.get(k + "_positions", []))
+            for seg in p.get("modulate", {}).get("to", []):  # key changes bring their own positions
+                if seg.get(k):
+                    keys.add(seg[k])
     for group in getattr(content, "KEYBOARDS", []) or []:
         keys.update(group)
     ranges = {"RH": [], "LH": []}
@@ -121,6 +128,8 @@ def check_unit(unit, vol=1):
                         problems.append(f"{pc['title']} {staff} bar {b}: dotted half not taught yet ({raw})")
                     if d == 1 and uid < EIGHTH_FROM[vol]:
                         problems.append(f"{pc['title']} {staff} bar {b}: eighth note not taught yet ({raw})")
+                    if d < 1 and uid < SIXTEENTH_FROM[vol]:
+                        problems.append(f"{pc['title']} {staff} bar {b}: sixteenth note not taught yet ({raw})")
                     if d == 3 and uid < DOTTED_QUARTER_FROM[vol]:
                         problems.append(f"{pc['title']} {staff} bar {b}: dotted quarter not taught yet ({raw})")
                     if step is None:

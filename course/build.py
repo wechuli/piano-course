@@ -5,13 +5,14 @@ Output: ../build/read-at-sight-volN[-unitM].pdf
 """
 import importlib
 import os
+import re
 import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "content"))
 
-from units import VOLUME1, VOLUME2, VOLUME3, POSITIONS, CHORDS  # noqa: E402
+from units import VOLUME1, VOLUME2, VOLUME3, VOLUME4, POSITIONS, CHORDS  # noqa: E402
 from generator import generate_unit, lily_exercise, chord_fingers, lily_pitch, raised_pitch  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -47,6 +48,23 @@ VOLUMES = {
              "major and B-flat major, and sharps and flats that are not in the key signature. "
              "Start this book when you can read Volume 2 music, with shifts, dotted rhythms and dynamics, in C, G and "
              "F major and their relative minors."),
+        ]},
+    4: {"units": VOLUME4, "subtitle": "Volume 4  -  Patterns and Keys", "content": "v4unit",
+        "blurb": ["Chords in both hands, high and low notes, syncopation and sixteenths,",
+                  "keys with three sharps or flats, and music that changes key."],
+        "replace": {"How each unit is laid out":
+                    "A unit opens with what is new, keyboard pictures of the hand positions or chord shapes, and reading tips. "
+                    "Then come Parts A to D, which grow slightly harder. Pieces come next, and the unit ends with a checkpoint "
+                    "that tells you when to move on."},
+        "skip": ["Why this book is built this way"],
+        "extra": [
+            ("What is new in Volume 4",
+             "Both hands now play chords, and the accompaniment falls into patterns you learn to read at a glance: "
+             "held chords, oom-pah and waltz basses, chorales and after-beat chords. You will read ledger lines far "
+             "above and below the staves, syncopated rhythms and sixteenth notes, the keys of A major, E-flat major, "
+             "F-sharp minor and C minor, and music that moves into a new key. 2/4 time joins 3/4, 4/4 and 6/8. "
+             "Start this book when you can read Volume 3 music: broken-chord and Alberti basses, 6/8, keys with two "
+             "sharps or flats, and two independent voices."),
         ]},
 }
 
@@ -162,6 +180,10 @@ def keyboard_markup(first, last, keys, labels):
     w, h, bw, bh = 2.6, 10.0, 1.6, 6.2
     white_mark, black_mark = {}, {}
     for st, acc, finger, hand in keys:
+        if acc == "is" and st % 7 in (2, 6):  # E-sharp and B-sharp are white keys
+            st, acc = st + 1, None
+        elif acc == "es" and st % 7 in (0, 3):  # C-flat and F-flat too
+            st, acc = st - 1, None
         if acc is None:
             white_mark[st] = (finger, hand)
         else:
@@ -355,7 +377,8 @@ OVERVIEW_NOTE = "Each unit adds exactly one new idea to everything before it."
 def how_to_page(vol):
     V = VOLUMES[vol]
     out = ["\\markup \\column { \\fontsize #6 \\bold \"How to use this book\" \\vspace #1 }"]
-    for head, body in V["extra"] + [h for h in HOW_TO if h[0] not in V.get("skip", [])]:
+    how = [(h, V.get("replace", {}).get(h, b)) for h, b in HOW_TO if h not in V.get("skip", [])]
+    for head, body in V["extra"] + how:
         out.append(f"\\markup \\column {{ \\fontsize #2 \\bold {s(head)} \\vspace #0.3 {para(body, 1)} \\vspace #0.6 }}")
     out.append("\\pageBreak")
     rows = []
@@ -449,6 +472,8 @@ def unit_pages(unit, vol=1):
     for pc_ in content.PIECES:
         pkey = pc_.get('key', 'c \\major')
         prh = pc_['rh'].replace('\\break', '\\break \\noPageBreak')
+        lpre = "\\set fingeringOrientations = #'(left) " if vol >= 4 else ""  # fingers beside LH chords
+        rpre = lpre if re.search(r"<[^>]*-\d", pc_['rh']) else ""  # and RH chords that carry fingers
         out.append(f"""\\score {{
   \\header {{
     piece = \\markup \\column {{
@@ -458,8 +483,8 @@ def unit_pages(unit, vol=1):
     }}
   }}
   \\new PianoStaff <<
-    \\new Staff {{ \\autoLineBreaksOff \\clef treble \\key {pkey} \\time {pc_['meter']} {prh} }}
-    \\new Staff {{ \\clef bass \\key {pkey} \\time {pc_['meter']} {pc_['lh']} \\bar "|." }}
+    \\new Staff {{ \\autoLineBreaksOff \\clef treble \\key {pkey} \\time {pc_['meter']} {rpre}{prh} }}
+    \\new Staff {{ \\clef bass \\key {pkey} \\time {pc_['meter']} {lpre}{pc_['lh']} \\bar "|." }}
   >>
   \\layout {{ }}
 }}""")
