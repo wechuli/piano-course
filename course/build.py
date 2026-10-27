@@ -373,21 +373,27 @@ def example_score(exm):
 
 
 def key_picture(kp):
-    """One octave of a key's scale on the keyboard: scale degrees on the keys (Volume 5)."""
+    """One octave of a key's scale on the keyboard, with the scale degrees on the keys (Volume 5).
+    In a minor key the 7th is raised, as in the harmonic minor."""
     import gen5
     title, name, mode = kp
     k = gen5.Key(name, mode)
     start = 28 + k.tpc if k.tpc <= 2 else 21 + k.tpc
-    keys = []
+    keys, names = [], []
     for i in range(8):
         st = start + i
         alt = k.sig[st % 7] + (1 if mode == "minor" and i == 6 else 0)
-        keys.append((st, {1: "is", -1: "es", 0: None, 2: "isis"}[alt], str(i % 7 + 1), "RH"))
-    lo, hi = start - 1, start + 8
-    kb = keyboard_markup(lo, hi, keys, {})
-    names = " ".join(gen5.LETTERS[(start + i) % 7].upper() + {1: "#", -1: "b", 0: "", 2: "x"}[keys[i][1] and (1 if keys[i][1] == "is" else -1) or 0] for i in range(8))
+        acc = {1: "is", -1: "es", 0: None}.get(alt)
+        if alt == 2:  # a double sharp (F double-sharp, G-sharp minor's 7th) is the white key above
+            keys.append((st + 1, None, str(i % 7 + 1), "RH"))
+            names.append(f"\\concat {{ \"{'CDEFGAB'[st % 7]}\" \\raise #0.5 \\fontsize #-3 \\doublesharp }}")
+        else:
+            keys.append((st, acc, str(i % 7 + 1), "RH"))
+            names.append(note_name_markup(st, acc))
+    kb = keyboard_markup(start - 1, start + 8, keys, {})
     return (f"\\markup \\column {{ \\vspace #0.6 \\fill-line {{ \\fontsize #1 \\bold {s(title)} }} \\vspace #0.5 "
-            f"\\fill-line {{ {kb} }} \\vspace #0.8 \\fill-line {{ \\fontsize #-1 \\italic {s('Scale degrees on the keys: ' + names)} }} \\vspace #0.4 }}")
+            f"\\fill-line {{ {kb} }} \\vspace #0.8 \\fill-line {{ \\line {{ \\italic \"Scale degrees on the keys:\" "
+            f"{' '.join(names)} }} }} \\vspace #0.4 }}")
 
 
 # ---------------------------------------------------------------- front matter
