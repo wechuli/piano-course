@@ -15,7 +15,10 @@ A print-ready A4 course book, typeset with LilyPond.
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The five-volume course is complete. Next: Volume 6** (Levels 7-8, an extension beyond the
-original plan): the full plan is in "Volume 6 plan" below. All five volumes are protected by
+original plan): the full plan is in "Volume 6 plan" below. The shared groundwork is in place
+(see "Groundwork (done)" in the plan): `course/gen6.py` multi-staff scores, the Volume 6
+checker and build changes, and `course/test_gen6.py`. No Volume 6 units are written yet.
+All five volumes are protected by
 `course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
 original plan follows it for reference.
 
@@ -334,6 +337,35 @@ songs must be neutral syllables (no invented words). Unbarred and changing-meter
 checks in the checker to be skipped inside `\cadenzaOn`. Erlkonig and the Rachmaninoff Prelude are
 hard: present them explicitly as "simplify at sight" challenges, with a printed reduction.
 
+### Groundwork (done)
+
+Build-order step 1 is implemented and tested by `course/test_gen6.py` (run it from `course/`;
+it must print OK, and `check_identical.py` must stay identical).
+
+- **`course/gen6.py` (feature 1).** gen5 is imported, never edited. An exercise may carry
+  `ex["staves"]` (a list of `{name, clef, voices, instrument?, hand?, solo?, lyrics?}`) and
+  `ex["group"]`: `"piano"` (PianoStaff), `"choir"` (ChoirStaff) or `"quartet"` (StaffGroup);
+  a `solo` staff is printed above the group. Clefs: `treble`, `bass`, `treble_8`, `alto`,
+  `tenor`; clef changes inside a staff travel in an event's `pre` list, as in gen5's `alt`.
+  `texture: "chorale", staves: 4` lays the gen5 SATB chorale out in open score (the first
+  user; the layout changes after validation, so no randomness is consumed differently).
+  `transpose: {"by": "M2", "dir": "up"}` on a part feeds `answer_scores`, which reprints
+  those exercises in the target key (LilyPond `\transpose`) for the Answers appendix.
+- **`check_pieces.py --vol 6` (feature 10).** Pieces may define `staves`
+  (`{name, clef, music}`, with `hand: "rh"/"lh"` on the piano staves, `solo`, `instrument`,
+  `lyrics`, clef `"chords"` for a ChordNames line, and `group`); the event listener reads
+  every staff. Every key from the start; gates by unit: tuplets other than triplets (Unit 2),
+  changing meters, beat groups, modes and `\cadenzaOn` (3; `meter` may then be left out),
+  `\ottava` and three-staff piano (5), solo staff and lyrics (6), alto/tenor/treble_8 clefs
+  and four staves (7), chord symbols (8). Spans and leaps (two octaves) are checked per hand
+  on piano staves only.
+- **`build.py` (feature 10).** `VOLUMES[6]` (content `v6unitNN`, staff size 20 and wider text
+  for four-staff systems on A4, via the new `staff_size`/`text_width` options; Volumes 1-5
+  keep 22/86 and stay byte-identical); pieces may define `staves` as in the checker; the
+  Answers appendix prints after Unit 8 whenever a built unit has `transpose` parts.
+- **`units.py`.** `VOLUME6` holds the eight units' ids, titles and "New:" lines; each unit's
+  `parts` are filled in when that unit is built.
+
 ## Volume 5 plan (as written before it was built)
 
 **Goal.** A Level 6 reader can sight-read real piano music of the standard of Schumann's Album
@@ -494,7 +526,10 @@ voicings and their rule checks before it goes into the book.
 
 ```
 course/units.py         Course spec: hand positions, rhythm vocabularies, unit/part rules
-course/generator.py     Exercise generator + validator + LilyPond emitter
+course/generator.py     Exercise generator + validator + LilyPond emitter (Volumes 1-4)
+course/gen5.py          Volume 5 generator (reading by key, chord and pattern)
+course/gen6.py          Volume 6 generator: imports gen5, adds multi-staff scores
+course/test_gen6.py     Tests for the Volume 6 groundwork (run from course/; must print OK)
 course/build.py         Page template, keyboard diagrams, front matter, contents, book assembly
 course/check_pieces.py  Checks hand-written pieces against what each unit has taught
 course/check_identical.py  Regression check: finished units must not change (fingerprints.json)
@@ -517,6 +552,9 @@ python3 build.py --vol 3 1                       # Volume 3, Unit 1 (with front 
 python3 build.py --vol 4 1 2 3 4 5 6 7 8        # Volume 4 book -> build/read-at-sight-vol4.pdf
 python3 check_pieces.py --vol 5                  # Volume 5 (add --verbose for every problem)
 python3 build.py --vol 5 1 2 3 4 5 6 7 8        # Volume 5 book -> build/read-at-sight-vol5.pdf
+python3 test_gen6.py                             # Volume 6 groundwork tests; must print OK
+python3 check_pieces.py --vol 6                  # Volume 6 (units not written yet are skipped)
+python3 build.py --vol 6 1 2 3 4 5 6 7 8        # Volume 6 book (Answers appendix after Unit 8)
 python3 check_identical.py                       # every finished unit must print "identical"
 python3 check_identical.py --add 5 1             # record a newly finished unit (here Volume 5, Unit 1)
 ```

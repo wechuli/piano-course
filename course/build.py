@@ -12,12 +12,20 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "content"))
 
-from units import VOLUME1, VOLUME2, VOLUME3, VOLUME4, VOLUME5, POSITIONS, CHORDS  # noqa: E402
+from units import VOLUME1, VOLUME2, VOLUME3, VOLUME4, VOLUME5, VOLUME6, POSITIONS, CHORDS  # noqa: E402
 from generator import generate_unit, lily_exercise, chord_fingers, lily_pitch, raised_pitch  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 BUILD = os.path.join(HERE, "..", "build")
 TEXT_WIDTH = 86  # line width for wrapped text, in staff spaces (A4, staff size 22)
+
+
+def _layout_for(vol):
+    """Volume 6 is set at staff size 20 (option "staff_size": four-staff systems must fit A4),
+    so its text lines are measured in smaller staff spaces and need a larger width. Volumes 1-5
+    keep the defaults (86 at staff size 22) and must stay byte-identical."""
+    global TEXT_WIDTH
+    TEXT_WIDTH = VOLUMES[vol].get("text_width", 86)
 
 VOLUMES = {
     1: {"units": VOLUME1, "subtitle": "Volume 1  -  First Steps", "content": "unit",
@@ -93,6 +101,34 @@ VOLUMES = {
              "Chopin and Satie. Start this book when you can read Volume 4 music: chords in both hands, ledger "
              "lines, syncopation, sixteenths and keys with three sharps or flats."),
         ]},
+    6: {"units": VOLUME6, "subtitle": "Volume 6  -  Reading Like a Professional", "content": "v6unit",
+        "staff_size": 20, "text_width": 94,  # four-staff systems must fit A4 portrait
+        "blurb": ["Three voices, cross-rhythms, changing meters and chromatic harmony; songs on three staves,",
+                  "open score with C clefs, lead sheets, and transposing and simplifying at sight."],
+        "replace": {
+            "Before every exercise: 10 seconds":
+                "Name the key (or mode) and the time signature, and check whether either changes. Count the "
+                "staves and name each clef. Find the hardest bar and decide what you will drop from it if you "
+                "must. Then count one bar in and play.",
+            "How each unit is laid out":
+                "A unit opens with what is new, short examples, and reading tips. Parts A to C are generated "
+                "exercises that practise the new idea. The pieces come next: real music by the great composers, "
+                "chosen because each needs exactly the unit's new skill. A checkpoint ends the unit.",
+            "A daily routine (15-20 minutes)":
+                "Warm up with the scale and the main chords of the day's key (2 minutes). Read 4-6 new "
+                "exercises, one pass each (8 minutes). Then read one piece, or a page of one, keeping the beat "
+                "and simplifying where you must (8 minutes)."},
+        "skip": ["Why this book is built this way"],
+        "extra": [
+            ("What is new in Volume 6",
+             "Volumes 1-5 taught you to read piano music. This volume teaches you to read music written for "
+             "anyone: three-voice counterpoint, two rhythms at once, meters that change bar by bar, chromatic "
+             "harmony, big textures, a singer's line above the piano, open score with alto and tenor clefs, and "
+             "lead sheets with chord symbols. It also teaches the professional's two survival skills: "
+             "simplifying at sight (dropping notes without losing the music) and transposing at sight. "
+             "Start this book when you have passed the Volume 5 checkpoint: every key, triplets, the pedal, "
+             "clef changes and ornaments."),
+        ]},
 }
 
 
@@ -116,7 +152,7 @@ def para(text, size=0):
 # ---------------------------------------------------------------- preamble
 PREAMBLE = r"""
 \version "2.24.0"
-#(set-global-staff-size 22)
+#(set-global-staff-size @@STAFF_SIZE@@)
 
 \paper {
   #(set-paper-size "a4")
@@ -398,6 +434,7 @@ def key_picture(kp):
 
 # ---------------------------------------------------------------- front matter
 def title_page(vol):
+    _layout_for(vol)
     V = VOLUMES[vol]
     kb = keyboard_markup(21, 35, [], {28: "Middle C"})
     return rf"""
@@ -447,6 +484,7 @@ OVERVIEW_NOTE = "Each unit adds exactly one new idea to everything before it."
 
 
 def how_to_page(vol):
+    _layout_for(vol)
     V = VOLUMES[vol]
     out = ["\\markup \\column { \\fontsize #6 \\bold \"How to use this book\" \\vspace #1 }"]
     how = [(h, V.get("replace", {}).get(h, b)) for h, b in HOW_TO if h not in V.get("skip", [])]
@@ -466,7 +504,68 @@ def how_to_page(vol):
 
 
 # ---------------------------------------------------------------- unit pages
+V6_CLEFS = {"treble": "treble", "bass": "bass", "treble_8": '"treble_8"', "alto": "alto", "tenor": "tenor"}
+V6_GROUPS = {"piano": "PianoStaff", "choir": "ChoirStaff", "quartet": "StaffGroup"}
+
+
+def piece_score_v6(pc_):
+    """A Volume 6 piece. Besides "rh"/"lh" (two piano staves, as before), a piece may define
+    "staves": a list of {name, clef, music}, plus "hand": "rh"/"lh" on the piano staves,
+    "solo": True on a staff printed above the group (a singer or violin), "instrument" for a
+    printed name, "lyrics" for an \\addlyrics line, and clef "chords" for a ChordNames line
+    (lead sheets). "group" picks the bracket: piano (default), choir or quartet. "meter" may
+    be left out when the music is unbarred (\\cadenzaOn)."""
+    pkey = pc_.get("key", "c \\major")
+    tpre = "\\once \\override Staff.TimeSignature.style = #'C " if pc_.get("cut") else ""
+    tsig = f"\\time {pc_['meter']} " if pc_.get("meter") else ""
+    staves = pc_.get("staves") or [{"name": "up", "clef": "treble", "music": pc_["rh"], "hand": "rh"},
+                                   {"name": "down", "clef": "bass", "music": pc_["lh"], "hand": "lh"}]
+    last_staff = [st for st in staves if st.get("clef") != "chords"][-1]
+    solo_codes, group_codes = [], []
+    first = True
+    for st in staves:
+        music = st["music"]
+        if st.get("clef") == "chords":
+            group_codes.append(f"\\new ChordNames {{ {music} }}")
+            continue
+        if not pc_.get("long"):
+            music = music.replace("\\break", "\\break \\noPageBreak")
+        pre = "\\accidentalStyle modern "
+        if st.get("hand"):
+            pre += "\\set Staff.pedalSustainStyle = #'bracket "
+            if re.search(r"<[^>]*-\d", st["music"]):  # fingers beside chords
+                pre = "\\set fingeringOrientations = #'(left) " + pre
+        if st.get("instrument"):
+            pre += f"\\set Staff.instrumentName = {s(st['instrument'] + ' ')} "
+        endbar = ""
+        if st is last_staff and "\\repeat volta" not in st["music"]:
+            endbar = ' \\bar "|."'  # one staff ends the system (a repeat sign would be hidden)
+        auto = "\\autoLineBreaksOff " if first else ""
+        first = False
+        code = (f'\\new Staff = "{st["name"]}" {{ {auto}\\clef {V6_CLEFS[st.get("clef", "treble")]} '
+                f"\\key {pkey} {tpre}{tsig}{pre}{music}{endbar} }}")
+        if st.get("lyrics"):
+            code += f" \\addlyrics {{ {st['lyrics']} }}"
+        (solo_codes if st.get("solo") else group_codes).append(code)
+    body = (f"\\new {V6_GROUPS[pc_.get('group', 'piano')]} <<\n    "
+            + "\n    ".join(group_codes) + "\n  >>")
+    if solo_codes:
+        body = "<<\n  " + "\n  ".join(solo_codes) + "\n  " + body + "\n  >>"
+    return f"""\\score {{
+  \\header {{
+    piece = \\markup \\column {{
+      \\line {{ \\fontsize #3 \\bold {s(pc_['title'])} \\hspace #2 \\fontsize #0 {tempo_mk(pc_['tempo'], pc_.get('tempo_unit', '4'))} }}
+      \\fontsize #-1 \\italic {s(pc_['credit'])}
+      \\override #'(line-width . {TEXT_WIDTH}) \\fontsize #-1 \\wordwrap-string #{s(pc_['note'])}
+    }}
+  }}
+  {body}
+  \\layout {{ }}
+}}"""
+
+
 def unit_pages(unit, vol=1):
+    _layout_for(vol)
     try:
         content = importlib.import_module(f"{VOLUMES[vol]['content']}{unit['id']:02d}")
     except ModuleNotFoundError:  # preview: exercises only, placeholder text
@@ -526,7 +625,10 @@ def unit_pages(unit, vol=1):
 
     # Exercise parts
     n = 0
-    if vol >= 5:
+    if vol >= 6:
+        import gen6
+        gen_unit, emit = gen6.generate_unit, gen6.lily_exercise
+    elif vol == 5:
         import gen5
         gen_unit, emit = gen5.generate_unit, gen5.lily_exercise
     else:
@@ -552,6 +654,9 @@ def unit_pages(unit, vol=1):
   \\vspace #0.5
 }}""")
     for pc_ in content.PIECES:
+        if vol >= 6:
+            out.append(piece_score_v6(pc_))
+            continue
         pkey = pc_.get('key', 'c \\major')
         prh = pc_['rh'] if pc_.get('long') else pc_['rh'].replace('\\break', '\\break \\noPageBreak')
         lpre = "\\set fingeringOrientations = #'(left) " if vol >= 4 else ""  # fingers beside LH chords
@@ -586,18 +691,42 @@ def unit_pages(unit, vol=1):
     return "\n".join(out)
 
 
+def answers_pages(vol):
+    """The Answers appendix (Volume 6): every transposing exercise written out in its target
+    key, at the back of the book. No pages while no unit transposes."""
+    import gen6
+    scores = []
+    for unit in VOLUMES[vol]["units"]:
+        scores += gen6.answer_scores(unit, seed=vol * 1000 + unit["id"])
+    if not scores:
+        return ""
+    head = f"""\\markup \\column {{
+  \\fontsize #6 \\bold "Answers"
+  \\vspace #0.4
+  {para('The transposing exercises, written out in their target keys. Play first; check yourself here afterwards.', 0)}
+  \\vspace #0.5
+}}"""
+    return "\n".join([head] + scores + ["\\pageBreak"])
+
+
 def build(unit_ids, vol=1, front=None):
+    _layout_for(vol)
     V = VOLUMES[vol]
     if front is None:
         front = 1 in unit_ids  # title + how-to pages belong at the start of the volume
     header = f"Read at Sight  -  Volume {vol}"
-    parts = [PREAMBLE.replace("@@HEADER@@", header), "\\book {"]
+    parts = [PREAMBLE.replace("@@HEADER@@", header)
+             .replace("@@STAFF_SIZE@@", str(V.get("staff_size", 22))), "\\book {"]
     if front:
         parts.append(title_page(vol))
         parts.append(how_to_page(vol))
     for uid in unit_ids:
         unit = next(u for u in V["units"] if u["id"] == uid)
         parts.append(unit_pages(unit, vol))
+    if vol >= 6 and V["units"][-1]["id"] in unit_ids:
+        app = answers_pages(vol)  # the appendix ends the book
+        if app:
+            parts.append(app)
     parts.append("}")
     os.makedirs(BUILD, exist_ok=True)
     name = f"read-at-sight-vol{vol}" + ("" if len(unit_ids) > 1 else f"-unit{unit_ids[0]}")
