@@ -28,7 +28,7 @@ would only change the page layout; exercises are identical.
 | --- | --- | --- | --- |
 | 1 · First Steps (done) | 0–1 | Both clefs, C/G/middle-C positions, hands together, rests and ties, eighths, D and F positions | 10 |
 | 2 · Moving Hands | 2 | Leaving five-finger positions, hand shifts and extensions, 1 sharp or flat keys and their relative minors, dotted quarters, slurs, simple dynamics | 10 |
-| 3 · Two Voices | in progress: Units 1-3 done | `build/units/` (Vol3 - Unit 1 to 3) | Units 1-3: 106 exercises, 11 pieces |
+| 3 · Two Voices | 3 | Real left-hand independence, Alberti and broken-chord basses, 6/8, keys up to 2 sharps or flats, simple counterpoint | 8–10 |
 | 4 · Patterns and Keys | 4 | Chords in both hands, syncopation, sixteenths, ledger lines, changing key mid-piece | 8 |
 | 5 · Repertoire Reading | 5–6 | 3–4 voices, chromatic notes, all keys, chorales | 6–8 |
 
