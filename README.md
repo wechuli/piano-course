@@ -11,15 +11,15 @@ A print-ready A4 course book, typeset with LilyPond.
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
-| 6 · Reading Like a Professional | in progress: Units 1-4 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 4: 14 pp.) | 4 units, 96 exercises, 16 pieces |
+| 6 · Reading Like a Professional | in progress: Units 1-5 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 5: 17 pp.) | 5 units, 120 exercises, 20 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The five-volume course is complete. Next: Volume 6** (Levels 7-8, an extension beyond the
 original plan): the full plan is in "Volume 6 plan" below. The shared groundwork is in place
 (see "Groundwork (done)" in the plan): `course/gen6.py` multi-staff scores, the Volume 6
-checker and build changes, and `course/test_gen6.py`. Units 1-4 are finished: see the
-"Unit N (done)" sections in the plan. Next: Unit 5 (Big Textures).
+checker and build changes, and `course/test_gen6.py`. Units 1-5 are finished: see the
+"Unit N (done)" sections in the plan. Next: Unit 6 (Accompanying).
 All five volumes are protected by
 `course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
 original plan follows it for reference.
@@ -501,6 +501,36 @@ original Modulation Study (C major to E-flat major by a respelled diminished sev
   a spare.
 - In the Pathetique, Beethoven's run of 64ths and 128ths in bar 4 is written as eight 32nds.
 - Part C's title was shortened to fit the tempo mark on the line.
+
+### Unit 5 (done)
+
+**Generator (`course/gen6.py`, section "big textures").** Tested by `test_big`. `texture: "big"`:
+- `big: "octaves"`: the tune in right-hand octaves over left-hand octave basses (the root, and in
+  4/4 or 2/4 the fifth on the second half). `register: "high"` puts the tune at C6-E7 (lower notes
+  from C5), `"low"` the basses at C1-B2. `add_ottava` prints 8va over right-hand bars from C5 upwards
+  and 8vb under left-hand bars at B2 and below (only in this texture).
+- `big: "chords"`: the tune on top of chords filling the octave below it (four or five notes;
+  passing notes get only their octave), over `arpeggio_lh`: the chord rising an octave and a half
+  from a low root and back, with the pedal changed at each chord.
+- `big: "cross"` (3/4): the left hand plays the root, a fifth-and-octave, then crosses over the right
+  hand for a chord tone at least a whole step above the tune (`\change Staff = "up"`, `\voiceTwo`,
+  marked "l.h.").
+- `big: "dense"`: full right-hand chords over left-hand octaves and chords on the off-beats; the
+  exercise carries `reduction` (the tune and the chord roots), printed by `score6` as a second,
+  smaller piano staff (`\magnifyStaff #2/3`).
+- `validate_big`: gen5's rules, with the pedal for arpeggios and crossing allowed in "cross".
+
+**Pieces.** Grieg, Wedding Day at Troldhaugen Op. 65 No. 6, bars 1-10 (Mutopia 781, PD); Grieg,
+March of the Trolls Op. 54 No. 3, bars 1-10 and a closing chord (Mutopia 2014, PD); Tchaikovsky,
+March of the Wooden Soldiers Op. 39 No. 5, the first strain (Mutopia 1806, PD); original Bells (three
+staves, 8va and 8vb, pedal).
+
+**Changes from plan.**
+- Rachmaninoff's Prelude in C-sharp minor (Mutopia 2033, CC BY-SA 4.0) is left out: its texture is
+  four staves of interlocking hands (each hand plays the melody octave on the beat and off-beat
+  chords, sometimes above the other hand), too risky to excerpt faithfully. An original piece,
+  Bells, models its opening on three staves; the Prelude is a spare.
+- 8va and 8vb are generated only in Part A (Parts B and C keep their notes on the staff).
 
 ## Volume 5 plan (as written before it was built)
 

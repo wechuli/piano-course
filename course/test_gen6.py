@@ -326,6 +326,36 @@ def test_harmony():
     return scores
 
 
+def test_big():
+    """Unit 5 (plan feature 6): octaves with 8va/8vb, full chords over arpeggios, crossed hands, and
+    dense textures with a printed reduction."""
+    scores = []
+    octs = dict(name="A", title="Octaves", count=2, bars=8, meter="4/4", texture="big", big="octaves",
+                rhythms=["basic"], tempo=72, key=("f", "major"), register="high")
+    low = dict(octs, register="low", key=("g", "minor"), meter="3/4")
+    chords = dict(octs, big="chords", rhythms=["slow"], register=None, key=("ees", "major"))
+    cross = dict(octs, big="cross", rhythms=["slow"], register=None, meter="3/4", key=("c", "major"))
+    dense = dict(octs, big="dense", rhythms=["slow"], register=None, key=("a", "minor"))
+    for part in (octs, low, chords, cross, dense):
+        for k, ex in enumerate(gen6.generate_part(dict(part), random.Random(6005), set())):
+            code = gen6.lily_exercise(part, ex, f"99.B{k}")[0]
+            if part is octs:
+                assert all(len(e["n"]) == 2 and e["n"][1][0] - e["n"][0][0] == 7 for bar in ex["rh"][0] for e in bar)
+                assert "\\ottava #1" in code and "\\ottava #0" in code, "8va"
+            if part is low:
+                assert "\\ottava #-1" in code, "8vb"
+            if part is chords:
+                assert max(len(e["n"]) for bar in ex["rh"][0] for e in bar) >= 4, "full chords"
+                assert "\\sustainOn" in code, "pedalled arpeggios"
+            if part is cross:
+                assert code.count("l.h.") == 7 and '\\change Staff = "up"' in code, "the left hand crosses"
+            if part is dense:
+                assert ex.get("reduction") and code.count("\\magnifyStaff #2/3") == 2, "the reduction staff"
+            scores.append(code)
+    print("big textures: octaves, 8va/8vb, chords, crossing, reduction     OK")
+    return scores
+
+
 if __name__ == "__main__":
     test_passthrough()
     exs, scores = test_open_score()
@@ -337,6 +367,7 @@ if __name__ == "__main__":
     scores += test_rhythms()
     scores += test_meters()
     scores += test_harmony()
+    scores += test_big()
     test_build_compiles(scores)
     test_checker()
     print("OK")

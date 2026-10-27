@@ -1481,6 +1481,225 @@ def make_unit4(part, rng):
     raise RuntimeError(f"could not generate exercise for part {part['name']}")
 
 
+
+# ---------------------------------------------------------------- big textures (Unit 5)
+# Feature 6. `texture: "big"` with `big:`
+#   "octaves"   the tune in right-hand octaves over left-hand octave basses; `register: "high"`
+#               puts the tune above C5 (printed under 8va), `"low"` the basses below C2 (8vb)
+#   "chords"    the tune on top of four-note right-hand chords, over an arpeggio of two octaves or
+#               more in the left hand, with the pedal
+#   "cross"     3/4: the left hand plays the bass, then crosses over the right hand for a high note
+#               on the third beat (printed on the upper staff, marked "l.h.")
+#   "dense"     full chords in both hands, with a suggested reduction (the tune and the bass) on a
+#               small piano staff underneath (`reduction: True`)
+# In "octaves", \ottava marks are added automatically: 8va over a right-hand bar whose lowest note
+# is C5 or above and highest A5 or above; 8vb under a left-hand bar whose highest note is B2 or below.
+OCT_BASS = {"4/4": ["2", "2"], "3/4": ["2."], "2/4": ["4", "4"], "6/8": ["4.", "4."]}
+ARP = {"4/4": 8, "3/4": 6, "2/4": 4, "6/8": 6}
+
+
+def upper_chord(key, chord, top):
+    """The tune note `top` with chord tones below it filling the octave (four notes)."""
+    tones = gen5.chord_degrees(chord)
+    out = [top]
+    if key.degree(top[0]) not in tones:  # a passing note: just its octave
+        return [(top[0] - 7, top[1]), top]
+    s = top[0] - 1
+    while len(out) < 4 and s > top[0] - 7:
+        if key.degree(s) in tones:
+            out.append(gen5.spell(key, s, chord))
+        s -= 1
+    out.append((top[0] - 7, top[1]))
+    return sorted(set(out), key=gen5.midi)
+
+
+def add_ottava(voices, staff):
+    """8va / 8vb over whole bars that lie very high or very low (both voices of a staff)."""
+    n = len(voices[0])
+    for b in range(n):
+        ms = [gen5.midi(x) for v in voices for e in v[b] for x in e["n"]]
+        if not ms:
+            continue
+        if staff == "rh" and min(ms) >= 72 and max(ms) >= 81:
+            sign = 1
+        elif staff == "lh" and max(ms) <= 47:
+            sign = -1
+        else:
+            continue
+        prev = b > 0 and voices[0][b - 1][0].get("_ott") == sign
+        if not prev:
+            voices[0][b][0]["pre"].append(f"\\ottava #{sign}")
+        voices[0][b][0]["_ott"] = sign
+    # close each run of ottava bars
+    for b in range(n):
+        if voices[0][b][0].get("_ott") and not (b + 1 < n and voices[0][b + 1][0].get("_ott") ==
+                                                  voices[0][b][0]["_ott"]):
+            voices[0][b][-1]["end"].append(" \\ottava #0")
+    for v in voices:
+        for bar in v:
+            for e in bar:
+                e.pop("_ott", None)
+
+
+def octave_bass(key, plan, meter, low=False):
+    """Left-hand octaves: the chord's root (and on the second half of a 4/4 or 2/4 bar its fifth),
+    the upper note between C3 and B3 (between C2 and B2 when low)."""
+    bar = gen5.METERS[meter][0]
+    lo = 14 if low else 21
+    out = []
+    for b, c in enumerate(plan):
+        r = next(s for s in range(lo, lo + 7) if key.degree(s) == gen5.CHORDS[c][0])
+        top = gen5.spell(key, r, c)
+        if b == len(plan) - 1:
+            out.append([gen5.ev(bar, [(top[0] - 7, top[1]), top])])
+            continue
+        evs = []
+        for k, tok in enumerate(OCT_BASS[meter]):
+            if k % 2:
+                f = gen5.spell(key, r + 4 if r + 4 < lo + 7 else r - 3, c)
+                evs.append(gen5.ev(gen5.TOK[tok], [(f[0] - 7, f[1]), f]))
+            else:
+                evs.append(gen5.ev(gen5.TOK[tok], [(top[0] - 7, top[1]), top]))
+        out.append(evs)
+    return out
+
+
+def arpeggio_lh(key, plan, meter):
+    """Broken chords rising from a low root through an octave and a half and back, with the pedal."""
+    bar = gen5.METERS[meter][0]
+    n = ARP[meter]
+    d = bar / n
+    out = []
+    for b, c in enumerate(plan):
+        r = next(s for s in range(14, 21) if key.degree(s) == gen5.CHORDS[c][0])
+        if b == len(plan) - 1:
+            out.append([gen5.ev(bar, [gen5.spell(key, r, c), gen5.spell(key, r + 7, c)])])
+            continue
+        tones = gen5.chord_degrees(c)
+        up = [s for s in range(r, r + 12) if key.degree(s) in tones]
+        seq = (up + up[-2:0:-1]) * 2
+        out.append([gen5.ev(d, [gen5.spell(key, s, c)]) for s in seq[:n]])
+    gen5.add_pedal(out, plan)
+    return out
+
+
+def make_big(part, key, rng):
+    meter, n = part["meter"], part["bars"]
+    kind = part["big"]
+    rep = gen5.repeat_map(part, n, rng)
+    rbars = gen_rhythm6(part, rng, n, rep)
+    plan = gen5.gen_chord_plan(part, key, n, rep, rng)
+    roots = gen5.lh_roots(part, key, plan)
+    if kind == "octaves" and part.get("register") == "high":
+        lo, hi = 42, 49
+    elif kind == "octaves":
+        lo, hi = 33, 40
+    elif kind in ("chords", "dense"):
+        lo, hi = 37, 44
+    elif kind == "cross":
+        lo, hi = 30, 37
+    else:
+        lo, hi = gen5.rh_range(part, key)
+    steps = gen5.gen_tune(part, key, rbars, plan, rng, lo, hi, bass=gen5.bass_midis(key, plan, roots), rep=rep)
+    if steps is None:
+        return None
+    mel = gen5.tune_events(key, rbars, steps, plan)
+    if not gen5.check_line(mel):
+        return None
+    got = {"plan": plan}
+    if kind == "octaves":
+        rh = [[gen5.ev(e["d"], [(e["n"][0][0] - 7, e["n"][0][1]), e["n"][0]], e["t"]) for e in bar] for bar in mel]
+        lh = octave_bass(key, plan, meter, low=part.get("register") == "low")
+        got.update(rh=[rh], lh=[lh])
+    elif kind in ("chords", "dense"):
+        rh = [[gen5.ev(e["d"], upper_chord(key, plan[b], e["n"][0]) if e["d"] >= Fr(1, 4) else e["n"], e["t"])
+               for e in bar] for b, bar in enumerate(mel)]
+        if kind == "chords":
+            lh = arpeggio_lh(key, plan, meter)
+        else:
+            lh = octave_bass(key, plan, meter, low=True)
+            for b, bar in enumerate(lh[:-1]):  # a chord on the off-beats: the left hand gets busy
+                if meter == "4/4":
+                    v = gen5.voicing(key, plan[b], next(s for s in range(19, 26)
+                                                        if key.degree(s) == gen5.CHORDS[plan[b]][0]))
+                    lh[b] = [gen5.ev(Fr(1, 4), bar[0]["n"]), gen5.ev(Fr(1, 4), v), gen5.ev(Fr(1, 4), bar[1]["n"]),
+                             gen5.ev(Fr(1, 4), v)]
+        got.update(rh=[rh], lh=[lh])
+        if kind == "dense":
+            red_rh = [[gen5.ev(e["d"], e["n"], e["t"]) for e in bar] for bar in mel]
+            red_lh = [[gen5.ev(gen5.METERS[meter][0], [gen5.spell(key, r, c)])] for r, c in zip(roots, plan)]
+            got["reduction"] = (red_rh, red_lh)
+    elif kind == "cross":
+        assert meter == "3/4"
+        lh, rh = [], [mel]
+        for b, (c, r) in enumerate(zip(plan, roots)):
+            if b == n - 1:
+                lh.append([gen5.ev(Fr(3, 4), gen5.voicing(key, c, r))])
+                continue
+            tune_top = max(gen5.midi(x) for e in mel[b] for x in e["n"])
+            hi_cands = [s for s in range(36, 42) if key.degree(s) in gen5.chord_degrees(c)
+                        and gen5.midi(gen5.spell(key, s, c)) > tune_top + 2]
+            if not hi_cands:
+                return None
+            hs = rng.choice(hi_cands)
+            high = gen5.ev(Fr(1, 4), [gen5.spell(key, hs, c)],
+                           pre=['\\change Staff = "up" \\voiceTwo'], post=['^\\markup \\small \\italic "l.h."'])
+            evs = [gen5.ev(Fr(1, 4), [gen5.spell(key, r, c)], pre=['\\change Staff = "down" \\oneVoice'] if b else []),
+                   gen5.ev(Fr(1, 4), [gen5.spell(key, r + 4, c), gen5.spell(key, r + 7, c)]),
+                   high]
+            lh.append(evs)
+        lh[-1][0]["pre"].append('\\change Staff = "down" \\oneVoice')
+        rh[0][0][0]["pre"].insert(0, "\\voiceOne")
+        got.update(rh=rh, lh=[lh], crossing=True)
+    if kind == "octaves":
+        add_ottava(got["rh"], "rh")
+        add_ottava(got["lh"], "lh")
+    return got
+
+
+def validate_big(part, key, ex):
+    """gen5's rules, but a hand may span an octave plus a note in chords, and crossed hands are
+    allowed in "cross" exercises."""
+    meter = part["meter"]
+    bar = gen5.METERS[meter][0]
+    for staff in ("rh", "lh"):
+        for v in ex[staff]:
+            assert len(v) == part["bars"], "bars"
+            for bb in v:
+                assert sum(e["d"] for e in bb) == bar, "bar length"
+        tl = gen5.timeline(ex[staff])
+        pedal = staff == "lh" and part.get("big") == "chords"
+        for t, d, ns in tl:
+            snd = [m for (t2, d2, ns2) in tl if (t2 == t if pedal else t2 <= t < t2 + d2) for m in map(gen5.midi, ns2)]
+            assert max(snd) - min(snd) <= 12, f"{staff} spans more than an octave"
+    if not ex.get("crossing"):
+        rt, lt = gen5.timeline(ex["rh"]), gen5.timeline(ex["lh"])
+        for t, d, ns in rt:
+            low = min(map(gen5.midi, ns))
+            for t2, d2, ns2 in lt:
+                if t2 < t + d and t < t2 + d2:
+                    assert max(map(gen5.midi, ns2)) < low, "the hands cross"
+    last = [e for e in ex["rh"][0][-1] if e["n"]][-1]["n"]
+    assert key.degree(max(last, key=gen5.midi)[0]) == 0, "must end on the tonic"
+
+
+def make_unit5(part, rng):
+    key = gen5.Key(*part["key"])
+    for _ in range(400):
+        got = make_big(part, key, rng)
+        if not got:
+            continue
+        got["key"] = key
+        try:
+            validate_big(part, key, got)
+        except AssertionError as e:
+            gen5.STATS[str(e)] = gen5.STATS.get(str(e), 0) + 1
+            continue
+        got["v6"] = True
+        return got
+    raise RuntimeError(f"could not generate exercise for part {part['name']}")
+
+
 # ---------------------------------------------------------------- one exercise
 def make_exercise(part, rng):
     if part.get("texture") in THREE_VOICES:
@@ -1491,6 +1710,8 @@ def make_exercise(part, rng):
         return make_unit3(part, rng)
     if part.get("texture") == "harmony":
         return make_unit4(part, rng)
+    if part.get("texture") == "big":
+        return make_unit5(part, rng)
     return layout(part, gen5.make_exercise(part, rng))
 
 
@@ -1564,6 +1785,14 @@ def score6(part, ex, label, own_tempo="", transpose=None):
         inner.append(staff_code(st, key, meter, tsig, first, n, transpose, checks, keystr))
         first = False
     body = f"\\new {GROUP[group]} <<\n    " + "\n    ".join(inner) + "\n  >>"
+    if ex.get("reduction"):
+        rr, rl = ex["reduction"]
+        small = "\\with { \\magnifyStaff #2/3 }"
+        body += (f"\n  \\new PianoStaff <<\n    \\new Staff {small} {{ \\clef treble \\key {keystr or key.lily} "
+                 f"\\time {meter} \\accidentalStyle modern {staff_str([rr])} \\bar \"|.\" }}\n    \\new Staff {small} {{ "
+                 f"\\clef bass \\key {keystr or key.lily} \\time {meter} \\accidentalStyle modern {staff_str([rl])} "
+                 f"\\bar \"|.\" }}\n  >>")
+        body = "<<\n  " + body + "\n  >>"
     if codes:
         body = "<<\n  " + "\n  ".join(codes) + "\n  " + body + "\n  >>"
     return f"""
