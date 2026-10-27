@@ -9,12 +9,14 @@ A print-ready A4 course book, typeset with LilyPond.
 | 1 · First Steps | complete | `build/Read at Sight - Volume 1.pdf` (130 pp.) | 10 units, 322 exercises, 39 pieces |
 | 2 · Moving Hands | complete | `build/Read at Sight - Volume 2.pdf` (133 pp.) | 10 units, 306 exercises, 35 pieces |
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
-| 4 · Patterns and Keys | in progress: Units 1-8 done | `build/units/` (Vol4 - Unit 1 to 8) | Units 1-8: 272 exercises, 24 pieces |
+| 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
-**Next: Volume 4.** The full plan is in "Volume 4 plan" below: units, parts, generator features,
-candidate pieces with their Mutopia sources, and the build order.
+**Next: Volume 5 (Repertoire Reading).** Not planned in detail yet. Start by writing a
+"Volume 5 plan" section like the Volume 3 and 4 ones below (units, parts, generator features,
+pieces with verified sources), then build it unit by unit. Volumes 1-4 are protected by
+`course/check_identical.py` (see "Build").
 
 Note: the Volume 1 PDFs were built before two small layout tweaks (the "What is new" heading
 now stays with its first item, and keyboards widen to fit every key). Rebuilding Volume 1
@@ -27,7 +29,7 @@ would only change the page layout; exercises are identical.
 | 1 · First Steps (done) | 0–1 | Both clefs, C/G/middle-C positions, hands together, rests and ties, eighths, D and F positions | 10 |
 | 2 · Moving Hands (done) | 2 | Leaving five-finger positions, hand shifts and extensions, 1 sharp or flat keys and their relative minors, dotted quarters, slurs, simple dynamics | 10 |
 | 3 · Two Voices (done) | 3 | Real left-hand independence, Alberti and broken-chord basses, 6/8, keys up to 2 sharps or flats, simple counterpoint | 8–10 |
-| 4 · Patterns and Keys | 4 | Chords in both hands, syncopation, sixteenths, ledger lines, changing key mid-piece | 8 |
+| 4 · Patterns and Keys (done) | 4 | Chords in both hands, syncopation, sixteenths, ledger lines, changing key mid-piece | 8 |
 | 5 · Repertoire Reading | 5–6 | 3–4 voices, chromatic notes, all keys, chorales | 6–8 |
 
 Volumes 1–2 are mostly generated exercises. Volumes 3–4 are about half generated, half
@@ -58,115 +60,45 @@ Sixths: in a five-finger position (even with a one-key stretch) a sixth fits onl
 the other places would double the bass's leading note. Generated exercises therefore have mostly
 thirds; the Unit 7 pieces practise sixths.
 
-## Volume 4 plan (Patterns and Keys, Level 4)
+## Volume 4 (done)
 
-**Goal.** A Level 4 reader plays both hands with three-note chords, reads up to three ledger lines
-above the treble staff and below the bass staff, keeps a steady beat through syncopation and
-sixteenth notes, reads keys with up to three sharps or flats, and follows a change of key in the
-middle of a piece. The texture is mostly melody plus accompaniment patterns (the "patterns" of the
-title): block chords, oom-pah and waltz basses, Alberti, chorale.
+Level 4: chords in both hands, accompaniment patterns, ledger lines, syncopation, sixteenths,
+keys with three sharps or flats, and changing key. 2/4 time is new (from Unit 2). Seeds 4001-4008.
+Unit 8 doubles as the review of the volume.
 
-**Size.** 8 units, about 34 exercises each (about 270), 3-4 pieces per unit (about 28), so roughly
-140 pages. About half the pieces are public-domain music transcribed from Mutopia (see "Pieces"
-below); the rest are originals.
-
-**New time signature.** 2/4 joins in Unit 2: marches, the Musette, the Entertainer and the Old
-French Song are all in 2/4. No triplets in Volume 4 (pieces that have them are simplified).
-
-### Units
-
-| Unit | Title | New ("New:" line) | Parts (count) |
+| Unit | Title | Keys and time | Generator features |
 | --- | --- | --- | --- |
-| 1 | Block Chords | The left hand plays I, IV and V7 as three-note chords: held, oom-pah and waltz | A: C major, held chords under a tune, 4 bars (8). B: G major, oom-pah bass in 4/4, 8 bars (10). C: F major, waltz bass in 3/4, 8 bars (8). D: D and B-flat major, mixed, 8 bars (8) |
-| 2 | Chords in Both Hands | Right-hand three-note chords; 2/4 time | A: C major, RH chords on long notes and cadences, 4 bars (8). B: G major march in 2/4, RH chords on beat 1, LH oom-pah (10). C: F major chorale: both hands in chords, half notes (8). D: B-flat major waltz with RH chords (8) |
-| 3 | High Notes | Ledger lines above the treble staff, up to C6; the hand moves up an octave | A: RH alone in high C position (C5-G5) (10). B: RH moving between C position and high C position, octave moves (8). C: G major, RH in high G position (G5-D6) over broken chords (8). D: D major in 2/4, high and low positions (8) |
-| 4 | Low Notes and the Middle | Ledger lines below the bass staff, down to C2; both hands near middle C | A: LH alone in low C and low F positions (C2-G2, F2-C3) (10). B: the tune low in the LH, RH off-beat chords (8). C: RH below middle C (ledger lines below the treble staff) (8). D: both hands around middle C, the tune passing between them (8) |
-| 5 | Syncopation | Notes that start between the beats: eighth-quarter-eighth, ties over the beat and over the bar line, accents | A: RH alone, 4/4 syncopated rhythms (10). B: 2/4 ragtime: syncopated tune over an oom-pah bass (8). C: anticipations tied across the bar line (8). D: syncopation in two voices (8) |
-| 6 | Sixteenth Notes | Four sixteenths, eighth plus two sixteenths, dotted eighth plus sixteenth | A: RH alone in 2/4 (10). B: LH alone in 2/4 (8). C: 4/4, RH sixteenths over block chords (8). D: dotted eighth-sixteenth over a waltz bass (8) |
-| 7 | Three Sharps and Three Flats | A major, E-flat major, F-sharp minor (E-sharp) and C minor (B-natural) | A: A major, Alberti bass (8). B: E-flat major waltz (8). C: F-sharp minor, raised 7th E-sharp (9). D: C minor, raised 7th B-natural (9) |
-| 8 | Changing Key | A new key in the middle of a piece: to the dominant and to the relative minor or major, with a new key signature or with accidentals only; review of Volume 4 | A: to the dominant with a new key signature (C to G, F to C, G to D) (8). B: to the relative minor or major, accidentals only (8). C: away and back home, 8 bars (8). D: review: everything in Volume 4 (10) |
+| 1 | Block Chords | C, G, F, D; 4/4, 3/4 | `bass: "block"`, `"oompah"`, `"waltz"` (LH three-note chords) |
+| 2 | Chords in Both Hands | C, G, F, B-flat; 4/4, 2/4, 3/4 | `rh_chords`, `bass: "block2"` (chorale), meter `"2/4"` with `R24` |
+| 3 | High Notes | C, G, D; 4/4, 2/4 | positions `RH_C5`, `RH_G5`, `RH_D5`; octave moves; 2/4 `broken` and `alberti` |
+| 4 | Low Notes and the Middle | C, F; 4/4 | positions `LH_C2`, `LH_F2`, `RH_A3`, `LH_C4`; mode `"lhtune"` with `accomp: "afterbeat"` |
+| 5 | Syncopation | C, G, F; 4/4, 2/4 | `R44["synco"]`, `R24["synco24"]`, `anticip_prob`, `accents` |
+| 6 | Sixteenth Notes | C, G, F; 2/4, 4/4 | `grid: 2`, `R24_16`, `R44_16`, `fast_steps` |
+| 7 | Three Sharps and Three Flats | A, E-flat, F-sharp minor, C minor | `KEY_A`, `KEY_EB`, `KEY_FSM`, `KEY_CM` and their positions |
+| 8 | Changing Key | C to G, F to D minor, G to D to G; review in E-flat 2/4 | `modulate` |
 
-Unit 8 doubles as the review, so Volume 4 keeps the eight units of the five-volume plan.
+Pieces: 11 of the 24 are public-domain music transcribed from Mutopia engravings (each `.ly`
+downloaded and rendered to check the notes); the rest are originals. Where an engraving is
+CC BY-SA, only the notes were retyped and the source is named in the piece's note.
 
-### Generator features (all opt-in; Volumes 1-3 must stay byte-identical)
+| Unit | Piece | Mutopia id | Changes |
+| --- | --- | --- | --- |
+| 1 | Burgmüller, La Candeur, Op. 100 No. 1 (opening) | 202 | RH an octave lower, last two bars simplified |
+| 2 | Tchaikovsky, Morning Prayer, Op. 39 No. 1 (opening and close) | 2032 | LH an octave higher; bars 5-8 shorten the rest of the piece |
+| 3 | Schumann, Humming Song, Op. 68 No. 3 (first section) | 651 | LH an octave lower |
+| 3 | Mozart, Sonata K. 545, first movement (opening) | 998 | LH an octave lower, quick notes of bars 2 and 4 simplified |
+| 4 | Schumann, The Happy Farmer, Op. 68 No. 10 (first part) | 659 | upbeat left out, bars 3 and 7 share a chord |
+| 5 | Joplin, The Entertainer (first strain) | 263 | note values doubled (4/4), RH an octave lower, oom-pah bass |
+| 6 | Bach notebook, Musette in D, BWV Anh. 126 (first part) | 79 | none |
+| 6 | Schumann, Soldiers' March, Op. 68 No. 2 (first part) | 650 | bars 7-8 taken from the end of the second phrase |
+| 7 | Bach notebook, Minuet in C minor, BWV Anh. 121 (first part) | 1613 | trill left out |
+| 8 | Petzold (attr.), Minuet in G minor, BWV Anh. 115 (first part) | 76 | ornaments left out |
+| 8 | Tchaikovsky, Old French Song, Op. 39 No. 16 (opening) | 2080 | inner voices left out, bar 8 rhythm simplified |
 
-0. **Regression check first.** Add `course/check_identical.py` with a stored fingerprint file
-   (SHA-256 of every generated exercise and every unit page of Volumes 1-3). Run it before every
-   commit; it replaces the ad-hoc hash scripts used while building Volume 3.
-1. **LH block chords (Unit 1).** New `bass` values for `chords` parts: `"block"` (the chord held
-   for the bar or half bar), `"oompah"` (4/4: root, chord, root, chord in quarters) and
-   `"waltz"` (3/4: root, chord, chord). The chord is the shape from `CHORDS` written as
-   `<c e g>`; on the "oom" the hand plays the shape's bottom note. Fingers (5 3 1, 5 2 1) on each
-   new shape, as `chord_fingers` does now.
-2. **RH chords and 2/4 (Unit 2).** `rh_chords={"prob": p, "where": "long"|"strong", "min": n}`
-   adds the two chord tones below a melody note that fit the RH position, making a three-note
-   chord; a generalisation of `dyads`. A `"chorale"` texture puts block chords in both hands on
-   every half note. 2/4: `BAR_LEN["2/4"] = 4`, `FULL_REST "R2"`, `STRONG (0,)`, rhythm table
-   `R24` (`basic24`, `e24`), cadences, bass patterns for 2/4, checker `BAR`.
-3. **High and low positions (Units 3-4).** New positions `RH_C5` (C5-G5), `RH_G5` (G5-D6),
-   `RH_A3` (A3-E4, RH below middle C), `LH_C2` (C2-G2), `LH_F2` (F2-C3), `LH_C4` (C4-G4, LH
-   above middle C). Octave moves use `shift_motion` with 7 (an octave) allowed. The keyboard
-   pictures already widen to fit any position. A "LH tune, RH off-beat chords" texture
-   (`accomp: "rh_offbeat"`, the Happy Farmer pattern) for Unit 4 Part B.
-4. **Syncopation (Unit 5).** Rhythm tables `R44["synco"]` and `R24["synco24"]` built only from
-   patterns that keep the middle of a 4/4 bar visible (e.g. 8th-quarter-8th-half,
-   quarter-8th-quarter-8th-quarter); `anticip_prob` ties the bar's last eighth to the next bar's
-   first note (a variant of `tie_prob` that allows short notes); `accents: True` puts `->` on
-   syncopated notes.
-5. **Sixteenths (Unit 6).** Durations are counted in eighths today. A part option `grid: 2`
-   counts in sixteenths instead: `bar_len(part)`, `DUR16` (1 = "16", 3 = "8.", ...), and every
-   threshold (long notes, rests, staccato, strong beats, bass patterns) scaled by the grid.
-   Parts without `grid` keep the eighth grid, so nothing old changes. Rhythm tables `R24_16`,
-   `R44_16`; sixteenth groups move only by step (`fast_motion`).
-6. **Three sharps and flats (Unit 7).** `KEY_A`, `KEY_EB`, `KEY_FSM`, `KEY_CM`; positions for A
-   major, E-flat major (E-flat F G A-flat B-flat), F-sharp minor and C minor; chord shapes. The
-   existing `minor` option already spells the raised 7th: E-sharp (`eis`) in F-sharp minor and
-   B-natural in C minor.
-7. **Key change (Unit 8).** `modulate={"at": 5, "to": {key, key_acc, tonic, rh, lh},
-   "show": "signature"|"accidentals"}`. The chord plan pivots: the last bar before the change is
-   V7 of the new key. Spelling, positions and chords follow the key of each bar; the output
-   prints `\key` at the change (LilyPond adds the cancelling naturals). Validation: the new
-   key's leading note appears after the change; the piece ends on the new tonic, or on the old
-   one for "away and back".
-8. **Checker and build.** `check_pieces.py`: skip `\key x \major` and `\time` changes inside
-   piece strings, add `VOLS[4]` rows (`MAX_LEAP` an octave from Unit 3), allow the new
-   positions. `build.py`: `VOLUMES[4]` with its front-matter text; chord-shape pictures for the
-   new keys; three-note chords in the LH fingerings.
-
-### Pieces (candidates)
-
-Public-domain sources from Mutopia (the composer is long out of copyright in every case). Each
-is transcribed from the downloaded `.ly`, simplified to the unit's level (credit says
-"simplified"), and checked with `check_pieces.py`. Sources marked PD have a public-domain
-engraving; CC BY-SA ones are Mutopia engravings under that licence: we retype the notes
-ourselves and name the source.
-
-| Unit | Piece | Mutopia id | Licence | Notes |
-| --- | --- | --- | --- | --- |
-| 1 | Burgmüller, La Candeur, Op. 100 No. 1 | 202 | PD | LH held block chords; RH simplified |
-| 2 | Tchaikovsky, Morning Prayer, Op. 39 No. 1 | 2032 | PD | chorale in both hands, G major 3/4 |
-| 2 | Schumann, Soldiers' March, Op. 68 No. 2 | 650 | CC BY-SA | chords in both hands, 2/4 |
-| 3 | Mozart, Sonata K. 545, first movement (opening) | 998 | CC BY-SA | high RH, Alberti bass |
-| 3 | Schumann, Humming Song, Op. 68 No. 3 | 651 | CC BY-SA | tune and accompaniment in the RH register |
-| 4 | Schumann, The Happy Farmer, Op. 68 No. 10 | 659 | CC BY-SA | LH tune low, RH off-beat chords |
-| 5 | Joplin, The Entertainer (opening strain) | 263 | PD | 2/4 syncopation; heavily simplified |
-| 6 | Bach, Musette in D, BWV Anh. 126 | 79 | PD | 2/4, sixteenths, moves to A major |
-| 6 | Clementi, Sonatina Op. 36 No. 1, first movement | 804 | PD | sixteenth scales; moves to G major |
-| 7 | Bach, Minuet in C minor, BWV Anh. 121 | 1613 | PD | three flats, B-natural; triplets simplified |
-| 7 | Mozart, Sonata K. 331, Menuetto (opening) | 613 | PD | A major; much simplified |
-| 8 | Bach, Minuet in G minor, BWV Anh. 115 | 76 | PD | G minor to B-flat major |
-| 8 | Bach, Minuet in G, BWV Anh. 116 | 77 | PD | G major to D major |
-| 8 | Tchaikovsky, Old French Song, Op. 39 No. 16 | 2080 | PD | G minor, 2/4, LH chords (review) |
-
-That is 14 public-domain pieces; each unit adds one or two originals (8 bars, question and
-answer, ending on the tonic) to reach 3-4 pieces.
-
-### Build order
-
-Same routine as Volume 3: feature 0 first, then for each unit add its parts and generator
-features, write `content/v4unitNN.py`, run `check_pieces.py --vol 4 N`, build, look at every
-page, run the regression check, commit and push. Seeds stay `volume * 1000 + unit id`
-(4001-4008). Unit titles go into `VOLUME4` at the start, because the contents page prints them.
+Changes from the plan: Soldiers' March moved from Unit 2 to Unit 6 (its dotted rhythms are
+sixteenths); Clementi Op. 36 No. 1, Mozart K. 331 and the Minuet in G (Anh. 116) were dropped
+were not used; Unit 3 reaches D6 (the plan said C6). Unit 8 has three
+pieces, so the volume has 24 pieces rather than about 28.
 
 ## Files
 
@@ -175,6 +107,7 @@ course/units.py         Course spec: hand positions, rhythm vocabularies, unit/p
 course/generator.py     Exercise generator + validator + LilyPond emitter
 course/build.py         Page template, keyboard diagrams, front matter, contents, book assembly
 course/check_pieces.py  Checks hand-written pieces against what each unit has taught
+course/check_identical.py  Regression check: finished units must not change (fingerprints.json)
 content/unitNN.py       Hand-written text and pieces for unit NN (one file per unit)
 build/                  Output PDFs (plus the .ly source of the last build)
 ```
@@ -191,9 +124,13 @@ python3 build.py 1 2 3 4 5 6 7 8 9 10            # whole book -> build/read-at-s
 python3 build.py --vol 2 1 2 3 4 5 6 7 8 9 10    # Volume 2 book -> build/read-at-sight-vol2.pdf
 python3 check_pieces.py --vol 3 1                # Volume 3 (units not written yet are skipped)
 python3 build.py --vol 3 1                       # Volume 3, Unit 1 (with front matter)
+python3 build.py --vol 4 1 2 3 4 5 6 7 8        # Volume 4 book -> build/read-at-sight-vol4.pdf
+python3 check_identical.py                       # every finished unit must print "identical"
+python3 check_identical.py --add 5 1             # record a newly finished unit (here Volume 5, Unit 1)
 ```
 Content modules: Volume 1 uses `content/unitNN.py`; Volume 2 uses `content/v2unitNN.py`;
-Volume 3 uses `content/v3unitNN.py`. Volume 3 book: `python3 build.py --vol 3 1 2 3 4 5 6 7 8 9 10`.
+Volume 3 uses `content/v3unitNN.py`; Volume 4 uses `content/v4unitNN.py`. Volume 3 book:
+`python3 build.py --vol 3 1 2 3 4 5 6 7 8 9 10`.
 Seeds are `volume * 1000 + unit id`.
 - The front matter (title, how-to, contents) is included only when Unit 1 is part of the
   build.
@@ -203,8 +140,10 @@ Seeds are `volume * 1000 + unit id`.
 
 Output is deterministic: each unit uses seed `1000 + unit id`. **Don't change a finished
 unit's parts:** that changes its exercises, and the user may already have printed them.
-Units 1–2 were checked to be byte-identical after the Unit 7/10 generator features were
-added; new options only use the random generator when they are switched on.
+New options only use the random generator when they are switched on. `check_identical.py`
+stores a SHA-256 of every unit's generated LilyPond (and the front matter) in
+`course/fingerprints.json`; run it before every commit. A change it reports must be explained
+(e.g. a text fix in an unfinished volume) and re-recorded with `--add`.
 
 ## Part spec options (course/units.py)
 
@@ -236,6 +175,15 @@ added; new options only use the random generator when they are switched on.
 | `lead_weight` | (Vol 3) With `minor`: makes the melody favour the raised 7th in V7 bars (e.g. 6 or 20) |
 | `dyads` | (Vol 3) RH two-note chords: `{"prob": p, "intervals": (2, 5), "weights": {5: 4.0}, "min": n}`; a third (2) or sixth (5) is added below melody notes of a quarter or longer (not tied ones); with `chords` both notes must be chord tones and the leading note is never doubled. `min` two-note chords per exercise |
 | `tempo_unit` | (Vol 3) Note value of the metronome mark, e.g. `"4."` for 6/8 |
+| `meter` `"2/4"` | (Vol 4) Two quarter beats; rhythm tables `R24` (`basic24`, `e24`, `synco24`), bass patterns `block`, `oompah`, `broken`, `alberti` |
+| `bass` (Vol 4) | With `chords`, LH three-note chords (`BASS_PATTERNS`): `block` (held all bar), `block2` (two half-note chords, 4/4), `oompah` (bottom note, upper two notes; 4/4 and 2/4), `waltz` (3/4: bottom, upper two, upper two). The last bar holds the whole chord |
+| `rh_chords` | (Vol 4) `{"prob": p, "where": "strong", "min": n, "min_dur": 4, "size": 3}`: adds the two chord tones below a melody note (a full three-note chord or nothing) on notes of `min_dur` eighths or longer, or, with `where: "strong"`, on strong beats; never on tied notes; `min` chords per exercise |
+| `mode` `"lhtune"` | (Vol 4) The LH plays the tune; the RH plays chords from `RH_PATTERNS[(accomp, meter)]`, e.g. `accomp: "afterbeat"` (rest, chord, rest, chord); `accomp_size` notes per chord (default 2) |
+| `grid` | (Vol 4) `2` counts durations in sixteenths (`DUR16`); bar lengths, strong beats, staccato and beat-tone thresholds scale with it. Rhythm tables `R24_16` (`s24`, `dot24`) and `R44_16` (`s44`, `dot44`) |
+| `fast_steps` | (Vol 4) With `grid: 2`, sixteenths move only by step, and no A-B-A-B trills |
+| `anticip_prob` | (Vol 4) Chance of tying a bar's last eighth into the next bar (an anticipation); at least one per exercise |
+| `accents` | (Vol 4) `->` on off-beat notes longer than an eighth (syncopations) |
+| `modulate` | (Vol 4) `{"home_bars": n, "show": "signature"\|"accidentals", "to": [segment, ...]}`; each segment overrides part keys for `bars` bars (`rh`, `lh`, `tonic`, `key`, `key_acc`, `minor`, `lead_weight`). A new segment starts V7-I in its key; the tune moves into it by at most a fifth; the new leading note must appear; the exercise ends on the last segment's tonic. `"signature"` prints `\bar "||" \key ...` at the change |
 
 Modes added for Volume 3:
 - `duet`: the `lead` hand (`"RH"` default, or `"LH"`) plays the melody; the other hand plays a
@@ -288,6 +236,8 @@ Use the same names as the existing files:
   In Volume 2 a hand may reach one key beyond its positions from Unit 2, and dotted quarters
   are allowed from Unit 3. In Volume 3 stretches, eighths and dotted rhythms are allowed from
   Unit 1; leaps up to a sixth in Unit 1, a seventh from Unit 2 (Alberti) and an octave from Unit 8.
+  In Volume 4 leaps up to an octave are allowed throughout, sixteenths from Unit 6, and the checker
+  ignores `\key` and `\time` changes and finger numbers inside chords (`<c-5 e-3 g-1>`).
   Slurs `(` `)`, staccato `-.`, dynamics `\p` and hairpins `\<` `\>` are written straight into
   the piece strings.
 - **Public-domain pieces:** only use melodies whose notes are certain (folk tunes, famous

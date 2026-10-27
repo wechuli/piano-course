@@ -52,6 +52,10 @@ VOLUMES = {
     4: {"units": VOLUME4, "subtitle": "Volume 4  -  Patterns and Keys", "content": "v4unit",
         "blurb": ["Chords in both hands, high and low notes, syncopation and sixteenths,",
                   "keys with three sharps or flats, and music that changes key."],
+        "replace": {"How each unit is laid out":
+                    "A unit opens with what is new, keyboard pictures of the hand positions or chord shapes, and reading tips. "
+                    "Then come Parts A to D, which grow slightly harder. Pieces come next, and the unit ends with a checkpoint "
+                    "that tells you when to move on."},
         "skip": ["Why this book is built this way"],
         "extra": [
             ("What is new in Volume 4",
@@ -373,7 +377,8 @@ OVERVIEW_NOTE = "Each unit adds exactly one new idea to everything before it."
 def how_to_page(vol):
     V = VOLUMES[vol]
     out = ["\\markup \\column { \\fontsize #6 \\bold \"How to use this book\" \\vspace #1 }"]
-    for head, body in V["extra"] + [h for h in HOW_TO if h[0] not in V.get("skip", [])]:
+    how = [(h, V.get("replace", {}).get(h, b)) for h, b in HOW_TO if h not in V.get("skip", [])]
+    for head, body in V["extra"] + how:
         out.append(f"\\markup \\column {{ \\fontsize #2 \\bold {s(head)} \\vspace #0.3 {para(body, 1)} \\vspace #0.6 }}")
     out.append("\\pageBreak")
     rows = []

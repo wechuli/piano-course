@@ -787,7 +787,7 @@ VOLUME4 = [
               chord_fingers=True, meter="4/4", rhythms=["q_rich", "dotted"], motion=STEPS_SKIPS, tempo=66,
               tonic=C4, dynamics=True, repeat_prob=0.3, **KEY_CM),
      ]},
-    {"id": 8, "title": "Changing Key", "new": "A new key in the middle of a piece, with a new key signature or with accidentals; review",
+    {"id": 8, "title": "Changing Key", "new": "A new key mid-piece, shown by a new key signature or by accidentals; review",
      "parts": [
          dict(name="A", title="C major to G major", count=8, bars=8, mode="together", rh="RH_C", lh="LH_C",
               chords=V4C, beat_tones=True, bass="broken", chord_fingers=True, meter="4/4", rhythms="q_rich",
