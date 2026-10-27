@@ -548,7 +548,8 @@ def piece_score_v6(pc_):
             code += (" \\addlyrics \\with { \\override VerticalAxisGroup.nonstaff-unrelatedstaff-spacing.padding = #1.5 }"
                      f" {{ {st['lyrics']} }}")
         (solo_codes if st.get("solo") else group_codes).append(code)
-    body = (f"\\new {V6_GROUPS[pc_.get('group', 'piano')]} <<\n    "
+    grp = pc_.get('group', 'piano')
+    body = ((f"\\new {V6_GROUPS[grp]} " if grp != "lead" else "") + "<<\n    "
             + "\n    ".join(group_codes) + "\n  >>")
     if solo_codes:
         body = "<<\n  " + "\n  ".join(solo_codes) + "\n  " + body + "\n  >>"

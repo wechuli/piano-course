@@ -1866,6 +1866,53 @@ def make_unit6(part, rng):
     raise RuntimeError(f"could not generate exercise for part {part['name']}")
 
 
+
+# ---------------------------------------------------------------- lead sheets and review (Unit 8)
+# Feature 9. `texture: "leadsheet"`: a gen5 tune on one treble staff with chord symbols above it
+# (\new ChordNames), the reader's left hand making its own accompaniment. `symbols`:
+#   "triads"   C, Dm, G (one per bar)
+#   "sevenths" Cmaj7, Dm7, G7, and some chords in inversion as slash chords (G7/B)
+# Review parts reuse the textures of Units 1-7 through the part's variants.
+SYMBOL = {  # chord name -> (LilyPond chordmode quality for triads, for sevenths)
+    "I": ("", ":maj7"), "IV": ("", ":maj7"), "V": ("", ":7"), "V7": (":7", ":7"), "ii": (":m", ":m7"),
+    "iii": (":m", ":m7"), "vi": (":m", ":m7"), "i": (":m", ":m7"), "iv": (":m", ":m7"), "VI": ("", ":maj7"),
+    "V7/V": (":7", ":7"), "VII": ("", ":7"),
+}
+
+
+def lily_name(n):
+    return gen5.LETTERS[n[0] % 7] + gen5.ACC[n[1]]
+
+
+def chord_symbols(key, plan, meter, kind, rng):
+    """The chordmode string for a chord plan: one symbol per bar; with sevenths, some V7 and ii7
+    chords have their third in the bass (slash chords)."""
+    dur = {"4/4": "1", "3/4": "2.", "2/4": "2", "6/8": "2."}[meter]
+    out = []
+    for b, c in enumerate(plan):
+        root_deg = gen5.CHORDS[c][0]
+        r = next(s for s in range(28, 35) if key.degree(s) == root_deg)
+        root = gen5.spell(key, r, c)
+        q = SYMBOL[c][1 if kind == "sevenths" else 0]
+        if b == len(plan) - 1:
+            q = SYMBOL[c][0]
+        sym = f"{lily_name(root)}{dur}{q}"
+        if kind == "sevenths" and c in ("V7", "V", "ii") and b < len(plan) - 1 and rng.random() < 0.5:
+            sym += "/" + lily_name(gen5.spell(key, r + 2, c))
+        out.append(sym)
+    return " ".join(out)
+
+
+def make_leadsheet(part, key, rng):
+    got = gen5.make_exercise(dict(part, texture="chords", bass=part.get("bass", "block")), rng)
+    syms = chord_symbols(key, got["plan"], part["meter"], part.get("symbols", "triads"), rng)
+    got["staves"] = [{"name": "chords", "clef": "chords", "chords": syms},
+                     {"name": "tune", "clef": "treble", "voices": got["rh"], "hand": "rh"}]
+    got["group"] = "lead"
+    got["v6"] = True
+    return got
+
+
 # ---------------------------------------------------------------- one exercise
 def make_exercise(part, rng):
     if part.get("texture") in THREE_VOICES:
@@ -1880,6 +1927,8 @@ def make_exercise(part, rng):
         return make_unit5(part, rng)
     if part.get("texture") == "song":
         return make_unit6(part, rng)
+    if part.get("texture") == "leadsheet":
+        return make_leadsheet(part, gen5.Key(*part["key"]), rng)
     return layout(part, gen5.make_exercise(part, rng))
 
 
@@ -1943,6 +1992,8 @@ def score6(part, ex, label, own_tempo="", transpose=None):
         tsig += "\\omit Staff.TimeSignature "
     keystr = "c \\major" if part.get("no_signature") else None
     staves, group = as_staves(ex)
+    chords = [st for st in staves if st.get("clef") == "chords"]
+    staves = [st for st in staves if st.get("clef") != "chords"]
     solo = [st for st in staves if st.get("solo")]
     grouped = [st for st in staves if not st.get("solo")]
     codes, first = [], True
@@ -1953,7 +2004,11 @@ def score6(part, ex, label, own_tempo="", transpose=None):
     for st in grouped:
         inner.append(staff_code(st, key, meter, tsig, first, n, transpose, checks, keystr, ex.get("breaks")))
         first = False
-    body = f"\\new {GROUP[group]} <<\n    " + "\n    ".join(inner) + "\n  >>"
+    if group == "lead":
+        body = "<<\n    " + "\n    ".join([f"\\new ChordNames \\chordmode {{ {st['chords']} }}" for st in chords]
+                                          + inner) + "\n  >>"
+    else:
+        body = f"\\new {GROUP[group]} <<\n    " + "\n    ".join(inner) + "\n  >>"
     if ex.get("reduction"):
         rr, rl = ex["reduction"]
         small = "\\with { \\magnifyStaff #2/3 }"

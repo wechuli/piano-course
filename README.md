@@ -11,15 +11,15 @@ A print-ready A4 course book, typeset with LilyPond.
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
-| 6 · Reading Like a Professional | in progress: Units 1-7 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 7: 20 pp.) | 7 units, 168 exercises, 28 pieces |
+| 6 · Reading Like a Professional | in progress: Units 1-8 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 8: 15 pp.) | 8 units, 192 exercises, 32 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The five-volume course is complete. Next: Volume 6** (Levels 7-8, an extension beyond the
 original plan): the full plan is in "Volume 6 plan" below. The shared groundwork is in place
 (see "Groundwork (done)" in the plan): `course/gen6.py` multi-staff scores, the Volume 6
-checker and build changes, and `course/test_gen6.py`. Units 1-7 are finished: see the
-"Unit N (done)" sections in the plan. Next: Unit 8 (Lead Sheets, Simplifying and Review).
+checker and build changes, and `course/test_gen6.py`. Units 1-8 are finished: see the
+"Unit N (done)" sections in the plan. Next: build the whole Volume 6 book.
 All five volumes are protected by
 `course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
 original plan follows it for reference.
@@ -583,6 +583,33 @@ Chorale in the C Clefs (a gen5 chorale, seed 3, printed with the alto and tenor 
   Clefs: Mutopia's vocal scores all use modern clefs, so an original was needed to read the alto
   and tenor clefs in four parts.
 - O nata lux has five voices, not four; its editorial accidentals are printed as normal ones.
+
+### Unit 8 (done)
+
+**Generator (`course/gen6.py`, section "lead sheets and review").** Tested by `test_leadsheet`.
+- `texture: "leadsheet"` with `symbols: "triads" | "sevenths"`: gen5's chord-texture tune on one
+  treble staff, with its chord plan printed as symbols above it (`\new ChordNames \chordmode`, one
+  symbol per bar). With `"sevenths"`, I and IV become maj7, ii/iii/vi m7, V a 7th chord, and some V,
+  V7 and ii chords get their third in the bass as slash chords (G7/B); the last bar is always a
+  plain triad. The exercise group is `"lead"` (a plain `<< >>`, no PianoStaff); `check_pieces` and
+  `build.py` know the group too.
+- Part C ("Review: one of each") reuses the textures of Units 1-7 through its variants: crossing
+  middle voice, hemiola, 7/8, secondary dominants, octaves, a song, a string quartet and a fugue
+  exposition.
+
+**Pieces.** Amazing Grace (the tune "New Britain") and Greensleeves as lead sheets (originals); Old
+Hundredth (Genevan Psalter, 1551) for transposing to F and A; Joplin, Bethena, the first strain with
+chord symbols added (Mutopia 463, PD); Debussy, Clair de lune, bars 1-8 with a closing chord (Mutopia
+1778, PD).
+
+**Changes from plan.**
+- Shenandoah and Londonderry Air are replaced by Amazing Grace and Greensleeves: they are better
+  known, and Greensleeves' E7/G-sharp gives a slash chord in a minor key.
+- The review is eight 8-bar exercises, one of each skill, not longer exercises.
+- Bethena's chord symbols are editorial (not in Joplin's score); the bass octaves on beat 1 are
+  printed as quarter notes so the left hand can reach the after-beat chords.
+- Clair de lune ends at bar 8 with an added tonic chord, so the course closes on a cadence.
+- The Answers appendix (Unit 7's transposing exercises) prints after Unit 8, at the end of the book.
 
 ## Volume 5 plan (as written before it was built)
 

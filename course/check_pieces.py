@@ -333,7 +333,8 @@ def v6_events(pieces):
             if st.get("lyrics"):
                 code += f" \\addlyrics {{ {st['lyrics']} }}"
             (solo if st.get("solo") else grouped).append(code)
-        body = f"\\new {V6_GROUPS[pc.get('group', 'piano')]} << " + " ".join(grouped) + " >>"
+        grp = pc.get('group', 'piano')
+        body = (f"\\new {V6_GROUPS[grp]} " if grp != "lead" else "") + "<< " + " ".join(grouped) + " >>"
         if solo:
             body = "<< " + " ".join(solo) + " " + body + " >>"
         parts.append(f"\\score {{ {body} \\layout {{ }} }}")

@@ -411,6 +411,27 @@ def test_clefs_transposing():
     return scores + ans
 
 
+def test_leadsheet():
+    """Unit 8 (plan feature 9): a tune with chord symbols, triads and sevenths/slash chords."""
+    scores = []
+    base = dict(name="A", title="Lead", count=4, bars=8, meter="4/4", texture="leadsheet", rhythms=["basic"],
+                tempo=72, chords=["I", "IV", "V", "V7", "ii", "vi"], key=("g", "major"))
+    for kind in ("triads", "sevenths"):
+        part = dict(base, symbols=kind)
+        for k, ex in enumerate(gen6.generate_part(dict(part), random.Random(6008), set())):
+            assert ex["group"] == "lead" and ex["staves"][0]["clef"] == "chords"
+            syms = ex["staves"][0]["chords"].split()
+            assert len(syms) == part["bars"], "one symbol per bar"
+            if kind == "triads":
+                assert not any("/" in s or "maj7" in s or "m7" in s for s in syms)
+            code = gen6.lily_exercise(part, ex, f"99.L{k}")[0]
+            assert "ChordNames" in code and "chordmode" in code and "PianoStaff" not in code
+            scores.append(code)
+    assert gen6.lily_name((4, 0)) == "g" and gen6.lily_name((3, 1)) == "fis"
+    print("lead sheets                                  OK")
+    return scores
+
+
 if __name__ == "__main__":
     test_passthrough()
     exs, scores = test_open_score()
@@ -424,6 +445,7 @@ if __name__ == "__main__":
     scores += test_harmony()
     scores += test_big()
     scores += test_songs()
+    scores += test_leadsheet()
     scores += test_clefs_transposing()
     test_build_compiles(scores)
     test_checker()
