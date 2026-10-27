@@ -517,7 +517,7 @@ def piece_score_v6(pc_):
     be left out when the music is unbarred (\\cadenzaOn)."""
     pkey = pc_.get("key", "c \\major")
     tpre = "\\once \\override Staff.TimeSignature.style = #'C " if pc_.get("cut") else ""
-    tsig = f"\\time {pc_['meter']} " if pc_.get("meter") else ""
+    tsig = f"\\time {pc_['meter']} " if pc_.get("meter") else "\\omit Staff.TimeSignature "
     staves = pc_.get("staves") or [{"name": "up", "clef": "treble", "music": pc_["rh"], "hand": "rh"},
                                    {"name": "down", "clef": "bass", "music": pc_["lh"], "hand": "lh"}]
     last_staff = [st for st in staves if st.get("clef") != "chords"][-1]

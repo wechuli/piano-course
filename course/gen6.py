@@ -635,7 +635,7 @@ def ev_str6(e):
     return gen5.ev_str(e)
 
 
-def voice_str(bars, breaks=()):
+def voice_str(bars, breaks=(), checks=True):
     out = []
     for b, bar in enumerate(bars):
         acc, open_ = Fr(0), None
@@ -656,16 +656,17 @@ def voice_str(bars, breaks=()):
                     out.append("}")
                     open_ = None
         assert open_ is None, "unfinished tuplet"
-        out.append("|")
+        if checks:
+            out.append("|")
         if b in breaks:
             out.append("\\break \\noPageBreak")
     return " ".join(out)
 
 
-def staff_str(voices, breaks=()):
+def staff_str(voices, breaks=(), checks=True):
     if len(voices) == 1:
-        return voice_str(voices[0], breaks)
-    return ("<< { " + voice_str(voices[0], breaks) + " } \\\\ { " + voice_str(voices[1]) + " } >>")
+        return voice_str(voices[0], breaks, checks)
+    return ("<< { " + voice_str(voices[0], breaks, checks) + " } \\\\ { " + voice_str(voices[1], (), checks) + " } >>")
 
 
 def signature(ex):
@@ -843,12 +844,252 @@ def make_v6(part, rng):
     raise RuntimeError(f"could not generate exercise for part {part['name']}")
 
 
+
+# ---------------------------------------------------------------- changing meters, modes, no key (Unit 3)
+# Feature 4. `meters: ["5/4", "6/4"]` cycles time signatures bar by bar (printed only when they
+# change); 7/8 and 5/8 carry beat groups (`\time 2,2,3 7/8`). Modes are gen5 keys with new scales
+# (Key("d", "dorian")); `no_signature: True` prints the C major signature and every accidental.
+# `unbarred: True` writes a pentatonic or whole-tone tune without bar lines (\cadenzaOn, dotted
+# bar lines at the ends of phrases) over an open fifth.
+MODES = {"dorian": [0, 2, 3, 5, 7, 9, 10], "phrygian": [0, 1, 3, 5, 7, 8, 10], "lydian": [0, 2, 4, 6, 7, 9, 11],
+         "mixolydian": [0, 2, 4, 5, 7, 9, 10], "aeolian": [0, 2, 3, 5, 7, 8, 10]}
+# beat groups (in the meter's note value) and rhythms per meter; "b" = the whole bar
+GROUPS = {"5/4": (3, 2), "6/4": (3, 3), "3/4": (1, 2), "2/4": (1, 1), "4/4": (2, 2), "7/8": (2, 2, 3),
+          "5/8": (3, 2), "3/2": (2, 2, 2)}
+BEAT_TIME = {"7/8": "\\time 2,2,3 7/8", "5/8": "\\time 3,2 5/8"}
+METER_RHY = {
+    "5/4": {"basic": ["2. 2", "4 4 4 2", "2. 4 4", "4 8 8 4 2", "2 4 4 4", "4 4 4 4 4", "4. 8 4 2"],
+            "cad": ["2. 2"], "fin": ["b"]},
+    "6/4": {"basic": ["2. 2.", "4 4 4 2.", "2. 4 4 4", "2 4 2 4", "4 4 4 4 4 4", "4 8 8 4 2."],
+            "cad": ["2. 2.", "2 4 2."], "fin": ["b"]},
+    "7/8": {"basic": ["4 4 4.", "8 8 4 4.", "4 8 8 4.", "4 4 8 8 8", "8 8 8 8 4.", "4 8 8 8 8 8"],
+            "cad": ["4 4 4.", "2.."], "fin": ["b"]},
+    "5/8": {"basic": ["4. 4", "8 8 8 4", "4. 8 8", "4 8 4", "8 8 8 8 8"], "cad": ["4. 4"], "fin": ["b"]},
+    "3/4": {"basic": ["4 4 4", "2 4", "4 2", "4. 8 4", "8 8 4 4", "4 8 8 4"], "cad": ["2 4", "2."], "fin": ["b"]},
+    "2/4": {"basic": ["4 4", "8 8 4", "4 8 8", "4. 8", "2"], "cad": ["2", "4 4"], "fin": ["b"]},
+    "4/4": {"basic": ["4 4 4 4", "2 4 4", "4 4 2", "4. 8 4 4", "2 2", "4 8 8 4 4", "4 4 8 8 4"],
+            "cad": ["2 2", "4 4 2"], "fin": ["b"]},
+}
+NEW_METERS = {"5/4": (Fr(5, 4), (Fr(0),), Fr(1, 4), "R4*5"), "6/4": (Fr(3, 2), (Fr(0), Fr(3, 4)), Fr(1, 4), "R1."),
+              "7/8": (Fr(7, 8), (Fr(0),), Fr(1, 8), "R8*7"), "5/8": (Fr(5, 8), (Fr(0),), Fr(1, 8), "R8*5"),
+              "mix": (None, (Fr(0),), Fr(1, 4), None)}
+MODE_PLANS = {"dorian": "IV", "mixolydian": "VII", "aeolian": "VII", "phrygian": "ii", "lydian": "ii"}
+
+
+def install_meters():
+    """Volume 6 scales, chords and meters, added to gen5's tables under new keys only."""
+    for m, sc in MODES.items():
+        gen5.SCALES.setdefault(m, sc)
+    gen5.CHORDS.setdefault("VII", (6, (6, 1, 3)))
+    for k, v in NEW_METERS.items():
+        gen5.METERS.setdefault(k, v)
+
+
+install_meters()
+
+
+def bar_len(meter):
+    a, b = meter.split("/")
+    return Fr(int(a), int(b))
+
+
+def unit_of(meter):
+    return Fr(1, int(meter.split("/")[1]))
+
+
+def mode_plan(key, n, rng):
+    """A modal chord plan: the tonic, with the mode's colour chord (Dorian IV, Mixolydian and
+    Aeolian VII, Phrygian bII, Lydian II), ending colour-tonic."""
+    col = MODE_PLANS[key.mode]
+    plan = []
+    for b in range(n):
+        if b == 0 or b == n - 1:
+            plan.append("I")
+        elif b == n - 2:
+            plan.append(col)
+        else:
+            plan.append(rng.choice(["I", col, col]) if plan[-1] == "I" else "I")
+    return plan
+
+
+def group_lh(key, chord, root, meter, last=False, fifth_only=False):
+    """One bar of left hand by beat groups: the root for the first group, the chord's upper notes
+    for the others (an oom-pah that shows the beat groups). The last bar holds the chord."""
+    bar = bar_len(meter)
+    v = gen5.voicing(key, chord, root)
+    if fifth_only:
+        v = [v[0], v[2]]
+    if last:
+        return [gen5.ev(bar, v if not fifth_only else v)]
+    u = unit_of(meter)
+    out = []
+    for i, g in enumerate(GROUPS[meter]):
+        out.append(gen5.ev(u * g, [v[0]] if i == 0 else v[1:]))
+    return out
+
+
+def make_meters(part, key, rng):
+    """Changing meters (Part A), 7/8 and 5/8 with beat groups, and modes (Part B)."""
+    n = part["bars"]
+    meters = part.get("meters", [part["meter"]])
+    bm = [meters[b % len(meters)] for b in range(n)]
+    rbars = []
+    marks = gen5.phrase_marks(n)
+    for b, m in enumerate(bm):
+        T = METER_RHY[m]
+        pool = T["fin"] if b == n - 1 else T["cad"] if b in marks else T["basic"]
+        rbars.append(gen5.parse_rhythm(rng.choice(pool), bar_len(m)))
+    if key.mode in MODES:
+        plan = mode_plan(key, n, rng)
+    else:
+        plan = gen5.gen_chord_plan(part, key, n, {}, rng)
+    roots = gen5.lh_roots(part, key, plan)
+    lo, hi = gen5.rh_range(part, key)
+    steps = gen5.gen_tune(dict(part, meter="mix"), key, rbars, plan, rng, lo, hi,
+                          bass=gen5.bass_midis(key, plan, roots))
+    if steps is None:
+        return None
+    mel = gen5.tune_events(key, rbars, steps, plan)
+    if not gen5.check_line(mel):
+        return None
+    lh = [group_lh(key, c, r, m, b == n - 1) for b, (c, r, m) in enumerate(zip(plan, roots, bm))]
+    for b, m in enumerate(bm):
+        if b == 0 or m != bm[b - 1] or m in BEAT_TIME and b == 0:
+            t = BEAT_TIME.get(m, f"\\time {m}")
+            if b > 0 or m in BEAT_TIME:
+                mel[b][0]["pre"].insert(0, t)
+                lh[b][0]["pre"].insert(0, t)
+    if key.mode in MODES and len(MODES) and part.get("require_colour", True):
+        col = MODE_PLANS[key.mode]
+        cdeg = {"IV": 3, "VII": 6, "ii": 1}[col]
+        # the mode's characteristic note (Dorian raised 6th, Mixolydian lowered 7th ...) must be heard
+        char = {"dorian": 5, "mixolydian": 6, "aeolian": 5, "phrygian": 1, "lydian": 3}[key.mode]
+        if not any(key.degree(e["n"][0][0]) == char for bar in mel for e in bar):
+            return None
+    return {"rh": [mel], "lh": [lh], "plan": plan, "meters": bm}
+
+
+WHOLE_TONE = (0, 2, 4, 6, 8, 10)
+PENTATONIC = (0, 2, 4, 7, 9)
+PHRASE_RHY = {8: ["4 4 4 4 2 2", "4 8 8 4 4 2 2", "2 4 4 4 4 2", "4 4 8 8 4 2 2", "4. 8 4 4 4 4 2"],
+              6: ["4 4 4 4 2", "4 8 8 4 4 2", "2 4 4 2", "4 4 8 8 4 2"]}
+
+
+def scale_notes(key, kind, lo=28, hi=42):
+    """(step, alt) of a pentatonic or whole-tone scale on the key's tonic, from step lo to hi."""
+    semis = PENTATONIC if kind == "pentatonic" else WHOLE_TONE
+    out = []
+    base = gen5.midi(key.note(key.tonic)) - 12
+    for octv in range(3):
+        for i, iv in enumerate(semis):
+            m = base + 12 * octv + iv
+            if kind == "pentatonic":
+                step = key.tonic - 7 + 7 * octv + (0, 1, 2, 4, 5)[i]
+            else:
+                step = key.tonic - 7 + 7 * octv + i
+            alt = m - gen5.midi((step, 0))
+            if -2 <= alt <= 2 and lo <= step <= hi:
+                out.append((step, alt))
+    return out
+
+
+def make_unbarred(part, key, rng):
+    """An unbarred tune (4 phrases, dotted bar lines between them) on a pentatonic or whole-tone
+    scale, over an open fifth (pentatonic) or a major third (whole-tone) in half notes."""
+    kind = part["scale"]
+    sc = scale_notes(key, kind)
+    tonics = [i for i, n in enumerate(sc) if gen5.midi(n) % 12 == gen5.midi(key.note(key.tonic)) % 12]
+    lengths = [rng.choice([6, 8]) for _ in range(4)]
+    idx = rng.choice(tonics[:2])
+    rh, lh = [], []
+    for ph, L in enumerate(lengths):
+        rhy = [d for d, _ in gen5.parse_rhythm(rng.choice(PHRASE_RHY[L]), Fr(L, 4))]
+        notes = []
+        for k, d in enumerate(rhy):
+            if k == len(rhy) - 1:
+                target = tonics if ph == 3 else [i for i in range(len(sc)) if i not in tonics]
+                cands = [i for i in target if abs(i - idx) <= 2 and i != idx] or [min(target, key=lambda i: abs(i - idx))]
+                idx = rng.choice(cands)
+            elif k:
+                moves = [-2, -1, -1, 1, 1, 2]
+                cands = [idx + mv for mv in moves if 0 <= idx + mv < len(sc)]
+                idx = rng.choice(cands)
+            notes.append(gen5.ev(d, [sc[idx]]))
+        for k in range(len(notes) - 1):  # beam pairs of eighths by hand (no automatic beams in a cadenza)
+            if notes[k]["d"] == notes[k + 1]["d"] == Fr(1, 8) and not notes[k]["post"] and \
+                    (k == 0 or notes[k - 1]["d"] != Fr(1, 8) or "]" in notes[k - 1]["end"]):
+                notes[k]["post"].append("[")
+                notes[k + 1]["end"].append("]")
+        notes[-1]["end"].append(' \\bar ";"' if ph < 3 else "")
+        if ph == 1:
+            notes[-1]["end"].append(" \\break \\noPageBreak")
+        rh += notes
+        r = key.tonic - 14 if key.tonic - 14 >= 16 else key.tonic - 7
+        low = [key.note(r), key.note(r + 4 if kind == "pentatonic" else r + 2)]
+        lh += [gen5.ev(Fr(1, 2), low) for _ in range(L // 2)] + ([gen5.ev(Fr(1, 4), low)] if L % 2 else [])
+        if ph < 3:
+            lh[-1]["end"].append(' \\bar ";"')
+    if len({gen5.midi(e["n"][0]) for e in rh}) < 5:
+        return None
+    if not gen5.check_line([rh]):
+        return None
+    rh[0]["pre"].append("\\cadenzaOn")
+    lh[0]["pre"].append("\\cadenzaOn")
+    return {"rh": [[rh]], "lh": [[lh]], "plan": ["I"], "unbarred": True}
+
+
+def validate6(part, key, ex):
+    """gen5's rules for exercises whose bars change length: each bar has its meter's length (one
+    bar for unbarred music), each hand spans an octave at most, the hands do not cross, the tune
+    ends on the tonic."""
+    if ex.get("unbarred"):
+        lens = [sum(e["d"] for e in ex["rh"][0][0])]
+    else:
+        lens = [bar_len(m) for m in ex["meters"]]
+    for staff in ("rh", "lh"):
+        for v in ex[staff]:
+            assert len(v) == len(lens), "bars"
+            for b, bb in enumerate(v):
+                assert sum(e["d"] for e in bb) == lens[b], f"bar {b + 1} of {staff} has the wrong length"
+        tl = gen5.timeline(ex[staff])
+        for t, d, ns in tl:
+            snd = [m for (t2, d2, ns2) in tl if t2 <= t < t2 + d2 for m in map(gen5.midi, ns2)]
+            assert max(snd) - min(snd) <= 12, f"{staff} spans more than an octave"
+    rt, lt = gen5.timeline(ex["rh"]), gen5.timeline(ex["lh"])
+    for t, d, ns in rt:
+        low = min(map(gen5.midi, ns))
+        for t2, d2, ns2 in lt:
+            if t2 < t + d and t < t2 + d2:
+                assert max(map(gen5.midi, ns2)) < low, "the hands cross"
+    last = [e for e in ex["rh"][0][-1] if e["n"]][-1]["n"]
+    assert key.degree(max(last, key=gen5.midi)[0]) == 0, "must end on the tonic"
+
+
+def make_unit3(part, rng):
+    key = gen5.Key(*part["key"])
+    for _ in range(400):
+        got = (make_unbarred if part.get("unbarred") else make_meters)(part, key, rng)
+        if not got:
+            continue
+        got["key"] = key
+        try:
+            validate6(part, key, got)
+        except AssertionError as e:
+            gen5.STATS[str(e)] = gen5.STATS.get(str(e), 0) + 1
+            continue
+        got["v6"] = True
+        return got
+    raise RuntimeError(f"could not generate exercise for part {part['name']}")
+
+
 # ---------------------------------------------------------------- one exercise
 def make_exercise(part, rng):
     if part.get("texture") in THREE_VOICES:
         return make_three(part, rng)
     if part.get("texture") in RHYTHM_TEXTURES:
         return make_v6(part, rng)
+    if part.get("texture") == "meters":
+        return make_unit3(part, rng)
     return layout(part, gen5.make_exercise(part, rng))
 
 
@@ -881,16 +1122,16 @@ def generate_unit(unit, seed=None):
 
 
 # ---------------------------------------------------------------- scores
-def staff_code(st, key, meter, tsig, first=False, n=None, transpose=None):
+def staff_code(st, key, meter, tsig, first=False, n=None, transpose=None, checks=True, keystr=None):
     """One staff of a multi-staff score. The first printed staff carries the line breaks."""
     clef = CLEF[st.get("clef", "treble")]
     inner = ""
     if st.get("instrument"):
         inner += f'\\set Staff.instrumentName = "{st["instrument"]} " '
-    music = staff_str(st["voices"], gen5.breaks_for(n) if first else ())
+    music = staff_str(st["voices"], gen5.breaks_for(n) if first else (), checks)
     if st.get("hand") and "sustainOn" in music:
         inner += "\\set Staff.pedalSustainStyle = #'bracket "
-    body = f"\\key {key.lily} {tsig}\\time {meter} \\accidentalStyle modern {inner}{music} \\bar \"|.\""
+    body = f"\\key {keystr or key.lily} {tsig}\\time {meter} \\accidentalStyle modern {inner}{music} \\bar \"|.\""
     if transpose:
         body = f"\\transpose {transpose[0]} {transpose[1]} {{ {body} }}"
     auto = "\\autoLineBreaksOff " if first else ""
@@ -902,20 +1143,24 @@ def staff_code(st, key, meter, tsig, first=False, n=None, transpose=None):
 
 def score6(part, ex, label, own_tempo="", transpose=None):
     """A multi-staff score: solo staves above a PianoStaff, ChoirStaff or StaffGroup."""
-    meter = part["meter"]
+    meter = ex["meters"][0] if ex.get("meters") else part["meter"]
     key = ex["key"]
     n = part["bars"]
     tsig = "\\once \\override Staff.TimeSignature.style = #'C " if meter == "2/2" else ""
+    checks = not ex.get("unbarred")
+    if not checks:
+        tsig += "\\omit Staff.TimeSignature "
+    keystr = "c \\major" if part.get("no_signature") else None
     staves, group = as_staves(ex)
     solo = [st for st in staves if st.get("solo")]
     grouped = [st for st in staves if not st.get("solo")]
     codes, first = [], True
     for st in solo:
-        codes.append(staff_code(st, key, meter, tsig, first, n, transpose))
+        codes.append(staff_code(st, key, meter, tsig, first, n, transpose, checks, keystr))
         first = False
     inner = []
     for st in grouped:
-        inner.append(staff_code(st, key, meter, tsig, first, n, transpose))
+        inner.append(staff_code(st, key, meter, tsig, first, n, transpose, checks, keystr))
         first = False
     body = f"\\new {GROUP[group]} <<\n    " + "\n    ".join(inner) + "\n  >>"
     if codes:

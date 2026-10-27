@@ -251,6 +251,42 @@ def test_rhythms():
     return scores
 
 
+def test_meters():
+    """Unit 3 (plan feature 4): changing meters, beat groups, modes without a key signature, and
+    unbarred pentatonic and whole-tone tunes."""
+    scores = []
+    mix = dict(name="A", title="5/4 and 6/4", count=2, bars=8, meter="5/4", texture="meters", meters=["5/4", "6/4"],
+               tempo=88, key=("bes", "major"))
+    seven = dict(name="B", title="7/8", count=2, bars=8, meter="7/8", texture="meters", tempo=160, tempo_unit="8",
+                 key=("d", "major"))
+    dorian = dict(name="C", title="Dorian", count=2, bars=8, meter="4/4", texture="meters", tempo=72,
+                  key=("a", "dorian"), no_signature=True)
+    pent = dict(name="D", title="Pentatonic", count=2, bars=1, meter="4/4", texture="meters", unbarred=True,
+                scale="pentatonic", tempo=72, key=("f", "major"))
+    whole = dict(pent, scale="wholetone", key=("c", "major"))
+    for part in (mix, seven, dorian, pent, whole):
+        for k, ex in enumerate(gen6.generate_part(dict(part), random.Random(6003), set())):
+            code = gen6.lily_exercise(part, ex, f"99.M{k}")[0]
+            if part is mix:
+                assert code.count("\\time 6/4") == 2 * 4 and ex["meters"][:2] == ["5/4", "6/4"], "the meter alternates"
+            if part is seven:
+                assert "\\time 2,2,3 7/8" in code, "beat groups"
+            if part is dorian:
+                assert "\\key c \\major" in code, "no key signature"
+                assert any(n[1] == 1 for v in ex["rh"] for bar in v for e in bar for n in e["n"]), "F-sharp written out"
+                assert ex["key"].degree([e for e in ex["rh"][0][-1] if e["n"]][-1]["n"][0][0]) == 0, "ends on A"
+            if part in (pent, whole):
+                assert "\\cadenzaOn" in code and "|" not in code.replace('"|."', ""), "no bar checks"
+                semis = {gen5.midi(e["n"][0]) % 12 for e in ex["rh"][0][0]}
+                tonic = gen5.midi(ex["key"].note(ex["key"].tonic)) % 12
+                allowed = {(tonic + i) % 12 for i in (gen6.PENTATONIC if part is pent else gen6.WHOLE_TONE)}
+                assert semis <= allowed, "only the scale's notes"
+                assert code.count('\\bar ";"') == 2 * 3, "dotted bar lines between the four phrases"
+            scores.append(code)
+    print("changing meters, 7/8, modes, unbarred scales     OK")
+    return scores
+
+
 if __name__ == "__main__":
     test_passthrough()
     exs, scores = test_open_score()
@@ -260,6 +296,7 @@ if __name__ == "__main__":
     scores += test_answers()
     scores += test_three_voices()
     scores += test_rhythms()
+    scores += test_meters()
     test_build_compiles(scores)
     test_checker()
     print("OK")

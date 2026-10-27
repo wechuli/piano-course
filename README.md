@@ -11,15 +11,15 @@ A print-ready A4 course book, typeset with LilyPond.
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
-| 6 · Reading Like a Professional | in progress: Units 1-2 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 2: 15 pp.) | 2 units, 48 exercises, 8 pieces |
+| 6 · Reading Like a Professional | in progress: Units 1-3 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 3: 14 pp.) | 3 units, 72 exercises, 12 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The five-volume course is complete. Next: Volume 6** (Levels 7-8, an extension beyond the
 original plan): the full plan is in "Volume 6 plan" below. The shared groundwork is in place
 (see "Groundwork (done)" in the plan): `course/gen6.py` multi-staff scores, the Volume 6
-checker and build changes, and `course/test_gen6.py`. Units 1-2 are finished: see the
-"Unit N (done)" sections in the plan. Next: Unit 3 (Changing Meters, Modes and No Key).
+checker and build changes, and `course/test_gen6.py`. Units 1-3 are finished: see the
+"Unit N (done)" sections in the plan. Next: Unit 4 (Chromatic Harmony).
 All five volumes are protected by
 `course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
 original plan follows it for reference.
@@ -433,6 +433,40 @@ strain with its first ending (Mutopia 482, PD); original Hemiola Waltz.
   the later bars are not in the excerpt (Part C's runs practise them).
 - In Solace, Joplin's bass notes held under the chords (for the pedal) are printed as the eighths the
   hand plays.
+
+### Unit 3 (done)
+
+**Generator (`course/gen6.py`, section "changing meters, modes, no key").** Tested by `test_meters`.
+gen5's tables gain new keys only: the modes (`dorian`, `phrygian`, `lydian`, `mixolydian`,
+`aeolian`) in `SCALES`, the chord `VII`, and the meters 5/4, 6/4, 7/8, 5/8 (plus `mix`, used for the
+tune search: only downbeats and long notes must be chord tones). `texture: "meters"`:
+- `meters: [...]` cycles the time signatures bar by bar (rhythm tables per meter in `METER_RHY`;
+  `\time` printed only when the meter changes); 7/8 and 5/8 print their beat groups
+  (`\time 2,2,3 7/8`, `\time 3,2 5/8`). The left hand plays the beat groups (`GROUPS`): the root
+  for the first, the chord's upper notes for the others.
+- a modal key (`key: ("a", "dorian")`) takes a modal chord plan (the tonic and the mode's colour
+  chord: Dorian IV, Mixolydian and Aeolian VII, Phrygian and Lydian ii); the tune must use the
+  mode's characteristic note. `no_signature: True` prints the C major signature, so every
+  accidental is written.
+- `unbarred: True, scale: "pentatonic" | "wholetone"`: four phrases of 6 or 8 quarters (eighths
+  beamed by hand), dotted bar lines between them, no time signature and no bar checks
+  (`\cadenzaOn`), over an open fifth (pentatonic) or a major third (whole-tone) in half notes.
+- `validate6` checks bars of changing length (one bar for unbarred music), spans, crossing and the
+  final tonic.
+
+**Pieces.** Mussorgsky, Promenade (Pictures at an Exhibition), bars 1-6 and a closing chord (Mutopia
+475; the Promenade file is public domain); Satie, Gnossienne No. 1, the first theme (Mutopia 2035,
+CC BY-SA 4.0); original Dance in Seven (7/8); Scarborough Fair (traditional, D Dorian, arranged).
+
+**Changes from plan.**
+- Debussy's Prelude Book I No. 4 (Mutopia 2002 is indeed that prelude, CC BY-SA 4.0) is left out:
+  its opening has four layers with the hands crossing on one staff, too dense for this unit. An
+  original Dance in Seven (7/8) takes its place.
+- In the Promenade, a low C under the right hand's first quarter in bars 3-4 is left out (a
+  seventeenth, out of reach of one hand).
+- `build.py`: a piece without a meter now hides the time signature (it printed LilyPond's default
+  4/4).
+- The "New:" lines of Units 3-8 in `units.py` were shortened to fit the unit's title page.
 
 ## Volume 5 plan (as written before it was built)
 
