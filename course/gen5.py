@@ -1204,8 +1204,8 @@ def make_sequence(part, key, rng):
         # the motive: a one-bar line on the tonic chord
         m = gen_tune(dict(part, motion={0: 0.5, 1: 5.0, 2: 2.5, 3: 0.8}), key, [r1], [I], rng, lo + 2, hi,
                      start={0, 2, 4}, strict_end=False)
-        if not m or len(set(m[0])) < 3:
-            continue
+        if not m or len(set(m[0])) < min(4, len(m[0]) - 1):
+            continue  # a motive needs some variety, not two notes rocking
         mot = m[0]
         if abs(mot[-1] - mot[0]) > 4:
             continue
@@ -1230,7 +1230,7 @@ def make_sequence(part, key, rng):
             continue
         rh, lh = [], []
         rh.append([ev(d, [key.note(s)], t) for (d, t), s in zip(r1, mot)])
-        lh.append([ev(bar, [key.note(nearest(key, 0, mot[0] + down, 14, 27))])])
+        lh.append([ev(bar, [key.note(nearest(key, 0, lmot[0] - 2, 18, 27))])])  # a held tonic near the imitation
         for sh in (0, -1, -2):
             rh.append([ev(d, [key.note(s + sh)], t) for (d, t), s in zip(rc, cm)])
             lh.append([ev(d, [key.note(s + sh)], t) for (d, t), s in zip(r1, lmot)])

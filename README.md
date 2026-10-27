@@ -10,12 +10,13 @@ A print-ready A4 course book, typeset with LilyPond.
 | 2 · Moving Hands | complete | `build/Read at Sight - Volume 2.pdf` (133 pp.) | 10 units, 306 exercises, 35 pieces |
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
+| 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
-**Next: Volume 5.** The full plan is in "Volume 5 plan" below: units, parts, generator features,
-pieces with their Mutopia sources and licences, and the build order. Volumes 1-4 are protected
-by `course/check_identical.py` (see "Build").
+**The course is complete** (five volumes). All five volumes are protected by
+`course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
+original plan follows it for reference.
 
 Note: the Volume 1 PDFs were built before two small layout tweaks (the "What is new" heading
 now stays with its first item, and keyboards widen to fit every key). Rebuilding Volume 1
@@ -29,7 +30,7 @@ would only change the page layout; exercises are identical.
 | 2 · Moving Hands (done) | 2 | Leaving five-finger positions, hand shifts and extensions, 1 sharp or flat keys and their relative minors, dotted quarters, slurs, simple dynamics | 10 |
 | 3 · Two Voices (done) | 3 | Real left-hand independence, Alberti and broken-chord basses, 6/8, keys up to 2 sharps or flats, simple counterpoint | 8–10 |
 | 4 · Patterns and Keys (done) | 4 | Chords in both hands, syncopation, sixteenths, ledger lines, changing key mid-piece | 8 |
-| 5 · Repertoire Reading | 5–6 | 3–4 voices, chromatic notes, all keys, chorales | 8 |
+| 5 · Repertoire Reading (done) | 5–6 | 3–4 voices, chromatic notes, all keys, chorales | 8 |
 
 Volumes 1–2 are mostly generated exercises. Volumes 3–4 are about half generated, half
 re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
@@ -99,7 +100,89 @@ sixteenths); Clementi Op. 36 No. 1, Mozart K. 331 and the Minuet in G (Anh. 116)
 were not used; Unit 3 reaches D6 (the plan said C6). Unit 8 has three
 pieces, so the volume has 24 pieces rather than about 28.
 
-## Volume 5 plan (Repertoire Reading, Levels 5-6)
+## Volume 5 (done)
+
+Level 5-6: reading by key, chord and pattern. Seeds 5001-5008. Volume 5 has its **own generator,
+`course/gen5.py`** (the plan put the features into `generator.py`; a separate module guarantees that
+Volumes 1-4 cannot change). `build.py` uses it for `--vol 5` only.
+
+| Unit | Title | Parts |
+| --- | --- | --- |
+| 1 | Two Voices in One Hand | A: held RH voice, C/G, block chords. B: the same in 3/4, F/D, waltz. C: LH bass + tenor line, G/F/B-flat |
+| 2 | Chorales | A: three voices in half notes. B: SATB with fermatas, inversions, ii and vi. C: SATB in A, D, E minor |
+| 3 | Chromatic Notes | A: chromatic passing and neighbour notes. B: V7 of V. C: melodic minor |
+| 4 | Triplets and New Time Signatures | A: triplets in 4/4 and 3/4. B: 3/8 and 9/8. C: 2/2 and 12/8 |
+| 5 | Four Sharps and Four Flats | A: E major, Alberti. B: A-flat major waltzes. C: C-sharp minor and F minor |
+| 6 | Every Key | A: B and D-flat major. B: F-sharp/G-flat twins, B-flat minor, G-sharp minor. C: 12 keys round the circle (4 bars) |
+| 7 | Pedal, Clefs and the Whole Keyboard | A: wide LH broken chords with pedal. B: Gymnopedie pattern (low bass, chord), pedal. C: hands take turns with clef changes |
+| 8 | Counterpoint, Ornaments and Review | A: two-part sequences with LH imitation. B: ornaments. C: 16-bar review in many keys and textures |
+
+### gen5.py
+
+Pitches are `(step, alteration)`; durations are Fractions (a triplet eighth is 1/12). Each exercise
+is built in layers and validated (bar lengths, a hand never spans more than an octave at one moment,
+the hands never cross, tonic ending, variety); failures retry. Part options (in `units.py`, `VOLUME5`):
+
+| Key | Meaning |
+| --- | --- |
+| `key` | `(tonic, mode)`, e.g. `("fis", "major")`; any of the 30 keys (`gen5.Key` builds the signature) |
+| `variants` | List of overrides cycled exercise by exercise (keys, meters, textures, tempo) |
+| `meter`, `rhythms` | `4/4 3/4 2/4 6/8 3/8 9/8 12/8 2/2`; rhythm tables `RHY` (`basic`, `eighths`, `trip`, `slow`, `motive`); `t8` = triplet eighth |
+| `chords`, `require_chords` | Chord vocabulary (`I ii IV V V7 vi V7/V`; minor `i iv V V7 VI`), moves in `MOVES` |
+| `bass` | LH pattern from `LH`: `block block2 waltz oompah broken alberti triplet wide wide8 leap` |
+| `rh2: "held"` | A held lower voice in the RH (a 3rd or 6th below the tune) |
+| `lh2: "tenor"` | LH bass (stems down) and a quarter-note tenor line (stems up) |
+| `texture` | `chords` (default), `chorale` (`voices` 3 or 4, `require_inversion`), `alt` (clef changes), `sequence` |
+| `chromatic` | `{"passing": p, "neighbour": p, "min": n}` |
+| `melodic_minor` | Raised 6th and 7th going up, natural going down |
+| `pedal` | Bracket pedal marks, changed with the harmony |
+| `ornaments` | `{"trill", "mordent", "grace", "turn": p, "min": n}` |
+| `twin` | Print the exercise again in the enharmonic key (labels `a`/`b`) |
+| `bars` | 4, 8 or 16 (16: a half close at bar 8, bars 9-12 may repeat 1-4) |
+| `rh_up`, `rh_span`, `rh_lo` | Range of the tune (by default from the tonic, never above A5) |
+
+Chorales: chords are chosen first (functional moves, cadences at the fermatas), then a soprano of
+chord tones (leading note rising, 7ths falling), then alto, tenor and bass by dynamic programming over
+voicings (ranges, spacing, complete chords, doubling, no parallel 5ths/8ves, no augmented seconds,
+least motion).
+
+### Pieces (35: 25 from Mutopia, 10 originals)
+
+| Unit | Pieces (Mutopia id; CC = CC BY-SA engraving, notes retyped) |
+| --- | --- |
+| 1 | Schumann Melody Op. 68/1 (647 CC); Burgmuller Consolation, introduction (224); originals Evening Bells, Hymn with a Moving Tenor |
+| 2 | Bach BWV 269 (378), O Haupt voll Blut (107), BWV 347 (379); Schumann Chorale Op. 68/4 (782 CC) |
+| 3 | Schumann First Loss (676 CC), Poor Orphan (687 CC), first parts; originals Chromatic Walk, Up the Melodic Minor |
+| 4 | Beethoven Fur Elise, theme (931); Schumann Of Foreign Lands (354, cross-staff triplets); Burgmuller Ballade, first part (227); original Rowing Song (12/8) |
+| 5 | Schubert Moment musical 3, opening (1023); Impromptu D. 935/2, bars 1-8 (1195); Beethoven Moonlight bars 1-9 (276 CC); original E Major Morning |
+| 6 | Chopin Raindrop bars 1-8, simplified (471); Schubert Impromptu D. 899/3, 16 bars in 2/2 (1193); originals Night Song in B, Enharmonic Twins (F-sharp, and G-flat respelled by code) |
+| 7 | Satie Gymnopedie 1, first half (37); Chopin Preludes 7 complete (470) and 4 first half (468); Schumann Little Piece 68/5 (653 CC); original Pedal Song |
+| 8 | Bach Invention 8, bars 1-12 (61); Polonaise Anh. 128 (1615); Burgmuller Pastorale (218); Bach Prelude in C bars 1-19 (5); Chopin Prelude 20 (472) |
+
+Changes from the plan: Traumerei replaced by Chopin's Prelude No. 4 (Traumerei's voices cross the
+staves too often for a clean two-staff text); BWV 928 left out (Unit 8 already had five pieces);
+10 originals instead of 9 (the enharmonic twins are two pieces). Pedal marks, ornaments and clef
+changes before their units are left out or flagged with a piece's `allow` list and explained in its
+note; Melody, First Loss and Poor Orphan read the left hand in the treble clef before Unit 7.
+
+### Checker and build (Volume 5)
+
+`check_pieces.py --vol 5` compiles the pieces with an event listener and checks LilyPond warnings
+(bar checks), keys (up to 3 accidentals in Units 1-4, 4 in Unit 5, any from Unit 6), time signatures
+(new ones from Unit 4), triplets (4), pedal and clef changes (7), ornaments (8), each hand's span at one
+moment (an octave; with the pedal only notes struck together count) and leaps (the jump to the nearest
+new note, an octave in the RH and a tenth in the LH, two octaves from Unit 7; none across rests).
+Piece options: `allow` (feature names), `allow_span`, `allow_leap` (semitones), `allow_32`,
+`allow_key`, `upbeat` ("1/4", for bar numbers in reports), `long` (may break across pages), `cut`
+(alla breve sign). `--verbose` lists every problem. Content files may also define `EXAMPLES`
+(small scores with captions) and `KEY_PICTURES` (scale degrees on a keyboard). Piece staves are named
+`up`/`down` for cross-staff notes. Tool used for transcription: LilyPond's `\displayLilyMusic` turns a
+Mutopia source (after `convert-ly`) into absolute pitches.
+
+The build now reports LilyPond warnings (it used `-s`, which hid them); only page-compression notices
+are filtered.
+
+## Volume 5 plan (as written before it was built)
 
 **Goal.** A Level 6 reader can sight-read real piano music of the standard of Schumann's Album
 for the Young, the easier Chopin Preludes and Bach's chorales: two voices in one hand, four-part
@@ -280,6 +363,8 @@ python3 build.py --vol 2 1 2 3 4 5 6 7 8 9 10    # Volume 2 book -> build/read-a
 python3 check_pieces.py --vol 3 1                # Volume 3 (units not written yet are skipped)
 python3 build.py --vol 3 1                       # Volume 3, Unit 1 (with front matter)
 python3 build.py --vol 4 1 2 3 4 5 6 7 8        # Volume 4 book -> build/read-at-sight-vol4.pdf
+python3 check_pieces.py --vol 5                  # Volume 5 (add --verbose for every problem)
+python3 build.py --vol 5 1 2 3 4 5 6 7 8        # Volume 5 book -> build/read-at-sight-vol5.pdf
 python3 check_identical.py                       # every finished unit must print "identical"
 python3 check_identical.py --add 5 1             # record a newly finished unit (here Volume 5, Unit 1)
 ```

@@ -52,8 +52,8 @@ EXAMPLES = [
      "rh": "\\tuplet 3/2 { c''8 d'' e'' } d''8 c'' \\tuplet 3/2 { b'8 c'' d'' } \\tuplet 3/2 { c''4 g'8 } | c''1 \\bar \"||\""},
     {"title": "3/8, 9/8 and 12/8",
      "text": "Each group of three eighths is one beat: one beat in 3/8, three in 9/8, four in 12/8.",
-     "staff": "treble",
-     "rh": "\\time 3/8 c''8 d'' e'' | f''4. \\bar \"||\" \\time 9/8 e''4. d''4 c''8 g'4. \\bar \"||\" "
+     "staff": "treble", "time": "3/8",
+     "rh": "c''8 d'' e'' | f''4. \\bar \"||\" \\time 9/8 e''4. d''4 c''8 g'4. \\bar \"||\" "
            "\\time 12/8 c''8 d'' e'' f''4 e''8 d''4. c''4. \\bar \"||\""},
     {"title": "2/2: alla breve",
      "text": "The same notes as 4/4, counted in two: 'one - two -'.",
