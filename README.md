@@ -8,7 +8,7 @@ A print-ready A4 course book, typeset with LilyPond.
 | --- | --- | --- | --- |
 | 1 · First Steps | complete | `build/Read at Sight - Volume 1.pdf` (130 pp.) | 10 units, 322 exercises, 39 pieces |
 | 2 · Moving Hands | complete | `build/Read at Sight - Volume 2.pdf` (133 pp.) | 10 units, 306 exercises, 35 pieces |
-| 3 · Two Voices | in progress: Units 1-4 done | `build/units/` (Vol3 - Unit 1 to 4) | Units 1-4: 140 exercises, 14 pieces |
+| 3 · Two Voices | in progress: Units 1-5 done | `build/units/` (Vol3 - Unit 1 to 5) | Units 1-5: 174 exercises, 17 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
@@ -43,7 +43,7 @@ re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
 | 2 (done) | The Alberti Bass | Broken chords in eighths: low, high, middle, high | `bass: "alberti"`, `bass_leap` (done) |
 | 3 (done) | Six-Eight Time | 6/8: two beats, each split in three | `"6/8"` in `BAR_LEN`, `FULL_REST`, rhythm table `R68`, cadences; 6/8 bass patterns; checker `BAR` |
 | 4 (done) | D Major | Two sharps; D major chords | positions/keys exist (`RH_D`, `LH_D`, `KEY_D`); LH chord shapes in D |
-| 5 | B-flat Major | Two flats | new `RH_Bb`/`LH_Bb` positions, `KEY_BB` (`{"b": "es", "e": "es"}`) |
+| 5 (done) | B-flat Major | Two flats | new `RH_Bb`/`LH_Bb` positions, `KEY_BB` (`{"b": "es", "e": "es"}`) |
 | 6 | Accidentals | Accidentals inside the bar; raised 7th in minor | per-note accidentals in the melody and in V7 (minor keys); B minor and G minor |
 | 7 | Two Notes at Once | RH thirds and sixths | RH two-note chords (`<e' g'>`); checker must parse `< >` |
 | 8 | Two Independent Voices | LH melody against RH; contrary and parallel motion | a second melodic line with consonance rules (no parallel 5ths/8ves) |
