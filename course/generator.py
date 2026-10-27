@@ -291,6 +291,8 @@ def gen_melody(part, bars, hands, plan, repeat, rng, chords=None, end_ok=None):
             short = bars[slots[k][0]][slots[k][1]] == 1 or bars[slots[k - 1][0]][slots[k - 1][1]] == 1
             if short and abs(s - mel[k - 1]) > 1:
                 return False  # sixteenths move by step (or repeat)
+            if short and k >= 3 and mel[k - 3] == mel[k - 1] and mel[k - 2] == s:
+                return False  # no A-B-A-B trills: four quick notes should go somewhere
         if k == last_idx and pc(s) not in (end_ok or {t}):
             return False
         if k == cad_idx and pc(s) not in cad_ok:
