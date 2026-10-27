@@ -8,7 +8,7 @@ A print-ready A4 course book, typeset with LilyPond.
 | --- | --- | --- | --- |
 | 1 · First Steps | complete | `build/Read at Sight - Volume 1.pdf` (130 pp.) | 10 units, 322 exercises, 39 pieces |
 | 2 · Moving Hands | complete | `build/Read at Sight - Volume 2.pdf` (133 pp.) | 10 units, 306 exercises, 35 pieces |
-| 3 · Two Voices | in progress: Units 1-9 done | `build/units/` (Vol3 - Unit 1 to 9) | Units 1-9: 308 exercises, 29 pieces |
+| 3 · Two Voices | in progress: Units 1-10 done | `build/units/` (Vol3 - Unit 1 to 10) | Units 1-10: 342 exercises, 32 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
@@ -48,7 +48,7 @@ re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
 | 7 (done) | Two Notes at Once | RH thirds and sixths | RH two-note chords (`<e' g'>`); checker must parse `< >` |
 | 8 (done) | Two Independent Voices | LH melody against RH; contrary and parallel motion | a second melodic line with consonance rules (no parallel 5ths/8ves) |
 | 9 (done) | Imitation | One hand answers the other | imitation: LH repeats the RH's bars 1-2 an octave lower, etc. |
-| 10 | Review | Everything in Volume 3 | - |
+| 10 (done) | Review | Everything in Volume 3 | - |
 
 Pieces: about half re-engraved public-domain music from Unit 3 on (Unit 1 has Ode to Joy and
 Jingle Bells plus two originals). Unit titles are already on the Volume 3 contents page, so keep
