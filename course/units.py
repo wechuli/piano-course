@@ -884,7 +884,7 @@ VOLUME5 = [
      "parts": [
          dict(name="A", title="B major and D-flat major", count=8, bars=8, meter="4/4", rhythms="basic",
               bass="block2", tempo=60, variants=_keys(("b", "major"), ("des", "major"))),
-         dict(name="B", title="Twins: F-sharp and G-flat; B-flat minor and G-sharp minor", count=8, bars=8,
+         dict(name="B", title="Twins, and two minor keys", count=8, bars=8,
               meter="3/4", rhythms="basic", bass="waltz", tempo=72,
               variants=[dict(key=("fis", "major"), twin=("ges", "major")), dict(key=("bes", "minor")),
                         dict(key=("fis", "major"), twin=("ges", "major")), dict(key=("gis", "minor"))]),
