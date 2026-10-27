@@ -14,7 +14,8 @@ A print-ready A4 course book, typeset with LilyPond.
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
-**The course is complete** (five volumes). All five volumes are protected by
+**The five-volume course is complete. Next: Volume 6** (Levels 7-8, an extension beyond the
+original plan): the full plan is in "Volume 6 plan" below. All five volumes are protected by
 `course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
 original plan follows it for reference.
 
@@ -31,6 +32,7 @@ would only change the page layout; exercises are identical.
 | 3 · Two Voices (done) | 3 | Real left-hand independence, Alberti and broken-chord basses, 6/8, keys up to 2 sharps or flats, simple counterpoint | 8–10 |
 | 4 · Patterns and Keys (done) | 4 | Chords in both hands, syncopation, sixteenths, ledger lines, changing key mid-piece | 8 |
 | 5 · Repertoire Reading (done) | 5–6 | 3–4 voices, chromatic notes, all keys, chorales | 8 |
+| 6 · Reading Like a Professional (planned) | 7–8 | Three-voice counterpoint, cross-rhythms, changing meters, chromatic harmony, big textures, accompanying, open score and C clefs, lead sheets | 8 |
 
 Volumes 1–2 are mostly generated exercises. Volumes 3–4 are about half generated, half
 re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
@@ -181,6 +183,156 @@ Mutopia source (after `convert-ly`) into absolute pitches.
 
 The build now reports LilyPond warnings (it used `-s`, which hid them); only page-compression notices
 are filtered.
+
+## Volume 6 plan (Reading Like a Professional, Levels 7-8)
+
+**Goal.** A Level 8 reader can sight-read what a working pianist is handed: a Bach sinfonia or fugue
+exposition, Romantic and Impressionist pieces with cross-rhythms, changing meters and chromatic
+harmony, a song accompaniment on three staves, a hymn or string quartet in open score (alto and
+tenor clefs), and a lead sheet. Volume 6 also teaches the professional's two survival skills:
+*simplifying at sight* (dropping notes without losing the music) and *transposing at sight*.
+
+**Who it is for.** Readers who passed the Volume 5 checkpoint. Start-of-book text: "Volumes 1-5
+taught you to read piano music. This volume teaches you to read music written for anyone."
+
+**Size.** 8 units, 3 parts of 8 exercises each (192 exercises), 4 pieces per unit (32: 24 from
+Mutopia, 8 originals or traditional tunes). About 150 pages. Seeds 6001-6008.
+
+### Units
+
+| Unit | Title | New ("New:" line) | Parts (8 exercises each) |
+| --- | --- | --- | --- |
+| 1 | Three Voices | Three independent voices on two staves; the middle voice passes between the hands; fugue entries | A: three-voice counterpoint, RH two voices over a LH bass, 4 bars, C/G/F/D minor. B: the middle voice changes hands (cross-staff notes), 8 bars. C: fugue expositions: subject, answer at the fifth, countersubject, third entry in the bass |
+| 2 | Rhythm Against Rhythm | Two against three, three against four, duplets, quintuplets and septuplets, hemiola | A: RH triplets over LH eighths (2:3), then swapped. B: duplets in 6/8 and 3:4 (RH sixteenth-triplets over LH sixteenths). C: free runs (5, 6, 7 notes in a beat) and hemiola in 3/4 waltzes (two bars felt as one bar of 3/2, with accents) |
+| 3 | Changing Meters, Modes and No Key | Time signatures that change every bar or two; 5/4, 7/8 (2+2+3), 5/8; modes, whole-tone and pentatonic scales; music without bar lines | A: alternating 5/4 and 6/4 (Promenade style), and 3/4 + 2/4. B: 7/8 and 5/8 with the beat groups shown (beam structure), modes (Dorian, Mixolydian, Phrygian, Lydian) without key signatures. C: unbarred music (dotted bar lines, no meter), whole-tone and pentatonic tunes over open fifths |
+| 4 | Chromatic Harmony | Diminished sevenths, secondary dominants of every degree, the Neapolitan sixth, augmented sixths, enharmonic modulation; double sharps and flats | A: V7 of ii, iii, IV, V, vi (and vii°7 of each) in four-part piano texture. B: Neapolitan sixth and augmented sixths (Italian, German, French) leading to V, in minor keys. C: modulation by a pivot chord and by an enharmonic diminished seventh, to distant keys |
+| 5 | Big Textures | Octaves in both hands, full chords with the tune on top, 8va / 8vb / 15ma signs, three-staff piano writing, hand crossing; reading the outline | A: RH octave melodies and LH octave basses, 8va and 8vb signs. B: chordal textures (four to six notes) and arpeggios over the whole keyboard, crossed hands (LH over RH). C: dense textures to *simplify at sight*: each exercise is printed with a suggested reduction underneath on a small staff |
+| 6 | Accompanying | Three staves: a voice (or violin) line above the piano; introductions and interludes; following the soloist | A: a singer's line above a block-chord accompaniment, with "la" syllables (read the soloist's line while playing). B: the same with arpeggiated and after-beat accompaniments, a two-bar introduction and an interlude. C: the piano doubles the tune in some bars and not in others; rests in the voice part to count through |
+| 7 | Open Score, C Clefs and Transposing | Four staves (SATB), the treble clef with an 8 below, the alto clef (viola) and the tenor clef (cello, bassoon); transposing at sight | A: four-part chorales on four staves (soprano, alto, tenor in treble-8, bass), played on the piano. B: string quartet textures: violin 1, violin 2, viola (alto clef), cello (bass and tenor clef). C: transposing at sight: a hymn tune or folk song printed in one key, to be played a tone higher or lower (answers at the back of the book) |
+| 8 | Lead Sheets, Simplifying and Review | Chord symbols (C, Am7, G7/B, Fmaj7, Bdim, C/E); realising a lead sheet; review of the whole course | A: lead sheets: a tune with chord symbols, the left hand plays root-position chords, then broken chords. B: lead sheets with sevenths and slash chords, the left hand plays an accompaniment pattern of the reader's choice. C: review: 24-bar exercises in any key, meter and texture from Volume 6 |
+
+### Generator features (`course/gen6.py`, building on gen5; Volumes 1-5 must stay identical)
+
+`gen6.py` imports and extends `gen5.py` (it must not change gen5's output: run `check_identical.py`).
+
+1. **Any number of staves (Units 5-8).** An exercise becomes a list of staves, each with a name,
+   clef (`treble`, `bass`, `treble_8`, `alto`, `tenor`), optional instrument name and voices; the
+   score is a `PianoStaff` (two or three staves), a `ChoirStaff` (open score) or a `StaffGroup`
+   (quartet) plus an optional solo staff above. Clef changes inside a staff as in gen5's `alt`.
+2. **Three-voice counterpoint (Unit 1).** Generalise `counter_line` to search a voice against any
+   number of fixed voices (consonance on strong beats with every voice, passing dissonance on weak
+   beats, no parallels between any pair, no crossing). `texture: "trio"`: bass line from the chord
+   plan, tune by `gen_tune`, middle voice by the search. Cross-staff: the middle voice is assigned to
+   the hand whose range it is in, bar by bar, written with `\change Staff`. `texture: "fugue"`: a
+   1-2 bar subject (`gen_tune` on I-V), real or tonal answer at the fifth (tonal: the subject's 5th
+   answered by the tonic), countersubject searched against the answer, entries soprano-alto-bass.
+3. **Cross-rhythms (Unit 2).** Rhythm cells for different tuplets per hand: `rh_tuplet` / `lh_tuplet`
+   (3 against 2, 4 against 3, duplets `\tuplet 2/3` in compound time); runs `run: {"notes": 5|6|7}`
+   filling one beat by step to the next chord tone (`\tuplet 5/4` etc.); `hemiola: True` rewrites
+   bars 7-8 of a 3/4 phrase as three half notes with accents. The bar validator works in exact
+   fractions already (gen5), so only the emitter needs the new tuplet ratios.
+4. **Changing meters, modes, no key (Unit 3).** `meters: ["5/4", "6/4"]` cycles meters bar by bar
+   (rhythm tables per meter; `\time` printed when it changes); `beat_groups` for 7/8 and 5/8
+   (`\time 2,2,3 7/8`). `Key` gains modes (`dorian`, `phrygian`, `lydian`, `mixolydian`, `aeolian`)
+   and scales (`wholetone`, `pentatonic`); `no_signature: True` prints C major and every accidental.
+   `unbarred: True` uses `\cadenzaOn` with dotted bar lines at phrase ends.
+5. **Chromatic harmony (Unit 4).** Chord vocabulary grows: `V7/ii ... V7/vi`, `vii°7` and `vii°7/x`,
+   `N6` (bII in first inversion), `It6`, `Ger6`, `Fr6` (each resolving to V or I6/4-V), with their
+   alterations in `chord_alts` (double sharps and flats spelled correctly). The chorale voicing search
+   (gen5) is reused for four-part piano texture, with extra rules: augmented sixths resolve outward to
+   the octave, the Neapolitan's root falls. `modulate: {"to": key, "pivot": "chord"|"dim7"}`: a pivot
+   chord common to both keys, or a diminished seventh respelled enharmonically.
+6. **Big textures (Unit 5).** `rh_octaves`, `lh_octaves`, `rh_full: n` (melody on top of an n-note
+   chord inside an octave span), `arpeggio_bass` over two or three octaves (pedal), `cross_hands`
+   (LH crosses over for one note per bar: notated on the treble staff with a "l.h." mark).
+   `\ottava` is inserted automatically when a passage stays above C6 or below C2 for a bar or more
+   (8va, 8vb, 15ma). `reduction: True` prints a suggested reduction (outer voices plus the bass of
+   each chord) on a small staff (`\magnifyStaff #2/3`) under the exercise.
+7. **Accompanying (Unit 6).** `texture: "song"`: a singable line (range a ninth, mostly steps, rests
+   at phrase ends) on a third staff above the piano, with `\addlyrics` "la" or vowel syllables;
+   accompaniment from gen5's `LH` patterns split between the hands (`accomp: "block" | "arpeggio" |
+   "afterbeat"`), `intro: 2` and `interlude: 1` bars built from the chord plan, `double_tune` (the
+   piano's top note doubles the voice in the bars listed).
+8. **Open score and transposing (Unit 7).** `texture: "chorale"` with `staves: 4` writes the gen5
+   chorale on four staves (soprano, alto, tenor `treble_8`, bass); `clefs: "quartet"` prints violin 1,
+   violin 2, viola (alto clef), cello (bass, switching to tenor clef above A3). `transpose:
+   {"by": "M2", "dir": "up"}` prints the exercise in its own key with the instruction; an "Answers"
+   appendix at the end of the book prints every transposition (LilyPond `\transpose`).
+9. **Lead sheets (Unit 8).** `texture: "leadsheet"`: melody with `\new ChordNames` above the staff
+   and an empty (rests) or slash-notated left hand; chord-symbol vocabulary `symbols: ["triads",
+   "sevenths", "slash"]` derived from the chord plan (`G7/B` for V7 in first inversion). Example
+   realisations in the unit's EXAMPLES.
+10. **Checker and build.** `check_pieces.py --vol 6`: pieces may define `staves` (list of
+    `{name, clef, music}`) instead of `rh`/`lh`; the event listener already reads every staff. New
+    feature gates by unit: tuplets other than 3 (Unit 2), `\time` changes and `\cadenzaOn` (3),
+    `\ottava` and three-staff piano (5), solo staff and lyrics (6), alto/tenor clefs and four staves
+    (7), `ChordNames` (8). Spans: per hand on piano staves only (solo and vocal staves are not
+    checked). `build.py`: `VOLUMES[6]` with its front matter, the "Answers" appendix, and piece
+    `staves`. Build in A4 portrait at staff size 20 for four-staff systems (option `staff_size`).
+
+### Pieces
+
+All checked in the Mutopia archive (ids and licences read from the source files; PD = public domain;
+CC = Creative Commons, so the notes are retyped and the source credited, as in Volumes 4-5).
+"Excerpt" bars are decided when transcribing; each is shortened to a musical close.
+
+| Unit | Piece | Mutopia id | Licence | Key, time | Why |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Bach, Sinfonia No. 1 in C, BWV 787 (opening) | 142 | PD | C, 4/4 | three voices, the middle one shared |
+| 1 | Bach, Sinfonia No. 11 in G minor, BWV 797 (opening) | 200 | PD | G minor, 3/8 | three voices in 3/8 |
+| 1 | Bach, Fugue in C minor, WTC I, BWV 847 (exposition, bars 1-8) | 550 | PD | C minor, 4/4 | subject, answer, countersubject |
+| 1 | Original: a short three-voice fugue in G | - | - | G, 4/4 | built from Part C's rules |
+| 2 | Debussy, Arabesque No. 1 (opening) | 1777 | PD | E, 4/4 (2/4 in source) | triplets against eighths |
+| 2 | Brahms, Waltz Op. 39 No. 15 | 794 | PD | A-flat, 3/4 | hemiola, two voices |
+| 2 | Chopin, Nocturne Op. 9 No. 2 (first section, the long run simplified) | 1590 | CC BY-SA 3.0 | E-flat, 12/8 | grace groups and free runs |
+| 2 | Joplin, Solace (first strain) | 482 | PD | C, 2/4 | habanera bass against straight eighths |
+| 3 | Mussorgsky, Pictures at an Exhibition: Promenade 1 | 475 | PD | B-flat, 5/4-6/4 | changing meters |
+| 3 | Satie, Gnossienne No. 1 (first page) | 2035 | CC BY-SA 4.0 | F minor, unbarred | no bar lines, no meter |
+| 3 | Debussy, Prelude Book I No. 4 (opening) | 2002 | CC BY-SA 4.0 | A-flat, 5/4 / 3/4 | changing meters, chromatic chords |
+| 3 | Traditional: Scarborough Fair (Dorian), harmonised | - | - | D Dorian, 3/4 | a modal tune without key signature |
+| 4 | Beethoven, Sonata Pathetique Op. 13, Grave introduction | 299 | PD | C minor, 4/4 | diminished sevenths, Neapolitan, runs |
+| 4 | Liszt, Consolation No. 3 (opening) | 1647 | CC BY 3.0 | D-flat, 4/4 | chromatic harmony, wide arpeggios |
+| 4 | Grieg, Album Leaf Op. 12 No. 7 | 2194 | CC BY-SA 4.0 | E minor, 2/4 | chromatic voice leading |
+| 4 | Original: a pivot-chord and enharmonic modulation study | - | - | C to E-flat | Part C's rules |
+| 5 | Rachmaninoff, Prelude in C-sharp minor Op. 3 No. 2 (opening and the chordal close) | 2033 | CC BY-SA 4.0 | C-sharp minor, 4/4 | three staves, huge chords (public domain: published 1893, composer d. 1943) |
+| 5 | Grieg, March of the Trolls Op. 54 No. 3 (opening) | 2014 | PD | D minor, 2/4 | octaves, staccato chords |
+| 5 | Tchaikovsky, March of the Wooden Soldiers Op. 39 No. 5 | 1806 | PD | D, 2/4 | chords in both hands |
+| 5 | Grieg, Wedding Day at Troldhaugen Op. 65 No. 6 (opening) | 781 | PD | D, 4/4 | octaves, 8va |
+| 6 | Schubert, Heidenroslein D. 257 | 1555 | PD | G, 2/4 | voice and piano, three staves |
+| 6 | Schubert, An die Musik D. 547 | 1001 | PD | D, 2/2 | a singing line over repeated chords |
+| 6 | Grieg, Ich liebe dich Op. 5 No. 3 | 586 | PD | B-flat (source), 3/4 | romantic accompaniment, rubato |
+| 6 | Schubert, Erlkonig D. 328 (first verse; repeated-octave triplets reduced at sight) | 1030 | PD | G minor, 4/4 | the classic accompanist's challenge |
+| 7 | Tallis, If Ye Love Me (open score) | 412 | PD | F, 4/4 | four staves, treble-8 tenor |
+| 7 | Tallis, O nata lux de lumine | 949 | PD | G minor, 3/2 | open score in 3/2 |
+| 7 | Victoria, O magnum mysterium (first section) | 244 | CC BY-SA 3.0 | F minor (source), 4/4 | four-voice polyphony in open score |
+| 7 | Haydn, String Quartet Op. 76 No. 3 ("Emperor"), II: the theme | 385 (Op. 76 set) | PD | G, 2/2 | viola in the alto clef, cello |
+| 8 | Debussy, Clair de lune (opening) | 1778 | PD | D-flat, 9/8 | the last piece: 9/8, triplets against duplets, pedal |
+| 8 | Joplin, Bethena (first strain) | 463 | PD | G, 3/4 | a concert waltz; chord-symbol analysis |
+| 8 | Traditional: Shenandoah and Londonderry Air as lead sheets | - | - | various | realise the chord symbols |
+| 8 | Traditional: Old Hundredth (Genevan Psalter, 1551) for transposing | - | - | G | transpose to F and A |
+
+Spares: Bach Sinfonias BWV 788-801 (all on Mutopia); Brahms Waltzes Op. 39 Nos. 3, 9, 10 (264, 265,
+2164, PD); Chopin Nocturne Op. 9 No. 1 (582, CC) and No. 3 (1955, CC); Debussy Arabesque No. 2 (1994,
+CC); Mussorgsky's other Promenades (475, CC); Grieg Mountaineer's Song Op. 73 No. 7 (1628, PD) and
+Homecoming Op. 62 No. 6 (1896, CC); Liszt Consolations Nos. 1 and 4 (1654, 1650, CC BY); Rachmaninoff
+Preludes Op. 23 (all CC); Tallis's Canon (Ordinal, 2237, CC). The Fantaisie-Impromptu (Chopin Op. 66)
+is a possible "four against three" challenge if a simplified version reads well.
+
+### Build order
+
+1. Feature 1 (multi-staff scores) and feature 10 (checker and build) first, with a test unit, because
+   Units 5-8 depend on them; run `check_identical.py` after every change.
+2. Then unit by unit, as in Volume 5: generator features, transcriptions (extract with LilyPond's
+   `\displayLilyMusic` after `convert-ly`), `content/v6unitNN.py`, `check_pieces.py --vol 6 N`, build,
+   look at every page, commit and push.
+3. The fugue generator (feature 2) and the chromatic chord voicing (feature 5) are the largest pieces of
+   new code; build them with small test scripts that print each rule check before they go into a book.
+4. Last: the Answers appendix, the book PDF, README and fingerprints (`check_identical.py --add 6`).
+
+**Risks.** Four-staff systems need a smaller staff size to fit A4 (try 18-20). Lyrics in generated
+songs must be neutral syllables (no invented words). Unbarred and changing-meter music needs the bar
+checks in the checker to be skipped inside `\cadenzaOn`. Erlkonig and the Rachmaninoff Prelude are
+hard: present them explicitly as "simplify at sight" challenges, with a printed reduction.
 
 ## Volume 5 plan (as written before it was built)
 
