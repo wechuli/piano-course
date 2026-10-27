@@ -590,3 +590,224 @@ VOLUME3 = [
               motion=STEPS_SKIPS, tempo=72, tonic=B4, dynamics=True, **KEY_BB),
      ]},
 ]
+
+
+# =========================================================================== Volume 4
+# Level 4: patterns and keys. New part options (see README):
+#   bass "block" / "block2" / "oompah" / "waltz" (LH chords), rh_chords (RH three-note chords),
+#   mode "lhtune" + accomp (LH tune, RH after-beat chords), grid=2 (count in sixteenths) + fast_steps,
+#   anticip_prob + accents (syncopation), modulate (key changes), meter "2/4".
+BASS_PATTERNS.update({
+    # "c" = the whole chord, "u" = its upper two notes; the "oom" is the shape's bottom note
+    ("block", "4/4"): ([8], ["c"]),
+    ("block", "3/4"): ([6], ["c"]),
+    ("block", "2/4"): ([4], ["c"]),
+    ("block2", "4/4"): ([4, 4], ["c", "c"]),
+    ("oompah", "4/4"): ([2, 2, 2, 2], [0, "u", 0, "u"]),
+    ("oompah", "2/4"): ([2, 2], [0, "u"]),
+    ("waltz", "3/4"): ([2, 2, 2], [0, "u", "u"]),
+    ("broken", "2/4"): ([1, 1, 1, 1], [0, 1, 2, 1]),
+    ("alberti", "2/4"): ([1, 1, 1, 1], [0, 2, 1, 2]),
+})
+# Right-hand accompaniment for mode "lhtune": durations in eighths, 1 = chord, 0 = rest
+RH_PATTERNS = {
+    ("afterbeat", "4/4"): ([2, 2, 2, 2], [0, 1, 0, 1]),
+    ("afterbeat", "3/4"): ([2, 2, 2], [0, 1, 1]),
+    ("afterbeat", "2/4"): ([2, 2], [0, 1]),
+}
+
+# 2/4: two quarter beats (a bar is 4 eighths)
+R24 = {
+    "basic24": [[4], [2, 2], [3, 1], [2, 1, 1], [1, 1, 2]],
+    "e24":     [[1, 1, 1, 1], [2, 1, 1], [1, 1, 2], [2, 2], [3, 1]],
+    "synco24": [[1, 2, 1], [1, 3], [1, 2, 1], [2, 2], [1, 1, 2]],
+}
+CADENCE24 = [[4], [2, 2]]
+FINAL24 = [[4]]
+# Syncopation in 4/4: notes start between the beats, but the middle of the bar stays visible
+R44["synco"] = [[1, 2, 1, 4], [1, 2, 1, 2, 2], [2, 2, 1, 2, 1], [4, 1, 2, 1], [1, 2, 1, 1, 2, 1], [2, 2, 2, 2]]
+
+# Sixteenth-note grid (grid=2): durations in sixteenths; a 2/4 bar is 8, a 4/4 bar 16
+R24_16 = {
+    "s24":   [[1, 1, 1, 1, 4], [4, 1, 1, 1, 1], [2, 1, 1, 4], [4, 2, 1, 1], [2, 1, 1, 2, 2], [2, 2, 4], [4, 4]],
+    "dot24": [[3, 1, 4], [4, 3, 1], [3, 1, 3, 1], [2, 2, 3, 1], [4, 4]],
+}
+R44_16 = {
+    "s44":   [[1, 1, 1, 1, 4, 4, 4], [4, 1, 1, 1, 1, 4, 4], [4, 4, 2, 1, 1, 4], [2, 1, 1, 4, 8],
+              [4, 4, 1, 1, 1, 1, 4], [4, 4, 4, 4]],
+    "dot44": [[3, 1, 4, 4, 4], [4, 4, 3, 1, 4], [3, 1, 3, 1, 8], [8, 3, 1, 4], [4, 3, 1, 8], [4, 4, 8]],
+}
+CADENCE24_16 = [[8], [4, 4]]
+FINAL24_16 = [[8]]
+CADENCE44_16 = [[16], [8, 8], [4, 4, 8]]
+FINAL44_16 = [[16]]
+
+# Positions with ledger lines, and positions for three sharps and three flats
+C2, D2, E2, F2 = 14, 15, 16, 17
+F5_, G5, A5, C6, D6 = 38, 39, 40, 42, 43
+POSITIONS.update({
+    "RH_C5": {"hand": "RH", "low": C5, "high": G5, "label": "Right hand high C position"},
+    "RH_G5": {"hand": "RH", "low": G5, "high": D6, "label": "Right hand high G position"},
+    "RH_D5": {"hand": "RH", "low": D5, "high": A5, "label": "Right hand high D position", "acc": {F5_: "is"}},
+    "RH_A3": {"hand": "RH", "low": A3, "high": E4, "label": "Right hand below middle C"},
+    "LH_C2": {"hand": "LH", "low": C2, "high": G2, "label": "Left hand low C position"},
+    "LH_F2": {"hand": "LH", "low": F2, "high": C3, "label": "Left hand low F position"},
+    "LH_C4": {"hand": "LH", "low": C4, "high": G4, "label": "Left hand above middle C"},
+    "RH_AM": {"hand": "RH", "low": A4, "high": E5, "label": "Right hand A position", "acc": {C5: "is"}},
+    "LH_AM": {"hand": "LH", "low": A2, "high": E3, "label": "Left hand A position", "acc": {C3: "is"}},
+    "RH_Eb": {"hand": "RH", "low": E4, "high": B4, "label": "Right hand E-flat position",
+              "acc": {E4: "es", A4: "es", B4: "es"}},
+    "LH_Eb": {"hand": "LH", "low": E3, "high": B3, "label": "Left hand E-flat position",
+              "acc": {E3: "es", A3: "es", B3: "es"}},
+    "RH_Fsm": {"hand": "RH", "low": F4, "high": C5, "label": "Right hand F-sharp position",
+               "acc": {F4: "is", G4: "is", C5: "is"}},
+    "LH_Fsm": {"hand": "LH", "low": F3, "high": C4, "label": "Left hand F-sharp position",
+               "acc": {F3: "is", G3: "is", C4: "is"}},
+    "RH_Cm": {"hand": "RH", "low": C4, "high": G4, "label": "Right hand C minor position", "acc": {E4: "es"}},
+    "LH_Cm": {"hand": "LH", "low": C3, "high": G3, "label": "Left hand C minor position", "acc": {E3: "es"}},
+})
+KEY_A = {"key": "a \\major", "key_acc": {"f": "is", "c": "is", "g": "is"}}
+KEY_EB = {"key": "ees \\major", "key_acc": {"b": "es", "e": "es", "a": "es"}}
+KEY_FSM = {"key": "fis \\minor", "key_acc": {"f": "is", "c": "is", "g": "is"}}
+KEY_CM = {"key": "c \\minor", "key_acc": {"b": "es", "e": "es", "a": "es"}}
+OCTAVE_SHIFT = {0: 1.0, 1: 2.0, 2: 2.0, 7: 5.0}   # moving the hand up or down an octave
+
+V4C = ["I", "IV", "V7"]
+VOLUME4 = [
+    {"id": 1, "title": "Block Chords", "new": "The left hand plays I, IV and V7 as three-note chords: held, oom-pah and waltz",
+     "parts": [
+         dict(name="A", title="Held chords under a tune", count=8, bars=4, mode="together", rh="RH_C", lh="LH_C",
+              chords=V4C, beat_tones=True, bass="block", chord_fingers=True, meter="4/4", rhythms="q_rich",
+              motion=STEPS_SKIPS, tempo=60),
+         dict(name="B", title="Oom-pah in G major", count=10, bars=8, mode="together", rh="RH_G", lh="LH_G",
+              chords=V4C, beat_tones=True, bass="oompah", chord_fingers=True, meter="4/4",
+              rhythms=["q_rich", "dotted"], motion=STEPS_SKIPS, tempo=72, tonic=G4, dynamics=True,
+              repeat_prob=0.3, **KEY_G),
+         dict(name="C", title="Waltz bass in F major", count=8, bars=8, mode="together", rh="RH_F", lh="LH_F",
+              chords=V4C, beat_tones=True, bass="waltz", chord_fingers=True, meter="3/4",
+              rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=84, tonic=F4, artic=ART_LIGHT,
+              repeat_prob=0.3, **KEY_F),
+         dict(name="D", title="D major, the right hand on the move", count=8, bars=8, mode="together",
+              rh_positions=["RH_D", "RH_A"], lh="LH_D", chords=V4C, beat_tones=True, bass="oompah",
+              chord_fingers=True, meter="4/4", rhythms=["q_rich", "dotted"], motion=UP_TO_FIFTH, tempo=72,
+              tonic=D4, dynamics=True, repeat_prob=0.3, **KEY_D),
+     ]},
+    {"id": 2, "title": "Chords in Both Hands", "new": "Right-hand three-note chords; 2/4 time",
+     "parts": [
+         dict(name="A", title="Chords on the long notes", count=8, bars=4, mode="together", rh="RH_C", lh="LH_C",
+              chords=V4C, beat_tones=True, bass="block", chord_fingers=True, meter="4/4",
+              rhythms=["half", "q_rich"], motion=STEPS_SKIPS, tempo=60,
+              rh_chords={"prob": 0.9, "min": 1}),
+         dict(name="B", title="A march in 2/4", count=10, bars=8, mode="together", rh="RH_G", lh="LH_G",
+              chords=V4C, beat_tones=True, bass="oompah", chord_fingers=True, meter="2/4",
+              rhythms=["basic24", "e24"], motion=STEPS_SKIPS, tempo=88, tonic=G4, dynamics=True,
+              repeat_prob=0.3, rh_chords={"prob": 0.6, "where": "strong", "min": 3}, **KEY_G),
+         dict(name="C", title="Chorale: chords in both hands", count=8, bars=4, mode="together", rh="RH_F",
+              lh="LH_F", chords=V4C, beat_tones=True, bass="block2", chord_fingers=True, meter="4/4",
+              rhythms="half", motion=STEPS_SKIPS, tempo=60, tonic=F4,
+              rh_chords={"prob": 1.0, "min": 4}, **KEY_F),
+         dict(name="D", title="A B-flat waltz with chords", count=8, bars=8, mode="together", rh="RH_Bb",
+              lh="LH_Bb", chords=V4C, beat_tones=True, bass="waltz", bass_leap=6, chord_fingers=True,
+              meter="3/4", rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=84, tonic=B4,
+              dynamics=True, repeat_prob=0.3, rh_chords={"prob": 0.6, "where": "strong", "min": 3}, **KEY_BB),
+     ]},
+    {"id": 3, "title": "High Notes", "new": "Ledger lines above the treble staff, up to D6; the hand moves up an octave",
+     "parts": [
+         dict(name="A", title="High C position", count=10, bars=4, mode="RH", rh="RH_C5", meter="4/4",
+              rhythms="q_rich", motion=STEPS_SKIPS, tempo=60, tonic=C5),
+         dict(name="B", title="Up and down an octave", count=8, bars=4, mode="RH", rh_positions=["RH_C", "RH_C5"],
+              shift_prob=0.9, shift_every=1, shift_motion=OCTAVE_SHIFT, meter="4/4", rhythms="q_rich",
+              motion=STEPS_SKIPS, tempo=60),
+         dict(name="C", title="High G position over broken chords", count=8, bars=8, mode="together", rh="RH_G5",
+              lh="LH_G", chords=V4C, beat_tones=True, bass="broken", chord_fingers=True, meter="4/4",
+              rhythms="q_rich", motion=STEPS_SKIPS, tempo=66, tonic=G4, dynamics=True, repeat_prob=0.3, **KEY_G),
+         dict(name="D", title="D major in 2/4, high and low", count=8, bars=8, mode="together",
+              rh_positions=["RH_D", "RH_D5"], shift_prob=0.8, shift_motion=OCTAVE_SHIFT, lh="LH_D", chords=V4C,
+              beat_tones=True, bass="alberti", bass_leap=6, chord_fingers=True, meter="2/4",
+              rhythms=["basic24", "e24"], motion=STEPS_SKIPS, tempo=80, tonic=D4, artic=ART_LIGHT, **KEY_D),
+     ]},
+    {"id": 4, "title": "Low Notes and the Middle", "new": "Ledger lines below the bass staff, down to C2; both hands near middle C",
+     "parts": [
+         dict(name="A", title="The left hand down low", count=10, bars=4, mode="LH", lh_positions=["LH_C2", "LH_F2"],
+              shift_prob=0.7, meter="4/4", rhythms="q_rich", motion=STEPS_SKIPS, tempo=60),
+         dict(name="B", title="The tune in the bass, chords above", count=8, bars=8, mode="lhtune", lh="LH_F2",
+              rh="RH_C", chords=V4C, beat_tones=True, accomp="afterbeat", meter="4/4", rhythms="q_rich",
+              motion=STEPS_SKIPS, tempo=80, tonic=F4, dynamics=True, repeat_prob=0.3, **KEY_F),
+         dict(name="C", title="The right hand below middle C", count=8, bars=4, mode="RH", rh="RH_A3",
+              meter="4/4", rhythms="q_rich", motion=STEPS_SKIPS, tempo=60),
+         dict(name="D", title="Both hands around middle C", count=8, bars=8, mode="alt", rh="RH_A3", lh="LH_C4",
+              meter="4/4", rhythms="q_rich", motion=STEPS_SKIPS, tempo=66, repeat_prob=0.3),
+     ]},
+    {"id": 5, "title": "Syncopation", "new": "Notes that start between the beats: ties over the beat and the bar line, accents",
+     "parts": [
+         dict(name="A", title="Off the beat", count=10, bars=4, mode="RH", rh="RH_C", meter="4/4",
+              rhythms=["synco", "quarter"], motion=STEPS_SKIPS, tempo=60, accents=True),
+         dict(name="B", title="Ragtime in 2/4", count=8, bars=8, mode="together", rh="RH_C", lh="LH_C",
+              chords=V4C, beat_tones=True, bass="oompah", chord_fingers=True, meter="2/4",
+              rhythms=["synco24", "basic24"], motion=STEPS_SKIPS, tempo=72, accents=True, repeat_prob=0.3),
+         dict(name="C", title="Across the bar line", count=8, bars=8, mode="together", rh="RH_G", lh="LH_G",
+              chords=V4C, beat_tones=True, bass="block2", chord_fingers=True, meter="4/4",
+              rhythms=["synco", "q_rich"], motion=STEPS_SKIPS, tempo=66, tonic=G4, anticip_prob=0.5,
+              accents=True, **KEY_G),
+         dict(name="D", title="Syncopation in two voices", count=8, bars=8, mode="duet", rh="RH_F", lh="LH_F",
+              meter="4/4", rhythms=["synco", "q_rich"], counter_rhythms="half", motion=STEPS_SKIPS, tempo=66,
+              tonic=F4, accents=True, repeat_prob=0.3, **KEY_F),
+     ]},
+    {"id": 6, "title": "Sixteenth Notes", "new": "Four sixteenths, an eighth and two sixteenths, the dotted eighth and sixteenth",
+     "parts": [
+         dict(name="A", title="Sixteenths in the right hand", count=10, bars=4, mode="RH", rh="RH_C", meter="2/4",
+              grid=2, rhythms="s24", fast_steps=True, motion=STEPS_SKIPS, tempo=60),
+         dict(name="B", title="Sixteenths in the left hand", count=8, bars=4, mode="LH", lh="LH_C", meter="2/4",
+              grid=2, rhythms="s24", fast_steps=True, motion=STEPS_SKIPS, tempo=60),
+         dict(name="C", title="Sixteenths over block chords", count=8, bars=8, mode="together", rh="RH_G",
+              lh="LH_G", chords=V4C, beat_tones=True, bass="block2", chord_fingers=True, meter="4/4", grid=2,
+              rhythms="s44", fast_steps=True, motion=STEPS_SKIPS, tempo=60, tonic=G4, repeat_prob=0.3, **KEY_G),
+         dict(name="D", title="Dotted eighth and sixteenth", count=8, bars=8, mode="together", rh="RH_F",
+              lh="LH_F", chords=V4C, beat_tones=True, bass="oompah", chord_fingers=True, meter="2/4", grid=2,
+              rhythms=["dot24", "s24"], fast_steps=True, motion=STEPS_SKIPS, tempo=66, tonic=F4, dynamics=True,
+              repeat_prob=0.3, **KEY_F),
+     ]},
+    {"id": 7, "title": "Three Sharps and Three Flats", "new": "A major, E-flat major, F-sharp minor and C minor",
+     "parts": [
+         dict(name="A", title="A major", count=8, bars=8, mode="together", rh="RH_AM", lh="LH_AM", chords=V4C,
+              beat_tones=True, bass="alberti", bass_leap=6, chord_fingers=True, meter="4/4",
+              rhythms=["q_rich", "dotted"], motion=STEPS_SKIPS, tempo=60, tonic=A4, dynamics=True,
+              repeat_prob=0.3, **KEY_A),
+         dict(name="B", title="E-flat major waltz", count=8, bars=8, mode="together", rh="RH_Eb", lh="LH_Eb",
+              chords=V4C, beat_tones=True, bass="waltz", bass_leap=6, chord_fingers=True, meter="3/4",
+              rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=80, tonic=E4, artic=ART_LIGHT,
+              repeat_prob=0.3, **KEY_EB),
+         dict(name="C", title="F-sharp minor: E-sharp", count=9, bars=8, mode="together", rh="RH_Fsm", extend=1,
+              lh="LH_Fsm", chords=V4C, minor=True, beat_tones=True, lead_weight=20, bass="broken", bass_leap=6,
+              chord_fingers=True, meter="4/4", rhythms="q_rich", motion=STEPS_SKIPS, tempo=60, tonic=F4,
+              dynamics=True, repeat_prob=0.3, **KEY_FSM),
+         dict(name="D", title="C minor: B-natural", count=9, bars=8, mode="together", rh="RH_Cm", extend=1,
+              lh="LH_Cm", chords=V4C, minor=True, beat_tones=True, lead_weight=20, bass="oompah",
+              chord_fingers=True, meter="4/4", rhythms=["q_rich", "dotted"], motion=STEPS_SKIPS, tempo=66,
+              tonic=C4, dynamics=True, repeat_prob=0.3, **KEY_CM),
+     ]},
+    {"id": 8, "title": "Changing Key", "new": "A new key in the middle of a piece, with a new key signature or with accidentals; review",
+     "parts": [
+         dict(name="A", title="C major to G major", count=8, bars=8, mode="together", rh="RH_C", lh="LH_C",
+              chords=V4C, beat_tones=True, bass="broken", chord_fingers=True, meter="4/4", rhythms="q_rich",
+              motion=STEPS_SKIPS, tempo=66,
+              modulate={"home_bars": 4, "show": "signature",
+                        "to": [dict(bars=4, rh="RH_G", lh="LH_G", tonic=G4, **KEY_G)]}),
+         dict(name="B", title="F major to D minor, with accidentals", count=8, bars=8, mode="together", rh="RH_F",
+              lh="LH_F", chords=V4C, beat_tones=True, bass="broken", chord_fingers=True, meter="3/4",
+              rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=72, tonic=F4, extend=1,
+              modulate={"home_bars": 4, "show": "accidentals",
+                        "to": [dict(bars=4, rh="RH_Dm", lh="LH_Dm", tonic=D4, minor=True, lead_weight=20,
+                                    key_acc={"b": "es"})]}, **KEY_F),
+         dict(name="C", title="Away and back: G, D, G", count=8, bars=8, mode="together", rh="RH_G", lh="LH_G",
+              chords=V4C, beat_tones=True, bass="oompah", chord_fingers=True, meter="4/4",
+              rhythms=["q_rich", "dotted"], motion=STEPS_SKIPS, tempo=66, tonic=G4,
+              modulate={"home_bars": 4, "show": "signature",
+                        "to": [dict(bars=2, rh="RH_D", lh="LH_D", tonic=D4, **KEY_D),
+                               dict(bars=2, rh="RH_G", lh="LH_G", tonic=G4, **KEY_G)]}, **KEY_G),
+         dict(name="D", title="Review: E-flat major march", count=10, bars=8, mode="together", rh="RH_Eb",
+              lh="LH_Eb", chords=V4C, beat_tones=True, bass="oompah", chord_fingers=True, meter="2/4",
+              rhythms=["synco24", "basic24", "e24"], motion=STEPS_SKIPS, tempo=80, tonic=E4, accents=True,
+              dynamics=True, repeat_prob=0.3, rh_chords={"prob": 0.5, "where": "strong", "min": 2}, **KEY_EB),
+     ]},
+]

@@ -13,13 +13,18 @@ import random
 from units import POSITIONS, R44, R34, CADENCE44, CADENCE34, FINAL44, FINAL34
 from units import CHORDS, CHORD_ORDER, CHORD_MOVES, BASS_PATTERNS, CHORD_MAX_LEAP
 from units import R68, CADENCE68, FINAL68
+from units import R24, CADENCE24, FINAL24, R24_16, R44_16, CADENCE24_16, CADENCE44_16, FINAL24_16, FINAL44_16
+from units import RH_PATTERNS
 
 NAMES = "cdefgab"
-BAR_LEN = {"4/4": 8, "3/4": 6, "6/8": 6}
+BAR_LEN = {"4/4": 8, "3/4": 6, "6/8": 6, "2/4": 4}
 DUR = {8: "1", 6: "2.", 4: "2", 3: "4.", 2: "4", 1: "8"}
-FULL_REST = {"4/4": "R1", "3/4": "R2.", "6/8": "R2."}
-RHYTHMS = {"4/4": (R44, CADENCE44, FINAL44), "3/4": (R34, CADENCE34, FINAL34), "6/8": (R68, CADENCE68, FINAL68)}
-STRONG = {"4/4": (0, 4), "3/4": (0,), "6/8": (0, 3)}  # strong beats, in eighths from the bar line
+DUR16 = {16: "1", 12: "2.", 8: "2", 6: "4.", 4: "4", 3: "8.", 2: "8", 1: "16"}  # grid 2: in sixteenths
+FULL_REST = {"4/4": "R1", "3/4": "R2.", "6/8": "R2.", "2/4": "R2"}
+RHYTHMS = {"4/4": (R44, CADENCE44, FINAL44), "3/4": (R34, CADENCE34, FINAL34), "6/8": (R68, CADENCE68, FINAL68),
+           "2/4": (R24, CADENCE24, FINAL24)}
+RHYTHMS16 = {"4/4": (R44_16, CADENCE44_16, FINAL44_16), "2/4": (R24_16, CADENCE24_16, FINAL24_16)}
+STRONG = {"4/4": (0, 4), "3/4": (0,), "6/8": (0, 3), "2/4": (0,)}  # strong beats, in eighths from the bar line
 CONSONANT = (0, 2, 4, 5)  # between two voices: octave/unison, third, fifth, sixth (diatonic steps mod 7)
 COUNTER_MOTION = {0: 1.0, 1: 4.0, 2: 3.0, 3: 1.2, 4: 1.2}
 DEFAULT_SHIFT_MOTION = {0: 1.0, 1: 3.0, 2: 3.0, 3: 2.0, 4: 1.5}
@@ -42,6 +47,38 @@ def pc(step):
 
 def tonic_pc(part):
     return pc(part.get("tonic", 28))
+
+
+# Volume 4: a part with grid=2 counts durations in sixteenths instead of eighths.
+def grid(part):
+    return part.get("grid", 1)
+
+
+def bar_len(part):
+    return BAR_LEN[part["meter"]] * grid(part)
+
+
+def strong(part):
+    return tuple(x * grid(part) for x in STRONG[part["meter"]])
+
+
+def dur_str(part, d):
+    return (DUR16 if grid(part) == 2 else DUR)[d]
+
+
+def rhythm_tables(part):
+    return (RHYTHMS16 if grid(part) == 2 else RHYTHMS)[part["meter"]]
+
+
+def notes_of(x):
+    """The notes of a cell: a single step, a chord (tuple of steps) or a rest (None)."""
+    if x is None:
+        return ()
+    return x if isinstance(x, tuple) else (x,)
+
+
+def bottom(x):
+    return x[0] if isinstance(x, tuple) else x
 
 
 def raised_pitch(step, key_acc=None):
@@ -88,7 +125,7 @@ def hand_options(part, hand):
 
 # ---------------------------------------------------------------- rhythm
 def rhythm_vocab(part, key="rhythms"):
-    table = RHYTHMS[part["meter"]][0]
+    table = rhythm_tables(part)[0]
     keys = part[key] if isinstance(part[key], list) else [part[key]]
     return [bar for k in keys for bar in table[k]]
 
@@ -96,7 +133,7 @@ def rhythm_vocab(part, key="rhythms"):
 def gen_rhythm(part, rng):
     meter = part["meter"]
     vocab = rhythm_vocab(part)
-    table, cad, fin = RHYTHMS[meter]
+    table, cad, fin = rhythm_tables(part)
     n = part["bars"]
     bars = [list(rng.choice(vocab)) for _ in range(n)]
     if n == 8:
@@ -118,6 +155,8 @@ def hand_plan(part, rng):
         return ["LH"] * n
     if mode == "duet":
         return [part.get("lead", "RH")] * n
+    if mode == "lhtune":
+        return ["LH"] * n
     # alt: two-bar segments, alternating, random starting hand
     first = rng.choice(["RH", "LH"])
     other = "LH" if first == "RH" else "RH"
@@ -192,6 +231,7 @@ def gen_melody(part, bars, hands, plan, repeat, rng, chords=None, end_ok=None):
         bar_start = [k for k, (b, i) in enumerate(slots) if i == 0]
         bass = [chord_notes(part, c)[0] for c in chords]
         onset = [sum(bars[b][:i]) for b, i in slots]
+    g = grid(part)
 
     def where(k):
         b = slots[k][0]
@@ -247,15 +287,19 @@ def gen_melody(part, bars, hands, plan, repeat, rng, chords=None, end_ok=None):
     def ok(k, s):
         if k >= 3 and mel[k - 1] == mel[k - 2] == mel[k - 3] == s:
             return False
+        if part.get("fast_steps") and k > 0 and hands[slots[k][0]] == hands[slots[k - 1][0]]:
+            short = bars[slots[k][0]][slots[k][1]] == 1 or bars[slots[k - 1][0]][slots[k - 1][1]] == 1
+            if short and abs(s - mel[k - 1]) > 1:
+                return False  # sixteenths move by step (or repeat)
         if k == last_idx and pc(s) not in (end_ok or {t}):
             return False
         if k == cad_idx and pc(s) not in cad_ok:
             return False
         if chords:
             b, i = slots[k]
-            if (i == 0 or bars[b][i] >= 4) and pc(s) not in tones[b]:
+            if (i == 0 or bars[b][i] >= 4 * g) and pc(s) not in tones[b]:
                 return False
-            if part.get("beat_tones") and onset[k] in STRONG[part["meter"]] and pc(s) not in tones[b]:
+            if part.get("beat_tones") and onset[k] in strong(part) and pc(s) not in tones[b]:
                 return False  # chord tones on every strong beat (beats 1 and 3, or both beats of 6/8)
             if i == 0 and chords[b] == "V7" and pc(s) == lead:
                 return False  # the bass already has the leading note
@@ -341,10 +385,23 @@ def chord_fingers(notes):
     return [5, 3 if notes[1] - notes[0] == 2 else 2, 1]
 
 
+def pattern_note(notes, i):
+    """A bass-pattern entry: an index into the shape, "c" (the whole chord) or "u" (its upper two notes)."""
+    if i == "c":
+        return tuple(notes)
+    if i == "u":
+        return tuple(notes[1:])
+    return notes[i]
+
+
 def chord_leap_ok(part, a, b):
     """Can the hand get from the end of chord a's pattern to the start of chord b's?"""
+    if not part.get("bass"):
+        return True  # no left-hand chord pattern (mode "lhtune")
     _, idx = BASS_PATTERNS[(part["bass"], part["meter"])]
-    return abs(chord_notes(part, b)[idx[0]] - chord_notes(part, a)[idx[-1]]) <= part.get("bass_leap", CHORD_MAX_LEAP)
+    first = bottom(pattern_note(chord_notes(part, b), idx[0]))
+    last = bottom(pattern_note(chord_notes(part, a), idx[-1]))
+    return abs(first - last) <= part.get("bass_leap", CHORD_MAX_LEAP)
 
 
 def gen_chord_plan(part, n, repeat, rng):
@@ -375,49 +432,53 @@ def gen_chord_plan(part, n, repeat, rng):
 
 
 def gen_chord_bass(part, bars, chords):
-    """Left-hand broken chords. Returns (bars of (dur, step), {(bar, note): finger})."""
-    L = BAR_LEN[part["meter"]]
+    """Left-hand broken or block chords. Returns (bars of (dur, step or chord), {(bar, note): finger(s)}).
+    Patterns with whole chords ("c"/"u") end on the full I chord; broken patterns end on its root."""
+    L = bar_len(part)
     durs, idx = BASS_PATTERNS[(part["bass"], part["meter"])]
+    durs = [d * grid(part) for d in durs]
+    blocks = any(not isinstance(i, int) for i in idx)
     out, fingers = [], {}
     n = len(bars)
     for b, name in enumerate(chords):
         notes = chord_notes(part, name)
         fing = chord_fingers(notes)
         if b == n - 1:
-            out.append([(L, notes[0])])
+            out.append([(L, tuple(notes) if blocks else notes[0])])
         else:
-            out.append([(d, notes[i]) for d, i in zip(durs, idx)])
+            out.append([(d, pattern_note(notes, i)) for d, i in zip(durs, idx)])
         if b == 0 or (part.get("chord_fingers") and name != chords[b - 1]):
-            fingers[(b, 0)] = fing[0] if b == n - 1 else fing[idx[0]]
+            first = "c" if (b == n - 1 and blocks) else (0 if b == n - 1 else idx[0])
+            fingers[(b, 0)] = fing if first == "c" else (fing[1:] if first == "u" else fing[first])
     return out, fingers
 
 
-def validate_chords(part, ex):
+def validate_chords(part, ex, min_used=2):
     """Extra rules for a broken-chord bass under the melody."""
     t = tonic_pc(part)
     chords, mel, lh = ex["chords"], ex["melody"], ex["lh_bars"]
     n = len(chords)
     lead = (t + 6) % 7
-    flat = [s for bar in lh for _, s in bar]
+    flat = [bottom(s) for bar in lh for _, s in bar]
     for a, c in zip(flat, flat[1:]):
         assert abs(a - c) <= part.get("bass_leap", CHORD_MAX_LEAP), "bass leap too large"
     tops = []
     for b in range(n):
         notes = chord_notes(part, chords[b])
-        assert all(s in notes for _, s in lh[b]), "bass note outside its chord"
+        assert all(x in notes for _, s in lh[b] for x in notes_of(s)), "bass note outside its chord"
         top = mel[b][0]
         tones = {(t + x) % 7 for x in CHORDS[chords[b]]["tones"]}
         assert top is None or pc(top) in tones, "beat 1 of the melody must belong to the chord"
         if chords[b] == "V7":
             assert top is None or pc(top) != lead, "leading note doubled"
-        tops.append((top, lh[b][0][1]))
+        tops.append((top, bottom(lh[b][0][1])))
     for (m1, b1), (m2, b2) in zip(tops, tops[1:]):
         if None in (m1, m2) or m1 == m2 or b1 == b2:
             continue
         i1, i2 = (m1 - b1) % 7, (m2 - b2) % 7
         assert not (i1 == i2 and i1 in (0, 4)), "parallel octaves or fifths between the hands"
     used = set(chords[:-1])
-    assert len(used) >= 2, "too few chords"
+    assert len(used) >= min_used, "too few chords"
     for c in part.get("require_chords", ()):
         assert c in used, f"chord {c} missing"
 
@@ -458,10 +519,66 @@ def add_dyads(part, bars, mel, hands, plan, chords, ties, repeat, rng):
     return out
 
 
+def add_rh_chords(part, bars, mel, hands, plan, chords, ties, repeat, rng):
+    """Right-hand three-note chords: the chord tones just below a melody note, inside the hand position.
+    Returns {(bar, note index): (lower notes)}. Only called for parts with 'rh_chords' (and 'chords')."""
+    cfg = part["rh_chords"]
+    t = tonic_pc(part)
+    g = grid(part)
+    out = {}
+    tied = {(b, len(bars[b]) - 1) for b in ties} | {(b + 1, 0) for b in ties}
+    for b, bar in enumerate(bars):
+        if hands[b] != "RH":
+            continue
+        if repeat and b in (4, 5):
+            out.update({(b, i): lo for (bb, i), lo in out.items() if bb == b - 4})
+            continue
+        lo_pos, _ = pos_range(part, plan["RH"][b])
+        tones = {(t + x) % 7 for x in CHORDS[chords[b]]["tones"]}
+        if chords[b] == "V7":
+            tones.discard((t + 6) % 7)  # the bass has the leading note
+        pos = 0
+        for i, d in enumerate(bar):
+            s, start = mel[b][i], pos
+            pos += d
+            where = d >= cfg.get("min_dur", 4) * g or (cfg.get("where") == "strong" and start in strong(part))
+            if s is None or not where or (b, i) in tied or pc(s) not in tones or rng.random() >= cfg["prob"]:
+                continue
+            below = [x for x in range(s - 1, max(lo_pos, s - 5) - 1, -1) if pc(x) in tones]
+            if below:
+                out[(b, i)] = tuple(sorted(below[:cfg.get("size", 3) - 1]))
+    return out
+
+
+def rh_shape(part, chord, pkey, size=3):
+    """Right-hand chord for an accompaniment: the lowest chord tones inside the position, a close shape."""
+    t = tonic_pc(part)
+    tones = {(t + x) % 7 for x in CHORDS[chord]["tones"]}
+    lo, hi = pos_range(part, pkey)
+    cand = [x for x in range(lo, hi + 1) if pc(x) in tones]
+    if chord == "V7" and len(cand) > size:
+        cand = [x for x in cand if pc(x) != (t + 6) % 7]
+    return tuple(cand[:size])
+
+
+def gen_rh_accomp(part, bars, chords, plan):
+    """Mode 'lhtune': the right hand plays off-beat chords (pattern from RH_PATTERNS) above a left-hand tune."""
+    L = bar_len(part)
+    durs, kinds = RH_PATTERNS[(part["accomp"], part["meter"])]
+    out = []
+    for b, name in enumerate(chords):
+        shape = rh_shape(part, name, plan["RH"][b], part.get("accomp_size", 2))
+        if b == len(chords) - 1:
+            out.append([(L, rh_shape(part, name, plan["RH"][b], 3))])
+        else:
+            out.append([(d * grid(part), shape if k else None) for d, k in zip(durs, kinds)])
+    return out
+
+
 def counter_rhythm(part, n, repeat, rng):
     """Rhythm for the second voice: from part['counter_rhythms'], cadence in bar 4 of 8, long last bar."""
     vocab = rhythm_vocab(part, "counter_rhythms")
-    table, cad, fin = RHYTHMS[part["meter"]]
+    table, cad, fin = rhythm_tables(part)
     bars = [list(rng.choice(vocab)) for _ in range(n)]
     if n == 8:
         bars[3] = list(rng.choice(cad))
@@ -695,6 +812,83 @@ def make_imitation(part, rng):
     return rh_bars, lh_bars, rh_m
 
 
+def segment_parts(part):
+    """Mode option 'modulate': the exercise in segments, each a sub-part with its own key, tonic and
+    positions. The first segment is the home key; later ones start on V7 of their key."""
+    segs, home = [], dict(part)
+    home.pop("modulate", None)
+    first = part["modulate"]["home_bars"]
+    segs.append(dict(home, bars=first))
+    for seg in part["modulate"]["to"]:
+        sub = dict(home)
+        sub.pop("rh_positions", None)
+        sub.pop("lh_positions", None)
+        sub.update(seg)
+        segs.append(sub)
+    return segs
+
+
+def make_modulation(part, bars, rng):
+    """Build an exercise that changes key. Each segment gets its own chord plan and melody;
+    the melody moves smoothly from one segment to the next."""
+    rh_bars, lh_bars, mel_all, chords_all, fingers_all, plan_all, bar_parts = [], [], [], [], {}, {"RH": [], "LH": []}, []
+    start = 0
+    segs = segment_parts(part)
+    for si, sub in enumerate(segs):
+        n = sub["bars"]
+        r = bars[start:start + n]
+        t = tonic_pc(sub)
+        if si == 0:
+            ch = gen_chord_plan(sub, n, False, rng)
+        else:
+            if n >= 4:  # V7 I ... V7 I: the new key is confirmed at once and again at the end
+                middle = [rng.choice(["I", "IV"]) if "IV" in sub["chords"] else "I" for _ in range(n - 4)]
+                ch = ["V7", "I"] + middle + ["V7", "I"]
+            else:
+                ch = ["V7", "I", "I"][:n]
+        plan = {"RH": [sub["rh"]] * n, "LH": [sub["lh"]] * n}
+        last = si == len(segs) - 1
+        end = {t} if last else {t, (t + 2) % 7, (t + 4) % 7}
+        m = gen_melody(sub, r, ["RH"] * n, plan, False, rng, ch, end_ok=end)
+        if m is None:
+            return None
+        if mel_all and abs(m[0][0] - mel_all[-1][-1]) > 4:
+            return None  # the tune must flow into the new key
+        lb, fg = gen_chord_bass(sub, r, ch)
+        for (b, j), f in fg.items():
+            fingers_all[(b + start, j)] = f
+        rh_bars += [list(zip(rr, mm)) for rr, mm in zip(r, m)]
+        lh_bars += lb
+        mel_all += m
+        chords_all += ch
+        plan_all["RH"] += plan["RH"]
+        plan_all["LH"] += plan["LH"]
+        bar_parts += [sub] * n
+        start += n
+    return rh_bars, lh_bars, mel_all, chords_all, fingers_all, plan_all, bar_parts
+
+
+def validate_segments(part, ex):
+    """Each key segment follows the chord rules of its own key; the piece ends on the last key's tonic,
+    and the new key's leading note appears after each change."""
+    start = 0
+    for si, sub in enumerate(segment_parts(part)):
+        n = sub["bars"]
+        sl = slice(start, start + n)
+        sub_ex = {"chords": ex["chords"][sl], "melody": ex["melody"][sl], "lh_bars": ex["lh_bars"][sl]}
+        validate_chords(sub, sub_ex, min_used=2 if si == 0 else 1)
+        if si > 0:
+            lead = (tonic_pc(sub) + 6) % 7
+            heard = [x for bar in ex["lh_bars"][sl] for _, c in bar for x in notes_of(c)]
+            heard += [x for bar in ex["melody"][sl] for x in bar if x is not None]
+            assert any(pc(x) == lead for x in heard), "the new key's leading note must appear"
+        start += n
+    last = segment_parts(part)[-1]
+    assert pc(ex["melody"][-1][-1]) == tonic_pc(last), "must end on the tonic"
+    notes = [x for bar in ex["melody"] for x in bar if x is not None]
+    assert len(set(notes)) >= 4, "too little variety"
+
+
 def validate_voices(part, ex):
     """Duet and imitation: both hands end on the tonic, enough variety, consonant last chord."""
     t = tonic_pc(part)
@@ -708,7 +902,7 @@ def validate_voices(part, ex):
 # ---------------------------------------------------------------- validation
 def validate(part, ex):
     meter = part["meter"]
-    L = BAR_LEN[meter]
+    L = bar_len(part)
     plan = ex["plan"]
     for staff in ("rh_bars", "lh_bars"):
         for bar in ex[staff]:
@@ -724,9 +918,11 @@ def validate(part, ex):
             pkey = part["lh"] if (hand == "LH" and part["mode"] == "together") else plan[hand][b]
             lo, hi = pos_range(part, pkey)
             for _, s in bar:
-                if s is None:
-                    continue
-                assert lo <= s <= hi, f"{hand} note out of position: {s}"
+                for x in notes_of(s):
+                    assert lo <= x <= hi, f"{hand} note out of position: {x}"
+    if part.get("modulate"):
+        validate_segments(part, ex)
+        return
     if part["mode"] in ("duet", "imitate"):
         validate_voices(part, ex)
         if part["mode"] == "imitate":
@@ -743,16 +939,19 @@ def validate(part, ex):
     assert len(set(sounding)) >= (4 if part["bars"] == 8 else 3), "too little variety"
     for b in ex.get("ties", ()):
         assert ex["melody"][b][-1] == ex["melody"][b + 1][0] is not None, "tie must join equal pitches"
-    if part.get("chords"):
+    if part.get("chords") and part["mode"] == "together":
         validate_chords(part, ex)
+    if part.get("rh_chords"):
+        assert len(ex["dyads"]) >= part["rh_chords"].get("min", 2), "too few right-hand chords"
     if part.get("dyads"):
         assert len(ex["dyads"]) >= part["dyads"].get("min", 2), "too few two-note chords"
 
 
-def add_ties(part, mel, hands, plan, repeat, rng):
-    """Tie the last note of a bar to an equal first note of the next bar (same hand)."""
+def add_ties(part, mel, hands, plan, repeat, rng, bars=None):
+    """Tie the last note of a bar to an equal first note of the next bar (same hand).
+    anticip_prob (Volume 4): the same, but only when the bar ends with a short note (an anticipation)."""
     ties = set()
-    p = part.get("tie_prob", 0)
+    p = part.get("tie_prob", 0) or part.get("anticip_prob", 0)
     if not p:
         return ties
     n = len(mel)
@@ -760,6 +959,8 @@ def add_ties(part, mel, hands, plan, repeat, rng):
         if hands[b] != hands[b + 1] or plan[hands[b]][b] != plan[hands[b]][b + 1]:
             continue
         if repeat and (b + 1) in (1, 4, 5):
+            continue
+        if part.get("anticip_prob") and bars[b][-1] > grid(part):
             continue
         if rng.random() >= p:
             continue
@@ -874,10 +1075,24 @@ def make_exercise(part, rng):
             except AssertionError:
                 continue
             return ex
+        if part.get("modulate"):
+            got = make_modulation(part, bars, rng)
+            if got is None:
+                continue
+            rh_bars, lh_bars, mel, chords, fingers, plan, bar_parts = got
+            ex = {"rh_bars": rh_bars, "lh_bars": lh_bars, "melody": mel, "hands": ["RH"] * len(bars),
+                  "plan": plan, "repeat": False, "ties": set(), "artic": add_articulation(part, len(bars), rng),
+                  "dyn": add_dynamics(part, len(bars), rng), "chords": chords, "lh_fingers": fingers,
+                  "bar_parts": bar_parts}
+            try:
+                validate(part, ex)
+            except AssertionError:
+                continue
+            return ex
         mel = gen_melody(part, bars, hands, plan, repeat, rng, chords)
         if mel is None:
             continue
-        ties = add_ties(part, mel, hands, plan, repeat, rng)
+        ties = add_ties(part, mel, hands, plan, repeat, rng, bars=bars)
         add_rests(part, bars, mel, hands, plan, repeat, ties, rng)
         artic = add_articulation(part, len(bars), rng)
         dyn = add_dynamics(part, len(bars), rng)
@@ -901,8 +1116,13 @@ def make_exercise(part, rng):
             if got is None:
                 continue
             rh_bars, lh_bars = got
+        elif part["mode"] == "lhtune":
+            rh_bars = gen_rh_accomp(part, bars, chords, plan)
+            extra["chords"] = chords
         if part.get("dyads"):
             extra["dyads"] = add_dyads(part, bars, mel, hands, plan, chords, ties, repeat, rng)
+        if part.get("rh_chords"):
+            extra["dyads"] = add_rh_chords(part, bars, mel, hands, plan, chords, ties, repeat, rng)
         ex = {"rh_bars": rh_bars, "lh_bars": lh_bars, "melody": mel, "hands": hands,
               "plan": plan, "repeat": repeat, "ties": ties, "artic": artic, "dyn": dyn, **extra}
         try:
@@ -949,6 +1169,8 @@ def staff_music(part, ex, hand, key_acc, melody_hand=True):
     fingers = ex.get("lh_fingers") if together_bass else None  # chord bass: fingers chosen per shape
     dyads = ex.get("dyads", {}) if melody_hand else {}
     n = len(bars)
+    inner = {}  # (bar, note): finger list printed inside a chord, <c-5 e-3 g-1>
+    accents = part.get("accents") and melody_hand
 
     # Build per-note tokens first, then add slurs/staccato by two-bar segment.
     cells = []  # (bar, j, d, s, [suffixes])
@@ -969,10 +1191,18 @@ def staff_music(part, ex, hand, key_acc, melody_hand=True):
                 suf.append(dyn[b])
             if fingers is not None:
                 if (b, j) in fingers:
-                    suf.insert(0, "_" + str(fingers[(b, j)]))
+                    if isinstance(fingers[(b, j)], list):
+                        inner[(b, j)] = fingers[(b, j)]
+                    else:
+                        suf.insert(0, "_" + str(fingers[(b, j)]))
+            elif isinstance(s, tuple) and not marked and (prev_none or new_pos):
+                inner[(b, j)] = [finger_for(part, pkey, x) for x in s]
+                marked = True
             elif s is not None and not marked and (prev_none or new_pos):
                 suf.insert(0, ("^" if hand == "RH" else "_") + str(finger_for(part, pkey, s)))
                 marked = True
+            if accents and s is not None and sum(dd for dd, _ in bar[:j]) % (2 * grid(part)) and d > grid(part):
+                suf.append("->")  # a syncopated note: it starts between the beats
             if s is not None and b in ties and j == len(bar) - 1 and melody_hand:
                 suf.append("~")
             cells.append((b, j, d, s, suf))
@@ -992,23 +1222,40 @@ def staff_music(part, ex, hand, key_acc, melody_hand=True):
                 b, j, d, s, suf = c
                 tied_from = "~" in suf
                 tied_to = (b - 1) in ties and j == 0
-                if s is not None and d <= 2 and not tied_from and not tied_to:
+                if s is not None and d <= 2 * grid(part) and not tied_from and not tied_to:
                     suf.append("-.")
 
+    def spell(cb, x):
+        if "bar_parts" in ex:  # key changes: spell each bar in its own key
+            bp = ex["bar_parts"][cb]
+            return note_name(bp, ex, cb, x, bp.get("key_acc"))
+        return note_name(part, ex, cb, x, key_acc)
+
+    keys = ex.get("key_marks", {})
     toks = []
     for b in range(n):
+        if b in keys:
+            toks.append(keys[b])
         for (cb, j, d, s, suf) in [c for c in cells if c[0] == b]:
             if j is None:
                 toks.append(FULL_REST[meter])
             elif s is None:
-                toks.append("r" + DUR[d] + "".join(suf))
+                toks.append("r" + dur_str(part, d) + "".join(suf))
+            elif isinstance(s, tuple):
+                fl = inner.get((cb, j))
+                names = [spell(cb, x) + (f"-{fl[i]}" if fl else "") for i, x in enumerate(s)]
+                toks.append("<" + " ".join(names) + ">" + dur_str(part, d) + "".join(suf))
             elif (cb, j) in dyads:
-                pair = note_name(part, ex, cb, dyads[(cb, j)], key_acc) + " " + note_name(part, ex, cb, s, key_acc)
-                toks.append("<" + pair + ">" + DUR[d] + "".join(suf))
+                low = dyads[(cb, j)]
+                fl = inner.get((cb, j))
+                pair = " ".join(spell(cb, x) for x in notes_of(low)) + " " + spell(cb, s)
+                toks.append("<" + pair + ">" + dur_str(part, d) + "".join(suf))
+            elif "bar_parts" in ex:
+                toks.append(spell(cb, s) + dur_str(part, d) + "".join(suf))
             elif part.get("minor"):
-                toks.append(note_name(part, ex, cb, s, key_acc) + DUR[d] + "".join(suf))
+                toks.append(note_name(part, ex, cb, s, key_acc) + dur_str(part, d) + "".join(suf))
             else:
-                toks.append(lily_pitch(s, key_acc) + DUR[d] + "".join(suf))
+                toks.append(lily_pitch(s, key_acc) + dur_str(part, d) + "".join(suf))
         toks.append("|")
         if part["bars"] == 8 and b == 3 and hand == "RH":
             toks.append("\\break \\noPageBreak")
@@ -1025,19 +1272,41 @@ def lily_exercise(part, ex, label):
         lh_mel = not rh_mel
     elif part["mode"] == "imitate":
         lh_mel = False
+    elif part["mode"] == "lhtune":
+        rh_mel = False
+    if part.get("modulate"):
+        ex["key_marks"] = key_marks(part)
     rh = staff_music(part, ex, "RH", key_acc, melody_hand=rh_mel)
     lh = staff_music(part, ex, "LH", key_acc, melody_hand=lh_mel)
     acc = "\\accidentalStyle modern " if part.get("minor") else ""  # a natural sign after a raised 7th
+
+    def has_chords(bars):
+        return any(isinstance(x, tuple) for bar in bars if bar for _, x in bar)
+    left = "\\set fingeringOrientations = #'(left) "  # finger numbers beside a chord, not above and below
+    rpre = left if has_chords(ex["rh_bars"]) or part.get("rh_chords") else ""
+    lpre = left if has_chords(ex["lh_bars"]) else ""
     return f"""
 \\score {{
   \\header {{ piece = \\markup \\exLabel "{label}" }}
   \\new PianoStaff <<
-    \\new Staff = "up" {{ \\autoLineBreaksOff \\clef treble \\key {key} \\time {meter} {acc}{rh} \\bar "|." }}
-    \\new Staff = "down" {{ \\clef bass \\key {key} \\time {meter} {acc}{lh} \\bar "|." }}
+    \\new Staff = "up" {{ \\autoLineBreaksOff \\clef treble \\key {key} \\time {meter} {acc}{rpre}{rh} \\bar "|." }}
+    \\new Staff = "down" {{ \\clef bass \\key {key} \\time {meter} {acc}{lpre}{lh} \\bar "|." }}
   >>
   \\layout {{ }}
 }}
 """
+
+
+def key_marks(part):
+    """LilyPond key changes at the start of each new key segment (when the part shows them)."""
+    if part["modulate"].get("show") != "signature":
+        return {}
+    out, start = {}, 0
+    segs = segment_parts(part)
+    for sub, nxt in zip(segs, segs[1:]):
+        start += sub["bars"]
+        out[start] = f'\\bar "||" \\key {nxt.get("key", "c \\major")}'
+    return out
 
 
 def generate_unit(unit, seed=None):

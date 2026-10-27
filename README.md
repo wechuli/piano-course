@@ -9,6 +9,7 @@ A print-ready A4 course book, typeset with LilyPond.
 | 1 · First Steps | complete | `build/Read at Sight - Volume 1.pdf` (130 pp.) | 10 units, 322 exercises, 39 pieces |
 | 2 · Moving Hands | complete | `build/Read at Sight - Volume 2.pdf` (133 pp.) | 10 units, 306 exercises, 35 pieces |
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
+| 4 · Patterns and Keys | in progress: Units 1-1 done | `build/units/` (Vol4 - Unit 1 to 1) | Units 1-1: 34 exercises, 3 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
