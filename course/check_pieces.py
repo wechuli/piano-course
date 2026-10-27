@@ -219,8 +219,10 @@ def check_unit_v5(unit, content):
     problems = []
     pieces = content.PIECES
     ev, warns = v5_events(pieces)
+    benign = ("compress", "has been compressed")  # page layout of the test book, not the music
     for w in warns:
-        problems.append("LilyPond: " + w.split("warning:")[-1].strip())
+        if not any(b in w for b in benign):
+            problems.append("LilyPond: " + w.split("warning:")[-1].strip())
     for i, pc in enumerate(pieces):
         t = pc["title"]
         music = pc["rh"] + " " + pc["lh"]
@@ -244,8 +246,9 @@ def check_unit_v5(unit, content):
             span_max = pc.get("allow_span", 12)
             bar_len = Fraction_(*map(int, pc["meter"].split("/")))
             up = Fraction_(*map(int, pc["upbeat"].split("/"))) if pc.get("upbeat") else 0
+            pedal = "sustainOn" in pc[hand]  # with the pedal the hand need not hold the bass: struck notes only
             for m, _, p, d in notes:
-                sounding = [p2 for m2, _, p2, d2 in notes if m2 <= m < m2 + d2]
+                sounding = [p2 for m2, _, p2, d2 in notes if (m2 == m if pedal else m2 <= m < m2 + d2)]
                 if max(sounding) - min(sounding) > span_max:
                     where = (m - up) / bar_len
                     problems.append(f"{t} {hand}: span of {max(sounding) - min(sounding)} semitones in bar "

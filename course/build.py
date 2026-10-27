@@ -609,7 +609,7 @@ def build(unit_ids, vol=1, front=None):
     if r.returncode != 0:
         print(r.stderr[-4000:])
         raise SystemExit("LilyPond failed")
-    benign = ("has been compressed", "page must be compressed")  # a page filled a little tighter: harmless
+    benign = ("has been compressed", "page must be compressed", "compressing over-full page")  # tighter page: harmless
     warnings = [line for line in r.stderr.splitlines() if "warning" in line.lower()
                 and not any(b in line for b in benign)]
     for w in warnings:
