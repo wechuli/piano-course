@@ -11,15 +11,15 @@ A print-ready A4 course book, typeset with LilyPond.
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
-| 6 · Reading Like a Professional | in progress: Unit 1 of 8 | `build/units/Read at Sight - Vol6 - Unit 1.pdf` (18 pp., with the front matter) | 1 unit, 24 exercises, 4 pieces |
+| 6 · Reading Like a Professional | in progress: Units 1-2 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 2: 15 pp.) | 2 units, 48 exercises, 8 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The five-volume course is complete. Next: Volume 6** (Levels 7-8, an extension beyond the
 original plan): the full plan is in "Volume 6 plan" below. The shared groundwork is in place
 (see "Groundwork (done)" in the plan): `course/gen6.py` multi-staff scores, the Volume 6
-checker and build changes, and `course/test_gen6.py`. Unit 1 (Three Voices) is finished: see
-"Unit 1 (done)" in the plan. Next: Unit 2 (Rhythm Against Rhythm).
+checker and build changes, and `course/test_gen6.py`. Units 1-2 are finished: see the
+"Unit N (done)" sections in the plan. Next: Unit 3 (Changing Meters, Modes and No Key).
 All five volumes are protected by
 `course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
 original plan follows it for reference.
@@ -399,6 +399,40 @@ and a closing chord (Mutopia 1941, CC BY-SA 4.0); original Fugue in G (checked w
   the table above is the Prelude.
 - The C minor fugue's alto is printed on the lower staff in bars 3-6 (a right-hand stretch of a tenth otherwise), and Sinfonia
   No. 11 puts the lowest note of a few middle-voice arpeggios on the lower staff for the same reason.
+
+### Unit 2 (done)
+
+**Generator (`course/gen6.py`, section "rhythm against rhythm").** Tested by `test_rhythms` in
+`course/test_gen6.py`. An event may carry a general tuplet, `"t": (n, m, span)` (n notes in the
+time of m, the group lasting `span`); gen6's own `voice_str` prints it and is identical to gen5's
+otherwise. New rhythm tables (added to gen5's dictionaries under new keys only): `duplet` (6/8,
+token `d8` = a duplet eighth), `trip` for 2/4; left-hand pattern `alberti16` (2/4 and 4/4).
+Textures:
+- plain gen5 with `bass: "triplet"` and `rhythms: ["eighths"]`: the tune in eighths over left-hand
+  triplets (2 against 3).
+- `texture: "swap"`: the tune in the left hand (F2-A3), triplet broken chords in the right hand,
+  ending on the tonic chord with the tonic on top.
+- `texture: "rhythm"`: gen5's tune and left hand, the tune's rhythm read with duplets (`duplet`, 6/8,
+  over `broken`) or triplets in 2/4 over `alberti16` (3 against 4); `require_tuplet` rejects a tune
+  without one.
+- `texture: "runs"`, `runs: {"count": 2, "notes": (5, 6, 7)}`: a gen5 exercise whose quarter notes
+  (not in the last two bars) become runs of 5, 6 or 7 sixteenth-sized notes (`\tuplet n/4`) moving
+  by step into the next note (turning once when the distance needs it).
+- `texture: "hemiola"` (3/4, 8 bars): bars 6-7 become three half notes (the middle one tied over the
+  bar line, all accented) on the chords pre-dominant, V, V7 (a pre-dominant ii/IV or iv is required in
+  bar 6), in both hands; then the final tonic.
+
+**Pieces.** Debussy, Arabesque No. 1, bars 6-12 and a closing chord (Mutopia 1777, PD); Chopin,
+Nocturne Op. 9 No. 2, the upbeat and bars 1-4 (Mutopia 1590, CC BY-SA 3.0); Joplin, Solace, the first
+strain with its first ending (Mutopia 482, PD); original Hemiola Waltz.
+
+**Changes from plan.**
+- Brahms's Waltz Op. 39 No. 15 has no hemiola in a passage short enough for an excerpt, so an
+  original Hemiola Waltz (two hemiolas, D major) takes its place; the Brahms waltz is a spare.
+- In the Nocturne, Chopin's turn in bar 2 is written out (four notes in an eighth); the long runs of
+  the later bars are not in the excerpt (Part C's runs practise them).
+- In Solace, Joplin's bass notes held under the chords (for the pedal) are printed as the eighths the
+  hand plays.
 
 ## Volume 5 plan (as written before it was built)
 

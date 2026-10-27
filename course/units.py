@@ -824,6 +824,7 @@ def _keys(*ks):
 
 C_, G_, F_, D_, BB_ = ("c", "major"), ("g", "major"), ("f", "major"), ("d", "major"), ("bes", "major")
 AM_, DM_, EM_ = ("a", "minor"), ("d", "minor"), ("e", "minor")
+GM_ = ("g", "minor")
 CIRCLE = [("c", "major"), ("g", "major"), ("d", "major"), ("a", "major"), ("e", "major"), ("b", "major"),
           ("fis", "major"), ("des", "major"), ("aes", "major"), ("ees", "major"), ("bes", "major"), ("f", "major")]
 
@@ -945,7 +946,24 @@ VOLUME6 = [
      ]},
     {"id": 2, "title": "Rhythm Against Rhythm",
      "new": "Two against three, three against four, duplets, quintuplets and septuplets, hemiola",
-     "parts": []},
+     "parts": [
+         dict(name="A", title="Two against three", count=8, bars=8, meter="4/4", rhythms=["eighths"],
+              bass="triplet", tempo=60,
+              variants=[dict(key=C_), dict(key=G_, texture="swap"), dict(key=F_), dict(key=DM_, texture="swap"),
+                        dict(key=D_), dict(key=BB_, texture="swap"), dict(key=EM_), dict(key=("a", "major"), texture="swap")]),
+         dict(name="B", title="Duplets, and three against four", count=8, bars=8, meter="6/8", texture="rhythm",
+              rhythms=["duplet"], bass="broken", tempo=56, tempo_unit="4.", require_tuplet=True,
+              variants=[dict(key=D_), dict(key=F_, meter="2/4", rhythms=["trip"], bass="alberti16", tempo=56, tempo_unit="4"),
+                        dict(key=G_), dict(key=("e", "major"), meter="2/4", rhythms=["trip"], bass="alberti16", tempo=56, tempo_unit="4"),
+                        dict(key=AM_), dict(key=("ees", "major"), meter="2/4", rhythms=["trip"], bass="alberti16", tempo=56, tempo_unit="4"),
+                        dict(key=("b", "minor")), dict(key=C_, meter="2/4", rhythms=["trip"], bass="alberti16", tempo=56, tempo_unit="4")]),
+         dict(name="C", title="Runs of 5, 6 and 7 notes, and hemiolas", count=8, bars=8, meter="4/4", texture="runs",
+              rhythms=["basic"], bass="block2", tempo=60, runs={"count": 2},
+              variants=[dict(key=C_), dict(key=D_, meter="3/4", texture="hemiola", bass="waltz", tempo=96),
+                        dict(key=AM_), dict(key=F_, meter="3/4", texture="hemiola", bass="waltz", tempo=96),
+                        dict(key=("e", "major")), dict(key=GM_, meter="3/4", texture="hemiola", bass="waltz", tempo=96),
+                        dict(key=("aes", "major")), dict(key=G_, meter="3/4", texture="hemiola", bass="waltz", tempo=96)]),
+     ]},
     {"id": 3, "title": "Changing Meters, Modes and No Key",
      "new": "Time signatures that change every bar or two; 5/4, 7/8 and 5/8; modes, whole-tone and pentatonic scales; music without bar lines",
      "parts": []},

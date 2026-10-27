@@ -560,10 +560,295 @@ def make_three(part, rng):
     raise RuntimeError(f"could not generate exercise for part {part['name']}")
 
 
+
+# ---------------------------------------------------------------- rhythm against rhythm (Unit 2)
+# Feature 3. Besides gen5's triplets (an event with "t": True), an event may carry a general
+# tuplet: "t": (n, m, span) means n notes in the time of m, the group lasting `span` (a whole
+# number of beats): a duplet in 6/8 is (2, 3, 3/8), five sixteenths in a quarter (5, 4, 1/4).
+# The printed value is d * n / m. gen6's voice_str prints both kinds and is identical to gen5's
+# for every exercise without a general tuplet.
+# Textures:
+#   "swap"      the tune in the left hand (eighths), triplet broken chords in the right hand
+#   rhythms "duplet" (6/8) and "trip16" (2/4) for the right hand, with the left hand's eighths
+#               or sixteenths: 2 against 3 and 3 against 4
+#   "runs"      a tune whose quarters (one or two) become runs of 5, 6 or 7 notes ({"runs": ...})
+#   "hemiola"   a 3/4 waltz whose bars 6-7 become three half notes (both hands, accented)
+DUPLET = (2, 3, Fr(3, 8))
+NEW_RHY = {
+    ("6/8", "duplet"): ["d8 d8 4.", "4. d8 d8", "d8 d8 d8 d8", "4. 4 8", "d8 d8 8 8 8", "8 8 8 d8 d8"],
+    ("2/4", "trip"): ["t8 t8 t8 t8 t8 t8", "t8 t8 t8 4", "4 t8 t8 t8", "t8 t8 t8 8 8", "8 8 t8 t8 t8"],
+}
+NEW_LH = {
+    ("alberti16", "2/4"): [("16", 0), ("16", 2), ("16", 1), ("16", 2)] * 2,
+    ("alberti16", "4/4"): [("16", 0), ("16", 2), ("16", 1), ("16", 2)] * 4,
+}
+
+
+def install_tables():
+    """Add Volume 6 rhythm and left-hand tables to gen5's dictionaries. Only new keys are added:
+    gen5 never looks these up, so Volumes 1-5 are unchanged."""
+    for (meter, name), pats in NEW_RHY.items():
+        gen5.RHY[meter].setdefault(name, pats)
+    for k, v in NEW_LH.items():
+        gen5.LH.setdefault(k, v)
+
+
+install_tables()
+
+
+def parse_rhythm6(s, bar):
+    """gen5.parse_rhythm plus "d8": a duplet eighth (two in a dotted quarter)."""
+    out = []
+    for t in s.split():
+        if t == "b":
+            out.append((bar, False))
+        elif t.startswith("t"):
+            out.append((gen5.TOK[t[1:]] * Fr(2, 3), True))
+        elif t.startswith("d"):
+            out.append((gen5.TOK[t[1:]] * Fr(3, 2), DUPLET))
+        else:
+            out.append((gen5.TOK[t], False))
+    assert sum(d for d, _ in out) == bar, s
+    return out
+
+
+def gen_rhythm6(part, rng, n, rep):
+    """gen5.gen_rhythm, reading duplets too (same random draws)."""
+    T = gen5.RHY[part["meter"]]
+    bar = gen5.METERS[part["meter"]][0]
+    names = part["rhythms"] if isinstance(part["rhythms"], list) else [part["rhythms"]]
+    vocab = [r for k in names for r in T[k]]
+    bars = [rng.choice(vocab) for _ in range(n)]
+    for b in gen5.phrase_marks(n):
+        bars[b] = rng.choice(T["cad"])
+    bars[-1] = rng.choice(T["fin"])
+    for dst, src in rep.items():
+        bars[dst] = bars[src]
+    return [parse_rhythm6(r, bar) for r in bars]
+
+
+def ev_str6(e):
+    t = e.get("t")
+    if isinstance(t, tuple):
+        e2 = dict(e, t=False, d=e["d"] * t[0] / t[1])
+        return gen5.ev_str(e2)
+    return gen5.ev_str(e)
+
+
+def voice_str(bars, breaks=()):
+    out = []
+    for b, bar in enumerate(bars):
+        acc, open_ = Fr(0), None
+        for e in bar:
+            t = e.get("t")
+            if t and open_ is None:
+                if isinstance(t, tuple):
+                    out.append(f"\\tuplet {t[0]}/{t[1]} {{")
+                    open_ = t[2]
+                else:
+                    out.append("\\tuplet 3/2 {")
+                    open_ = Fr(1, 4)
+                acc = Fr(0)
+            out.append(ev_str6(e))
+            if open_ is not None:
+                acc += e["d"]
+                if acc == open_:
+                    out.append("}")
+                    open_ = None
+        assert open_ is None, "unfinished tuplet"
+        out.append("|")
+        if b in breaks:
+            out.append("\\break \\noPageBreak")
+    return " ".join(out)
+
+
+def staff_str(voices, breaks=()):
+    if len(voices) == 1:
+        return voice_str(voices[0], breaks)
+    return ("<< { " + voice_str(voices[0], breaks) + " } \\\\ { " + voice_str(voices[1]) + " } >>")
+
+
+def signature(ex):
+    return tuple(voice_str(v) for v in ex["rh"] + ex["lh"])
+
+
+def tonic_top_chord(key, lo=33):
+    """The tonic chord with the tonic on top (third, fifth, tonic), its top note at or above lo."""
+    t = next(s for s in range(lo, lo + 7) if key.degree(s) == 0)
+    return [key.note(t - 5), key.note(t - 3), key.note(t)]
+
+
+def make_swap(part, key, rng):
+    """The tune in the left hand (rhythms from the part, eighths), the right hand playing the
+    chords as triplet broken chords: 3 in the right hand against 2 in the left."""
+    n = part["bars"]
+    rep = gen5.repeat_map(part, n, rng)
+    rbars = gen_rhythm6(part, rng, n, rep)
+    plan = gen5.gen_chord_plan(part, key, n, rep, rng)
+    steps = gen5.gen_tune(part, key, rbars, plan, rng, 17, 26, rep=rep)
+    if steps is None:
+        return None
+    tune = gen5.tune_events(key, rbars, steps, plan)
+    if not gen5.check_line(tune):
+        return None
+    roots = [gen5.nearest(key, gen5.CHORDS[c][0], 31, 29, 35) for c in plan]
+    rh = gen5.gen_lh(dict(part, bass=part.get("rh_pattern", "triplet")), key, plan, roots)
+    rh[-1] = [gen5.ev(gen5.METERS[part["meter"]][0], tonic_top_chord(key))]
+    return {"rh": [rh], "lh": [tune], "plan": plan}
+
+
+def run_notes(a, b, n):
+    """A run of n notes (diatonic steps) starting on a and leading by step into b: straight when
+    the distance allows, otherwise turning once (going past and coming back). None if no run fits."""
+    for last in (b - 1, b + 1):
+        dist = last - a
+        free = n - 1 - abs(dist)
+        if free < 0 or free % 2:
+            continue
+        d = 1 if dist > 0 else -1 if dist < 0 else (1 if b > a else -1)
+        k = free // 2
+        out = [a]
+        for _ in range(k):
+            out.append(out[-1] - d)  # first away from the goal ...
+        while len(out) < n:
+            out.append(out[-1] + d)  # ... then towards it
+        if out[-1] == last and len(set(out[:3])) == len(out[:3]):
+            return out
+    return None
+
+
+def add_runs(part, key, mel, plan, rng):
+    """Turn one or two quarter notes of the tune into runs of 5, 6 or 7 sixteenth-sized notes
+    (a tuplet filling the beat) that lead by step into the next note."""
+    cfg = part["runs"]
+    want = cfg.get("count", 1)
+    spots = []
+    flat = [(b, i) for b, bar in enumerate(mel) for i in range(len(bar))]
+    for k, (b, i) in enumerate(flat[:-1]):
+        e = mel[b][i]
+        if e["d"] != Fr(1, 4) or b >= len(mel) - 2 or e.get("t") or not e["n"]:
+            continue
+        nb, ni = flat[k + 1]
+        spots.append((b, i, mel[nb][ni]["n"][0][0]))
+    rng.shuffle(spots)
+    done, used = 0, set()
+    for b, i, target in spots:
+        if done == want or b in used:
+            continue
+        n = rng.choice(cfg.get("notes", (5, 6, 7)))
+        a = mel[b][i]["n"][0][0]
+        steps = run_notes(a, target, n)
+        if steps is None:
+            continue
+        mel[b][i:i + 1] = [gen5.ev(Fr(1, 4 * n), [gen5.spell(key, s, plan[b])], (n, 4, Fr(1, 4))) for s in steps]
+        used.add(b)
+        done += 1
+    return done
+
+
+HEMIOLA_PRE = {"major": ("ii", "IV"), "minor": ("iv",)}
+
+
+def make_hemiola(part, key, rng):
+    """A 3/4 waltz (8 bars) whose bars 6-7 are a hemiola: three half notes across the two bars
+    (the middle one tied over the bar line), accented, in both hands; then the final tonic."""
+    n = part["bars"]
+    assert part["meter"] == "3/4" and n == 8
+    rbars = gen_rhythm6(part, rng, n, {})
+    plan = gen5.gen_chord_plan(dict(part, chords=part.get("chords")), key, n, {}, rng)
+    if plan[5] not in HEMIOLA_PRE[key.mode]:
+        return None
+    rbars[5] = gen5.parse_rhythm("2 4", Fr(3, 4))
+    rbars[6] = gen5.parse_rhythm("4 2", Fr(3, 4))
+    roots = gen5.lh_roots(part, key, plan)
+    lo, hi = gen5.rh_range(part, key)
+    steps = gen5.gen_tune(part, key, rbars, plan, rng, lo, hi, bass=gen5.bass_midis(key, plan, roots))
+    if steps is None:
+        return None
+    harm = [plan[5], "V", "V7"]
+    tones = [set(gen5.chord_degrees(c)) for c in harm]
+    p, f = steps[4][-1], steps[7][0]
+    cands = []
+    for m1 in range(lo, hi + 1):
+        for m2 in range(m1 - 2, m1 + 3):
+            for m3 in range(m2 - 2, m2 + 3):
+                ds = [key.degree(x) for x in (m1, m2, m3)]
+                if all(d in t for d, t in zip(ds, tones)) and abs(m1 - p) <= 3 and abs(m3 - f) <= 1 \
+                        and m1 != m2 and lo <= m3 <= hi and len({m1, m2, m3}) == 3:
+                    cands.append((m1, m2, m3))
+    if not cands:
+        return None
+    m1, m2, m3 = rng.choice(cands)
+    steps[5], steps[6] = [m1, m2], [m2, m3]
+    tune = gen5.tune_events(key, rbars, steps, plan)
+    tune[5][0]["n"] = [gen5.spell(key, m1, harm[0])]
+    tune[5][1]["n"] = [gen5.spell(key, m2, "V")]
+    tune[6][0]["n"] = [gen5.spell(key, m2, "V")]
+    tune[6][1]["n"] = [gen5.spell(key, m3, "V7")]
+    tune[5][0]["post"].append("->")
+    tune[5][1]["post"].append("->")
+    tune[5][1]["end"].append("~")
+    tune[6][1]["post"].append("->")
+    if not gen5.check_line(tune):
+        return None
+    lh = gen5.gen_lh(part, key, plan, roots)
+    r5 = roots[5]
+    rv = roots[6]
+    c1, c2, c3 = (gen5.voicing(key, harm[0], r5), gen5.voicing(key, "V", rv), gen5.voicing(key, "V7", rv))
+    lh[5] = [gen5.ev(Fr(1, 2), c1), gen5.ev(Fr(1, 4), c2, end=["~"])]
+    lh[6] = [gen5.ev(Fr(1, 4), c2), gen5.ev(Fr(1, 2), c3)]
+    plan = plan[:6] + ["V7"] + plan[7:]
+    return {"rh": [tune], "lh": [lh], "plan": plan}
+
+
+def make_runs(part, key, rng):
+    """A gen5 tune and left-hand pattern, with one or two quarters turned into runs."""
+    got = gen5.make_exercise(dict(part, texture="chords"), rng)
+    mel = got["rh"][0]
+    if add_runs(part, key, mel, got["plan"], rng) < part["runs"].get("count", 1):
+        return None
+    return got
+
+
+def make_rhythm(part, key, rng):
+    """Duplets (6/8) and triplets over sixteenths (2/4): gen5's tune and left hand, but the tune's
+    rhythm read with duplets."""
+    n = part["bars"]
+    rep = gen5.repeat_map(part, n, rng)
+    rbars = gen_rhythm6(part, rng, n, rep)
+    plan = gen5.gen_chord_plan(part, key, n, rep, rng)
+    roots = gen5.lh_roots(part, key, plan)
+    lo, hi = gen5.rh_range(part, key)
+    steps = gen5.gen_tune(part, key, rbars, plan, rng, lo, hi, bass=gen5.bass_midis(key, plan, roots), rep=rep)
+    if steps is None:
+        return None
+    mel = gen5.tune_events(key, rbars, steps, plan)
+    if not gen5.check_line(mel):
+        return None
+    if part.get("require_tuplet") and not any(e.get("t") for bar in mel for e in bar):
+        return None
+    return {"rh": [mel], "lh": [gen5.gen_lh(part, key, plan, roots)], "plan": plan}
+
+
+RHYTHM_TEXTURES = {"swap": make_swap, "hemiola": make_hemiola, "runs": make_runs, "rhythm": make_rhythm}
+
+
+def make_v6(part, rng):
+    key = gen5.Key(*part["key"])
+    for _ in range(400):
+        got = RHYTHM_TEXTURES[part["texture"]](part, key, rng)
+        if got and gen5.finish(part, key, got):
+            got["v6"] = True
+            return got
+    raise RuntimeError(f"could not generate exercise for part {part['name']}")
+
+
 # ---------------------------------------------------------------- one exercise
 def make_exercise(part, rng):
     if part.get("texture") in THREE_VOICES:
         return make_three(part, rng)
+    if part.get("texture") in RHYTHM_TEXTURES:
+        return make_v6(part, rng)
     return layout(part, gen5.make_exercise(part, rng))
 
 
@@ -578,7 +863,7 @@ def generate_part(part, rng, seen):
             raise RuntimeError("too many duplicates; widen the rules")
         sub = vs[len(out) % len(vs)]
         ex = make_exercise(sub, rng)
-        sig = gen5.signature(ex)
+        sig = signature(ex) if ex.get("v6") else gen5.signature(ex)
         if sig in seen:
             continue
         seen.add(sig)
@@ -602,7 +887,9 @@ def staff_code(st, key, meter, tsig, first=False, n=None, transpose=None):
     inner = ""
     if st.get("instrument"):
         inner += f'\\set Staff.instrumentName = "{st["instrument"]} " '
-    music = gen5.staff_str(st["voices"], gen5.breaks_for(n) if first else ())
+    music = staff_str(st["voices"], gen5.breaks_for(n) if first else ())
+    if st.get("hand") and "sustainOn" in music:
+        inner += "\\set Staff.pedalSustainStyle = #'bracket "
     body = f"\\key {key.lily} {tsig}\\time {meter} \\accidentalStyle modern {inner}{music} \\bar \"|.\""
     if transpose:
         body = f"\\transpose {transpose[0]} {transpose[1]} {{ {body} }}"
@@ -644,7 +931,7 @@ def score6(part, ex, label, own_tempo="", transpose=None):
 
 def lily_exercise(part, ex, label):
     """LilyPond scores for one exercise: gen5's own for plain rh/lh, score6 for staves."""
-    if not ex.get("staves"):
+    if not ex.get("staves") and not ex.get("v6"):
         return gen5.lily_exercise(part, ex, label)
     p = ex.get("part", part)
     own = ""

@@ -212,6 +212,45 @@ def test_three_voices():
     return scores
 
 
+def test_rhythms():
+    """Unit 2 (plan feature 3): cross-rhythms, duplets, runs and hemiolas."""
+    Fr = gen5.Fr
+    scores = []
+    swap = dict(name="A", title="Swap", count=2, bars=8, meter="4/4", texture="swap", rhythms=["eighths"],
+                tempo=60, key=("g", "major"))
+    duplet = dict(name="B", title="Duplets", count=2, bars=8, meter="6/8", texture="rhythm", rhythms=["duplet"],
+                  bass="broken", tempo=56, tempo_unit="4.", require_tuplet=True, key=("d", "major"))
+    three4 = dict(duplet, meter="2/4", rhythms=["trip"], bass="alberti16", tempo_unit="4", key=("f", "major"))
+    runs = dict(name="C", title="Runs", count=2, bars=8, meter="4/4", texture="runs", rhythms=["basic"],
+                bass="block2", tempo=60, runs={"count": 2}, key=("a", "minor"))
+    hemi = dict(name="D", title="Hemiola", count=2, bars=8, meter="3/4", texture="hemiola", rhythms=["basic"],
+                bass="waltz", tempo=96, key=("g", "minor"))
+    for part in (swap, duplet, three4, runs, hemi):
+        for k, ex in enumerate(gen6.generate_part(dict(part), random.Random(6002), set())):
+            code = gen6.lily_exercise(part, ex, f"99.R{k}")[0]
+            if part is swap:
+                assert all(e["t"] for bar in ex["rh"][0][:-1] for e in bar), "right-hand triplets"
+                assert max(gen5.midi(n) for bar in ex["lh"][0] for e in bar for n in e["n"]) < \
+                    min(gen5.midi(n) for bar in ex["rh"][0] for e in bar for n in e["n"]), "the tune is below"
+            if part is duplet:
+                assert "\\tuplet 2/3 {" in code, "duplets"
+            if part is three4:
+                assert "\\tuplet 3/2 {" in code and "16" in code, "triplets against sixteenths"
+            if part is runs:
+                groups = re.findall(r"\\tuplet (\d)/4 \{([^}]*)\}", code)
+                assert len(groups) == 2 and all(int(n) == len(g.split()) for n, g in groups), "two runs"
+                for bar in ex["rh"][0]:
+                    run = [e["n"][0][0] for e in bar if isinstance(e.get("t"), tuple)]
+                    assert all(abs(a - b) == 1 for a, b in zip(run, run[1:])), "runs move by step"
+            if part is hemi:
+                r = [[e["d"] for e in bar] for bar in ex["rh"][0][5:7]]
+                assert r == [[Fr(1, 2), Fr(1, 4)], [Fr(1, 4), Fr(1, 2)]], "three half notes over two bars"
+                assert ex["rh"][0][5][1]["n"] == ex["rh"][0][6][0]["n"] and "~" in ex["rh"][0][5][1]["end"]
+            scores.append(code)
+    print("rhythm against rhythm: 2:3, duplets, 3:4, runs, hemiola     OK")
+    return scores
+
+
 if __name__ == "__main__":
     test_passthrough()
     exs, scores = test_open_score()
@@ -220,6 +259,7 @@ if __name__ == "__main__":
     scores.append(solo_score(plain[0]))
     scores += test_answers()
     scores += test_three_voices()
+    scores += test_rhythms()
     test_build_compiles(scores)
     test_checker()
     print("OK")
