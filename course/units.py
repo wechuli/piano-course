@@ -365,3 +365,228 @@ VOLUME2 = [
               artic=ART_LIGHT, tie_prob=0.15, rest_prob=0.06, repeat_prob=0.3),
      ]},
 ]
+
+
+# =========================================================================== Volume 3
+# Level 3: two voices. The left hand gets its own music. New part options:
+#   chords: chords the left hand may use, from CHORDS (e.g. ["I", "IV", "V7"])
+#   bass: "broken" (4/4: low-middle-high-middle quarters; 3/4: low-middle-high), one chord per bar
+#   require_chords: chords that must appear in every exercise
+#   chord_fingers: True prints a finger number on the first note of every new chord shape
+# Chord shapes are built on the left-hand position's lowest note (the tonic): "voicing" lists the
+# three notes in steps above it, "tones" the scale degrees (0 = tonic) that belong to the chord.
+CHORDS = {
+    "I":  {"tones": (0, 2, 4), "voicing": (0, 2, 4)},      # C E G   fingers 5 3 1
+    "IV": {"tones": (3, 5, 0), "voicing": (0, 3, 5)},      # C F A   fingers 5 2 1
+    "V7": {"tones": (4, 6, 1, 3), "voicing": (-1, 3, 4)},  # B F G   fingers 5 2 1 (G7 without its D)
+}
+CHORD_ORDER = ["I", "V7", "IV"]
+# Chord progressions are chosen bar by bar with these weights (V7 never goes to IV).
+CHORD_MOVES = {"I": {"I": 1.0, "IV": 2.0, "V7": 2.0},
+               "IV": {"I": 1.5, "IV": 0.7, "V7": 2.5},
+               "V7": {"I": 3.0, "V7": 1.0}}
+# Bass patterns: (durations in eighths, index into the chord's voicing: 0 low, 1 middle, 2 high)
+BASS_PATTERNS = {
+    ("broken", "4/4"): ([2, 2, 2, 2], [0, 1, 2, 1]),
+    ("broken", "3/4"): ([2, 2, 2], [0, 1, 2]),
+}
+CHORD_MAX_LEAP = 5  # largest leap (a sixth) in a broken-chord bass, including into the next bar
+BASS_PATTERNS.update({
+    ("alberti", "4/4"): ([1] * 8, [0, 2, 1, 2, 0, 2, 1, 2]),   # C G E G C G E G
+    ("alberti", "3/4"): ([1] * 6, [0, 2, 1, 2, 1, 2]),         # C G E G E G
+    ("broken", "6/8"): ([1] * 6, [0, 1, 2, 1, 2, 1]),          # C E G E G E (rolling eighths)
+    ("lilt", "6/8"): ([2, 1, 2, 1], [0, 2, 1, 2]),             # C(quarter) G(eighth) E G: long-short
+})
+
+# 6/8: two beats of three eighths. Durations are in eighths, so a bar is 6.
+R68 = {
+    "basic68": [[3, 3], [6], [2, 1, 3], [3, 2, 1], [2, 1, 2, 1]],
+    "e68":     [[1, 1, 1, 3], [3, 1, 1, 1], [1, 1, 1, 2, 1], [2, 1, 3], [3, 3]],
+}
+CADENCE68 = [[6], [3, 3], [2, 1, 3]]
+FINAL68 = [[6]]
+
+# Volume 3 keys and positions
+A2_ = 19
+E5_, F5 = 37, 38
+POSITIONS.update({
+    "RH_Bb": {"hand": "RH", "low": B4, "high": F5, "label": "Right hand B-flat position", "acc": {B4: "es", E5_: "es"}},
+    "LH_Bb": {"hand": "LH", "low": B2, "high": F3, "label": "Left hand B-flat position", "acc": {B2: "es", E3: "es"}},
+    "RH_Bm": {"hand": "RH", "low": B4, "high": F5, "label": "Right hand B position", "acc": {C5: "is", F5: "is"}},
+    "LH_Bm": {"hand": "LH", "low": B2, "high": F3, "label": "Left hand B position", "acc": {C3: "is", F3: "is"}},
+    "RH_Gm": {"hand": "RH", "low": G4, "high": D5, "label": "Right hand G position", "acc": {B4: "es"}},
+    "LH_Gm": {"hand": "LH", "low": G2, "high": D3, "label": "Left hand G position", "acc": {B2: "es"}},
+})
+KEY_BB = {"key": "bes \\major", "key_acc": {"b": "es", "e": "es"}}
+KEY_BM = {"key": "b \\minor", "key_acc": {"f": "is", "c": "is"}}
+KEY_GM = {"key": "g \\minor", "key_acc": {"b": "es", "e": "es"}}
+
+VOLUME3 = [
+    {"id": 1, "title": "Broken Chords", "new": "Triads; the left hand plays I, IV and V7 one note at a time",
+     "parts": [
+         dict(name="A", title="Two chords under long notes", count=8, bars=4, mode="together", rh="RH_C",
+              lh="LH_C", chords=["I", "V7"], bass="broken", chord_fingers=True, meter="4/4",
+              rhythms="half", motion=STEPS_SKIPS, tempo=60),
+         dict(name="B", title="Adding the IV chord", count=10, bars=4, mode="together", rh="RH_C",
+              lh="LH_C", chords=["I", "IV", "V7"], require_chords=["IV"], bass="broken", chord_fingers=True,
+              meter="4/4", rhythms="q_rich", motion=STEPS_SKIPS, tempo=60),
+         dict(name="C", title="Waltz bass in G major", count=10, bars=8, mode="together", rh="RH_G",
+              lh="LH_G", chords=["I", "IV", "V7"], bass="broken", chord_fingers=True, meter="3/4",
+              rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=72, tonic=G4, dynamics=True,
+              repeat_prob=0.4, **KEY_G),
+         dict(name="D", title="Eight bars in F major", count=8, bars=8, mode="together", rh="RH_F",
+              lh="LH_F", chords=["I", "IV", "V7"], bass="broken", chord_fingers=True, meter="4/4",
+              rhythms=["q_rich", "dotted"], motion=UP_TO_FIFTH, tempo=66, tonic=F4, artic=ART_LIGHT,
+              repeat_prob=0.4, **KEY_F),
+     ]},
+    # Units 2-10 are planned here (titles feed the contents page); each gets its parts when it is built.
+    {"id": 2, "title": "The Alberti Bass", "new": "Broken chords in eighth notes: low, high, middle, high",
+     "parts": [
+         dict(name="A", title="Alberti bass under long notes", count=8, bars=4, mode="together", rh="RH_C",
+              lh="LH_C", chords=["I", "V7"], bass="alberti", bass_leap=6, chord_fingers=True, meter="4/4",
+              rhythms="half", motion=STEPS_SKIPS, tempo=56),
+         dict(name="B", title="I, IV and V7 in C major", count=10, bars=8, mode="together", rh="RH_C",
+              lh="LH_C", chords=["I", "IV", "V7"], bass="alberti", bass_leap=6, chord_fingers=True,
+              meter="4/4", rhythms="q_rich", motion=STEPS_SKIPS, tempo=60, dynamics=True, repeat_prob=0.4),
+         dict(name="C", title="Alberti bass in 3/4", count=8, bars=8, mode="together", rh="RH_G",
+              lh="LH_G", chords=["I", "IV", "V7"], bass="alberti", bass_leap=6, chord_fingers=True,
+              meter="3/4", rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=66, tonic=G4,
+              artic=ART_LIGHT, repeat_prob=0.4, **KEY_G),
+         dict(name="D", title="F major, the right hand on the move", count=8, bars=8, mode="together",
+              rh_positions=["RH_F", "RH_C"], lh="LH_F", chords=["I", "IV", "V7"], bass="alberti", bass_leap=6,
+              chord_fingers=True, meter="4/4", rhythms=["q_rich", "dotted"], motion=UP_TO_FIFTH, tempo=60,
+              tonic=F4, dynamics=True, artic=ART_LIGHT, repeat_prob=0.3, **KEY_F),
+     ]},
+    {"id": 3, "title": "Six-Eight Time", "new": "6/8: two beats in a bar, each beat split into three eighths",
+     "parts": [
+         dict(name="A", title="Two beats in a bar", count=10, bars=4, mode="RH", rh="RH_C", meter="6/8",
+              rhythms="basic68", motion=STEPS_SKIPS, tempo=50, tempo_unit="4."),
+         dict(name="B", title="6/8 in the left hand", count=8, bars=4, mode="LH", lh="LH_C", meter="6/8",
+              rhythms="basic68", motion=STEPS_SKIPS, tempo=50, tempo_unit="4."),
+         dict(name="C", title="A lilting bass in G major", count=10, bars=8, mode="together", rh="RH_G",
+              lh="LH_G", chords=["I", "IV", "V7"], bass="lilt", bass_leap=6, chord_fingers=True, meter="6/8",
+              rhythms="basic68", motion=STEPS_SKIPS, tempo=50, tempo_unit="4.", tonic=G4, repeat_prob=0.4, **KEY_G),
+         dict(name="D", title="Rolling eighths in F major", count=8, bars=8, mode="together", rh="RH_F",
+              lh="LH_F", chords=["I", "IV", "V7"], bass="broken", bass_leap=6, chord_fingers=True, meter="6/8",
+              rhythms=["basic68", "e68"], motion=STEPS_SKIPS, tempo=46, tempo_unit="4.", tonic=F4, dynamics=True,
+              artic=ART_LIGHT, repeat_prob=0.3, **KEY_F),
+     ]},
+    {"id": 4, "title": "D Major", "new": "Two sharps (F-sharp and C-sharp); D major and its chords",
+     "parts": [
+         dict(name="A", title="Right hand in D major", count=8, bars=4, mode="RH", rh="RH_D", extend=1,
+              meter="4/4", rhythms="q_rich", motion=STEPS_SKIPS, tempo=60, tonic=D4, **KEY_D),
+         dict(name="B", title="D major with an Alberti bass", count=10, bars=8, mode="together",
+              rh_positions=["RH_D", "RH_A"], lh="LH_D", chords=["I", "IV", "V7"], bass="alberti", bass_leap=6,
+              chord_fingers=True, meter="4/4", rhythms=["q_rich", "dotted"], motion=STEPS_SKIPS, tempo=60,
+              tonic=D4, dynamics=True, repeat_prob=0.4, **KEY_D),
+         dict(name="C", title="A waltz in D major", count=8, bars=8, mode="together", rh="RH_D", extend=1,
+              lh="LH_D", chords=["I", "IV", "V7"], bass="broken", chord_fingers=True, meter="3/4",
+              rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=72, tonic=D4, artic=ART_LIGHT,
+              repeat_prob=0.4, **KEY_D),
+         dict(name="D", title="D major in 6/8", count=8, bars=8, mode="together", rh="RH_D", extend=1,
+              lh="LH_D", chords=["I", "IV", "V7"], bass="lilt", bass_leap=6, chord_fingers=True, meter="6/8",
+              rhythms=["basic68", "e68"], motion=STEPS_SKIPS, tempo=50, tempo_unit="4.", tonic=D4,
+              dynamics=True, repeat_prob=0.3, **KEY_D),
+     ]},
+    {"id": 5, "title": "B-flat Major", "new": "Two flats (B-flat and E-flat); B-flat major and its chords",
+     "parts": [
+         dict(name="A", title="Right hand in B-flat major", count=8, bars=4, mode="RH",
+              rh_positions=["RH_Bb", "RH_F"], shift_prob=0.6, meter="4/4", rhythms="q_rich",
+              motion=STEPS_SKIPS, tempo=60, tonic=B4, **KEY_BB),
+         dict(name="B", title="Left hand in B-flat major", count=8, bars=4, mode="LH", lh="LH_Bb",
+              meter="4/4", rhythms="q_rich", motion=STEPS_SKIPS, tempo=60, tonic=B4, **KEY_BB),
+         dict(name="C", title="Alberti bass in B-flat major", count=10, bars=8, mode="together", rh="RH_Bb",
+              lh="LH_Bb", chords=["I", "IV", "V7"], bass="alberti", bass_leap=6, chord_fingers=True,
+              meter="4/4", rhythms=["q_rich", "dotted"], motion=STEPS_SKIPS, tempo=60, tonic=B4,
+              dynamics=True, repeat_prob=0.4, **KEY_BB),
+         dict(name="D", title="A B-flat waltz on the move", count=8, bars=8, mode="together",
+              rh_positions=["RH_F", "RH_Bb"], lh="LH_Bb", chords=["I", "IV", "V7"], bass="broken", bass_leap=6,
+              chord_fingers=True, meter="3/4", rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=72,
+              tonic=B4, artic=ART_LIGHT, repeat_prob=0.3, **KEY_BB),
+     ]},
+    {"id": 6, "title": "Accidentals", "new": "Sharps, flats and naturals inside the bar; the raised 7th in minor keys",
+     "parts": [
+         dict(name="A", title="A minor: G-sharp", count=8, bars=4, mode="together", rh="RH_A", extend=1,
+              lh="LH_A", chords=["I", "IV", "V7"], minor=True, beat_tones=True, lead_weight=20, bass="broken",
+              chord_fingers=True, meter="4/4", rhythms=["quarter", "q_rich"], motion=STEPS_SKIPS, tempo=60, tonic=A4, **KEY_AM),
+         dict(name="B", title="E minor: D-sharp", count=8, bars=8, mode="together", rh="RH_E", extend=1,
+              lh="LH_E", chords=["I", "IV", "V7"], minor=True, beat_tones=True, lead_weight=20, bass="broken", bass_leap=6, chord_fingers=True,
+              meter="3/4", rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=72, tonic=E4,
+              dynamics=True, repeat_prob=0.4, **KEY_EM),
+         dict(name="C", title="B minor: A-sharp", count=8, bars=8, mode="together", rh="RH_Bm", extend=1,
+              lh="LH_Bm", chords=["I", "IV", "V7"], minor=True, beat_tones=True, lead_weight=6, bass="alberti", bass_leap=6, chord_fingers=True,
+              meter="4/4", rhythms=["q_rich", "dotted"], motion=STEPS_SKIPS, tempo=60, tonic=B4,
+              repeat_prob=0.4, **KEY_BM),
+         dict(name="D", title="G minor: F-sharp", count=8, bars=8, mode="together", rh="RH_Gm", extend=1,
+              lh="LH_Gm", chords=["I", "IV", "V7"], minor=True, beat_tones=True, lead_weight=6, bass="lilt", bass_leap=6, chord_fingers=True,
+              meter="6/8", rhythms=["basic68", "e68"], motion=STEPS_SKIPS, tempo=50, tempo_unit="4.", tonic=G4,
+              artic=ART_LIGHT, dynamics=True, repeat_prob=0.3, **KEY_GM),
+     ]},
+    {"id": 7, "title": "Two Notes at Once", "new": "Right-hand thirds and sixths: reading two notes together",
+     "parts": [
+         dict(name="A", title="Thirds in the right hand", count=10, bars=4, mode="RH", rh="RH_C", meter="4/4",
+              rhythms="q_rich", motion=STEPS_SKIPS, tempo=56, dyads={"prob": 0.4, "intervals": (2,), "min": 2}),
+         dict(name="B", title="Thirds over broken chords", count=8, bars=8, mode="together", rh="RH_C",
+              lh="LH_C", chords=["I", "IV", "V7"], beat_tones=True, bass="broken", chord_fingers=True,
+              meter="4/4", rhythms="q_rich", motion=STEPS_SKIPS, tempo=60, dynamics=True, repeat_prob=0.4,
+              dyads={"prob": 0.4, "intervals": (2,), "min": 3}),
+         dict(name="C", title="Thirds and sixths in F major", count=8, bars=8, mode="together", rh="RH_F",
+              extend=1, lh="LH_F", chords=["I", "IV", "V7"], beat_tones=True, bass="broken", bass_leap=6,
+              chord_fingers=True, meter="3/4", rhythms=["basic", "dotted34"], motion=STEPS_SKIPS, tempo=69,
+              tonic=F4, artic=ART_LIGHT, repeat_prob=0.4,
+              dyads={"prob": 0.5, "intervals": (2, 5), "weights": {5: 4.0}, "min": 3}, **KEY_F),
+         dict(name="D", title="Two notes at once in 6/8", count=8, bars=8, mode="together", rh="RH_D",
+              extend=1, lh="LH_D", chords=["I", "IV", "V7"], beat_tones=True, bass="lilt", bass_leap=6,
+              chord_fingers=True, meter="6/8", rhythms="basic68", motion=STEPS_SKIPS, tempo=50, tempo_unit="4.",
+              tonic=D4, dynamics=True, repeat_prob=0.3, dyads={"prob": 0.45, "intervals": (2, 5), "weights": {5: 4.0}, "min": 3}, **KEY_D),
+     ]},
+    {"id": 8, "title": "Two Independent Voices", "new": "A left-hand melody against the right hand: contrary and parallel motion",
+     "parts": [
+         dict(name="A", title="A second voice in the left hand", count=10, bars=4, mode="duet", rh="RH_C",
+              lh="LH_C", meter="4/4", rhythms="q_rich", counter_rhythms="half", motion=STEPS_SKIPS, tempo=60),
+         dict(name="B", title="The tune in the left hand", count=8, bars=4, mode="duet", lead="LH", rh="RH_C",
+              lh="LH_C", meter="4/4", rhythms="q_rich", counter_rhythms="half", motion=STEPS_SKIPS, tempo=60),
+         dict(name="C", title="Two voices in 3/4", count=8, bars=8, mode="duet", rh="RH_G", lh="LH_G",
+              meter="3/4", rhythms=["basic", "dotted34"], counter_rhythms="basic", motion=STEPS_SKIPS, tempo=72,
+              tonic=G4, dynamics=True, repeat_prob=0.3, **KEY_G),
+         dict(name="D", title="Quarter against quarter", count=8, bars=8, mode="duet", rh="RH_F", lh="LH_F",
+              meter="4/4", rhythms="q_rich", counter_rhythms="q_rich", motion=STEPS_SKIPS, tempo=60, tonic=F4,
+              dynamics=True, artic=ART_LIGHT, repeat_prob=0.3, **KEY_F),
+     ]},
+    {"id": 9, "title": "Imitation", "new": "Simple counterpoint: one hand answers the other with the same tune",
+     "parts": [
+         dict(name="A", title="The left hand answers", count=10, bars=4, mode="imitate", rh="RH_C", lh="LH_C",
+              meter="4/4", rhythms="q_rich", counter_rhythms="half", motion=STEPS_SKIPS, tempo=60),
+         dict(name="B", title="Two tunes, two answers", count=8, bars=8, mode="imitate", rh="RH_G", lh="LH_G",
+              meter="4/4", rhythms="q_rich", counter_rhythms="half", motion=STEPS_SKIPS, tempo=60, tonic=G4,
+              **KEY_G),
+         dict(name="C", title="Imitation in 3/4", count=8, bars=8, mode="imitate", rh="RH_F", lh="LH_F",
+              meter="3/4", rhythms=["basic", "dotted34"], counter_rhythms="basic", motion=STEPS_SKIPS, tempo=72,
+              tonic=F4, dynamics=True, **KEY_F),
+         dict(name="D", title="Imitation in 6/8", count=8, bars=8, mode="imitate", rh="RH_D", lh="LH_D",
+              meter="6/8", rhythms="basic68", counter_rhythms="basic68", motion=STEPS_SKIPS, tempo=50,
+              tempo_unit="4.", tonic=D4, dynamics=True, **KEY_D),
+     ]},
+    {"id": 10, "title": "Review", "new": "Everything in Volume 3 together",
+     "parts": [
+         dict(name="A", title="D major: Alberti bass and thirds", count=8, bars=8, mode="together", rh="RH_D",
+              extend=1, lh="LH_D", chords=["I", "IV", "V7"], beat_tones=True, bass="alberti", bass_leap=6,
+              chord_fingers=True, meter="4/4", rhythms=["q_rich", "dotted"], motion=STEPS_SKIPS, tempo=60,
+              tonic=D4, dynamics=True, repeat_prob=0.3, dyads={"prob": 0.3, "intervals": (2,), "min": 2},
+              **KEY_D),
+         dict(name="B", title="B-flat major in 6/8", count=8, bars=8, mode="together", rh="RH_Bb", lh="LH_Bb",
+              chords=["I", "IV", "V7"], beat_tones=True, bass="lilt", bass_leap=6, chord_fingers=True,
+              meter="6/8", rhythms=["basic68", "e68"], motion=STEPS_SKIPS, tempo=50, tempo_unit="4.", tonic=B4,
+              artic=ART_LIGHT, repeat_prob=0.3, **KEY_BB),
+         dict(name="C", title="A B minor waltz", count=6, bars=8, mode="together", rh="RH_Bm", extend=1,
+              lh="LH_Bm", chords=["I", "IV", "V7"], minor=True, beat_tones=True, lead_weight=20, bass="broken",
+              bass_leap=6, chord_fingers=True, meter="3/4", rhythms=["basic", "dotted34"], motion=STEPS_SKIPS,
+              tempo=72, tonic=B4, dynamics=True, repeat_prob=0.3, **KEY_BM),
+         dict(name="D", title="Two voices, the tune below", count=6, bars=8, mode="duet", lead="LH", rh="RH_G",
+              lh="LH_G", meter="4/4", rhythms="q_rich", counter_rhythms="q_rich", motion=STEPS_SKIPS, tempo=60,
+              tonic=G4, dynamics=True, repeat_prob=0.3, **KEY_G),
+         dict(name="E", title="Imitation in B-flat major", count=6, bars=8, mode="imitate", rh="RH_Bb",
+              lh="LH_Bb", meter="3/4", rhythms=["basic", "dotted34"], counter_rhythms="basic",
+              motion=STEPS_SKIPS, tempo=72, tonic=B4, dynamics=True, **KEY_BB),
+     ]},
+]

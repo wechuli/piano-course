@@ -17,17 +17,18 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "content"))
-from units import VOLUME1, VOLUME2, POSITIONS  # noqa: E402
+from units import VOLUME1, VOLUME2, VOLUME3, POSITIONS  # noqa: E402
 
-VOLS = {1: (VOLUME1, "unit"), 2: (VOLUME2, "v2unit")}
+VOLS = {1: (VOLUME1, "unit"), 2: (VOLUME2, "v2unit"), 3: (VOLUME3, "v3unit")}
 # Largest leap allowed (in diatonic steps) by the end of each unit
 MAX_LEAP = {1: {1: 1, 2: 1, 3: 1, 4: 2, 5: 2, 6: 2, 7: 2, 8: 4, 9: 4, 10: 4},
-            2: {i: 4 for i in range(1, 11)}}
-DOTTED_HALF_FROM = {1: 3, 2: 1}
-EIGHTH_FROM = {1: 9, 2: 1}
-DOTTED_QUARTER_FROM = {1: 99, 2: 3}
-STRETCH_FROM = {1: 99, 2: 2}  # from this unit a hand may reach one key beyond its positions
-BAR = {"4/4": 8, "3/4": 6}
+            2: {i: 4 for i in range(1, 11)},
+            3: {1: 5, 2: 6, 3: 6, 4: 6, 5: 6, 6: 6, 7: 6, 8: 7, 9: 7, 10: 7}}  # Vol 3: broken chords, Alberti; octaves from Unit 8
+DOTTED_HALF_FROM = {1: 3, 2: 1, 3: 1}
+EIGHTH_FROM = {1: 9, 2: 1, 3: 1}
+DOTTED_QUARTER_FROM = {1: 99, 2: 3, 3: 1}
+STRETCH_FROM = {1: 99, 2: 2, 3: 1}  # from this unit a hand may reach one key beyond its positions
+BAR = {"4/4": 8, "3/4": 6, "6/8": 6}
 TOKEN = re.compile(r"^(R|r|[a-g](?:is|es)?)([',]*)(\d+)?(\.?)(.*)$")
 DUR8 = {"1": 8, "2": 4, "4": 2, "8": 1}
 
@@ -36,6 +37,8 @@ def parse(music):
     """Yield bars as lists of (step or None, eighths, raw)."""
     bars, cur, last = [], [], "4"
     music = re.sub(r'\\bar\s+"[^"]*"', " ", music)
+    # a two-note chord <e' g'>4 becomes one token "e'+g'4"; its notes are checked one by one
+    music = re.sub(r"(?<!\\)<([^<>\\]*)>", lambda m: "+".join(m.group(1).split()), music)
     for tok in music.replace("|", " | ").split():
         if tok == "|":
             bars.append(cur)
@@ -43,6 +46,11 @@ def parse(music):
             continue
         if tok.startswith("\\") or tok.startswith('"'):
             continue
+        others = []
+        if "+" in tok:  # chord: check every note, follow the top note for leaps
+            *low, tok = tok.split("+")
+            low = [TOKEN.match(x).groups() for x in low]
+            others = [(3 + mk.count("'") - mk.count(","), nm) for nm, mk, _, _, _ in low]
         m = TOKEN.match(tok)
         if not m:
             raise ValueError(f"cannot parse token {tok!r}")
@@ -59,6 +67,8 @@ def parse(music):
         if name == "r":
             cur.append((None, d, tok, False))
             continue
+        for octv, nm in others:
+            cur.append((octv * 7 + "cdefgab".index(nm[0]), 0, tok, "chord"))
         octave = 3 + marks.count("'") - marks.count(",")
         step = octave * 7 + "cdefgab".index(name[0])
         cur.append((step, d, tok, False))
@@ -100,6 +110,10 @@ def check_unit(unit, vol=1):
                 if total != L:
                     problems.append(f"{pc['title']} {staff} bar {b}: {total} eighths, expected {L}")
                 for step, d, raw, full in bar:
+                    if full == "chord":  # lower note of a two-note chord: range check only
+                        if not pc.get("allow_range") and not any(lo <= step <= hi for lo, hi in ranges[hand]):
+                            problems.append(f"{pc['title']} {staff} bar {b}: {raw} outside this unit's {hand} positions")
+                        continue
                     if full:
                         prev = None  # hand re-enters later; no leap check across silence
                         continue
@@ -133,7 +147,11 @@ if __name__ == "__main__":
     bad = 0
     for uid in ids:
         unit = next(u for u in units if u["id"] == uid)
-        probs = check_unit(unit, vol)
+        try:
+            probs = check_unit(unit, vol)
+        except ModuleNotFoundError:
+            print(f"Unit {uid}: not written yet")
+            continue
         print(f"Unit {uid}: {'OK' if not probs else str(len(probs)) + ' problem(s)'}")
         for p in probs:
             print("   ", p)

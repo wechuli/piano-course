@@ -11,11 +11,17 @@ import math
 import random
 
 from units import POSITIONS, R44, R34, CADENCE44, CADENCE34, FINAL44, FINAL34
+from units import CHORDS, CHORD_ORDER, CHORD_MOVES, BASS_PATTERNS, CHORD_MAX_LEAP
+from units import R68, CADENCE68, FINAL68
 
 NAMES = "cdefgab"
-BAR_LEN = {"4/4": 8, "3/4": 6}
+BAR_LEN = {"4/4": 8, "3/4": 6, "6/8": 6}
 DUR = {8: "1", 6: "2.", 4: "2", 3: "4.", 2: "4", 1: "8"}
-FULL_REST = {"4/4": "R1", "3/4": "R2."}
+FULL_REST = {"4/4": "R1", "3/4": "R2.", "6/8": "R2."}
+RHYTHMS = {"4/4": (R44, CADENCE44, FINAL44), "3/4": (R34, CADENCE34, FINAL34), "6/8": (R68, CADENCE68, FINAL68)}
+STRONG = {"4/4": (0, 4), "3/4": (0,), "6/8": (0, 3)}  # strong beats, in eighths from the bar line
+CONSONANT = (0, 2, 4, 5)  # between two voices: octave/unison, third, fifth, sixth (diatonic steps mod 7)
+COUNTER_MOTION = {0: 1.0, 1: 4.0, 2: 3.0, 3: 1.2, 4: 1.2}
 DEFAULT_SHIFT_MOTION = {0: 1.0, 1: 3.0, 2: 3.0, 3: 2.0, 4: 1.5}
 DYN_LEVELS = ["p", "mp", "mf", "f"]
 
@@ -36,6 +42,23 @@ def pc(step):
 
 def tonic_pc(part):
     return pc(part.get("tonic", 28))
+
+
+def raised_pitch(step, key_acc=None):
+    """The note one half step above its key-signature spelling (the raised 7th in a minor key)."""
+    name = NAMES[step % 7]
+    acc = (key_acc or {}).get(name, "")
+    up = {"es": "", "": "is", "is": "isis"}[acc]
+    n = step // 7 - 3
+    return name + up + ("'" * n if n > 0 else "," * (-n))
+
+
+def note_name(part, ex, b, step, key_acc):
+    """LilyPond name of a note in bar b; in a minor key the leading note is raised in V7 bars."""
+    if (part.get("minor") and ex.get("chords") and ex["chords"][b] == "V7"
+            and pc(step) == (tonic_pc(part) + 6) % 7):
+        return raised_pitch(step, key_acc)
+    return lily_pitch(step, key_acc)
 
 
 # ---------------------------------------------------------------- positions
@@ -64,13 +87,16 @@ def hand_options(part, hand):
 
 
 # ---------------------------------------------------------------- rhythm
+def rhythm_vocab(part, key="rhythms"):
+    table = RHYTHMS[part["meter"]][0]
+    keys = part[key] if isinstance(part[key], list) else [part[key]]
+    return [bar for k in keys for bar in table[k]]
+
+
 def gen_rhythm(part, rng):
     meter = part["meter"]
-    table = R44 if meter == "4/4" else R34
-    keys = part["rhythms"] if isinstance(part["rhythms"], list) else [part["rhythms"]]
-    vocab = [bar for k in keys for bar in table[k]]
-    cad = CADENCE44 if meter == "4/4" else CADENCE34
-    fin = FINAL44 if meter == "4/4" else FINAL34
+    vocab = rhythm_vocab(part)
+    table, cad, fin = RHYTHMS[meter]
     n = part["bars"]
     bars = [list(rng.choice(vocab)) for _ in range(n)]
     if n == 8:
@@ -90,6 +116,8 @@ def hand_plan(part, rng):
         return ["RH"] * n
     if mode == "LH":
         return ["LH"] * n
+    if mode == "duet":
+        return [part.get("lead", "RH")] * n
     # alt: two-bar segments, alternating, random starting hand
     first = rng.choice(["RH", "LH"])
     other = "LH" if first == "RH" else "RH"
@@ -135,8 +163,10 @@ def shift_into(prev, lo, hi):
 
 
 # ---------------------------------------------------------------- melody
-def gen_melody(part, bars, hands, plan, repeat, rng):
-    """Depth-first search for a melody that satisfies all constraints."""
+def gen_melody(part, bars, hands, plan, repeat, rng, chords=None, end_ok=None):
+    """Depth-first search for a melody that satisfies all constraints.
+    With a chord plan, the first note of each bar and every long note belong to the bar's chord.
+    end_ok: pitch classes the last note may have (default: the tonic only)."""
     motion = part["motion"]
     shift_motion = part.get("shift_motion", DEFAULT_SHIFT_MOTION)
     t = tonic_pc(part)
@@ -156,6 +186,12 @@ def gen_melody(part, bars, hands, plan, repeat, rng):
     cad_ok = {(t + 1) % 7, (t + 2) % 7, (t + 4) % 7}
 
     mel = [None] * n
+    if chords:
+        lead = (t + 6) % 7
+        tones = [{(t + x) % 7 for x in CHORDS[c]["tones"]} for c in chords]
+        bar_start = [k for k, (b, i) in enumerate(slots) if i == 0]
+        bass = [chord_notes(part, c)[0] for c in chords]
+        onset = [sum(bars[b][:i]) for b, i in slots]
 
     def where(k):
         b = slots[k][0]
@@ -191,6 +227,8 @@ def gen_melody(part, bars, hands, plan, repeat, rng):
             w = table[iv]
             if direction and (s - prev) * direction > 0:
                 w *= 1.6  # keep going the same way: produces scale fragments
+            if chords and part.get("lead_weight") and chords[slots[k][0]] == "V7" and pc(s) == lead:
+                w *= part["lead_weight"]  # favour the (raised) leading note in V7 bars
             weighted.append((s, w))
         order = []
         pool = weighted[:]
@@ -209,10 +247,25 @@ def gen_melody(part, bars, hands, plan, repeat, rng):
     def ok(k, s):
         if k >= 3 and mel[k - 1] == mel[k - 2] == mel[k - 3] == s:
             return False
-        if k == last_idx and pc(s) != t:
+        if k == last_idx and pc(s) not in (end_ok or {t}):
             return False
         if k == cad_idx and pc(s) not in cad_ok:
             return False
+        if chords:
+            b, i = slots[k]
+            if (i == 0 or bars[b][i] >= 4) and pc(s) not in tones[b]:
+                return False
+            if part.get("beat_tones") and onset[k] in STRONG[part["meter"]] and pc(s) not in tones[b]:
+                return False  # chord tones on every strong beat (beats 1 and 3, or both beats of 6/8)
+            if i == 0 and chords[b] == "V7" and pc(s) == lead:
+                return False  # the bass already has the leading note
+            if i == 0 and b > 0:
+                m1, b1 = mel[bar_start[b - 1]], bass[b - 1]
+                if m1 != s and b1 != bass[b] and (m1 - b1) % 7 == (s - bass[b]) % 7 in (0, 4):
+                    return False  # parallel octaves or fifths
+            if part.get("minor") and chords[b] == "V7" and i > 0 and abs(s - mel[k - 1]) == 1:
+                if {pc(s), pc(mel[k - 1])} == {(t + 5) % 7, lead}:
+                    return False  # no augmented second (F to G-sharp in A minor)
         return True
 
     budget = [20000]
@@ -276,6 +329,382 @@ def gen_bass(part, bars, melody):
     return out
 
 
+# ---------------------------------------------------------------- chord bass (Volume 3)
+def chord_notes(part, name):
+    """The three notes of a chord shape, low to high, built on the LH position's lowest note."""
+    root = POSITIONS[part["lh"]]["low"]
+    return [root + x for x in CHORDS[name]["voicing"]]
+
+
+def chord_fingers(notes):
+    """LH fingers for a three-note shape: 5 on the bottom, 1 on top, 3 or 2 in the middle."""
+    return [5, 3 if notes[1] - notes[0] == 2 else 2, 1]
+
+
+def chord_leap_ok(part, a, b):
+    """Can the hand get from the end of chord a's pattern to the start of chord b's?"""
+    _, idx = BASS_PATTERNS[(part["bass"], part["meter"])]
+    return abs(chord_notes(part, b)[idx[0]] - chord_notes(part, a)[idx[-1]]) <= part.get("bass_leap", CHORD_MAX_LEAP)
+
+
+def gen_chord_plan(part, n, repeat, rng):
+    """One chord per bar, chosen before the melody. Starts on I, ends V7-I; in 8 bars,
+    bar 4 is a half close (V7) or a full close (I). Only called for parts with 'chords'."""
+    allowed = [c for c in CHORD_ORDER if c in part["chords"]]
+    for _ in range(100):
+        plan = ["I"]
+        for b in range(1, n):
+            if b == n - 1:
+                opts = ["I"]
+            elif b == n - 2:
+                opts = ["V7"]
+            elif n == 8 and b == 3:
+                opts = ["V7", "I"]
+            elif repeat and b in (4, 5):
+                opts = [plan[b - 4]]
+            else:
+                opts = allowed
+            opts = [c for c in opts if c in CHORD_MOVES[plan[-1]] and chord_leap_ok(part, plan[-1], c)]
+            if not opts:
+                break
+            w = [CHORD_MOVES[plan[-1]][c] for c in opts]
+            plan.append(rng.choices(opts, w)[0])
+        if len(plan) == n and all(c in plan for c in part.get("require_chords", ())):
+            return plan
+    raise RuntimeError(f"no chord plan for part {part['name']}")
+
+
+def gen_chord_bass(part, bars, chords):
+    """Left-hand broken chords. Returns (bars of (dur, step), {(bar, note): finger})."""
+    L = BAR_LEN[part["meter"]]
+    durs, idx = BASS_PATTERNS[(part["bass"], part["meter"])]
+    out, fingers = [], {}
+    n = len(bars)
+    for b, name in enumerate(chords):
+        notes = chord_notes(part, name)
+        fing = chord_fingers(notes)
+        if b == n - 1:
+            out.append([(L, notes[0])])
+        else:
+            out.append([(d, notes[i]) for d, i in zip(durs, idx)])
+        if b == 0 or (part.get("chord_fingers") and name != chords[b - 1]):
+            fingers[(b, 0)] = fing[0] if b == n - 1 else fing[idx[0]]
+    return out, fingers
+
+
+def validate_chords(part, ex):
+    """Extra rules for a broken-chord bass under the melody."""
+    t = tonic_pc(part)
+    chords, mel, lh = ex["chords"], ex["melody"], ex["lh_bars"]
+    n = len(chords)
+    lead = (t + 6) % 7
+    flat = [s for bar in lh for _, s in bar]
+    for a, c in zip(flat, flat[1:]):
+        assert abs(a - c) <= part.get("bass_leap", CHORD_MAX_LEAP), "bass leap too large"
+    tops = []
+    for b in range(n):
+        notes = chord_notes(part, chords[b])
+        assert all(s in notes for _, s in lh[b]), "bass note outside its chord"
+        top = mel[b][0]
+        tones = {(t + x) % 7 for x in CHORDS[chords[b]]["tones"]}
+        assert top is None or pc(top) in tones, "beat 1 of the melody must belong to the chord"
+        if chords[b] == "V7":
+            assert top is None or pc(top) != lead, "leading note doubled"
+        tops.append((top, lh[b][0][1]))
+    for (m1, b1), (m2, b2) in zip(tops, tops[1:]):
+        if None in (m1, m2) or m1 == m2 or b1 == b2:
+            continue
+        i1, i2 = (m1 - b1) % 7, (m2 - b2) % 7
+        assert not (i1 == i2 and i1 in (0, 4)), "parallel octaves or fifths between the hands"
+    used = set(chords[:-1])
+    assert len(used) >= 2, "too few chords"
+    for c in part.get("require_chords", ()):
+        assert c in used, f"chord {c} missing"
+
+
+def add_dyads(part, bars, mel, hands, plan, chords, ties, repeat, rng):
+    """Right-hand two-note chords: a third (or sixth) below some melody notes.
+    Returns {(bar, note index): lower step}. Only called for parts with 'dyads'."""
+    cfg = part["dyads"]
+    t = tonic_pc(part)
+    out = {}
+    tied = {(b, len(bars[b]) - 1) for b in ties} | {(b + 1, 0) for b in ties}
+    for b, bar in enumerate(bars):
+        if hands[b] != "RH":
+            continue
+        if repeat and b in (4, 5):
+            out.update({(b, i): lo for (bb, i), lo in out.items() if bb == b - 4})
+            continue
+        lo_pos, _ = pos_range(part, plan["RH"][b])
+        for i, d in enumerate(bar):
+            s = mel[b][i]
+            if s is None or d < cfg.get("min_dur", 2) or (b, i) in tied or rng.random() >= cfg["prob"]:
+                continue
+            opts = []
+            for iv in cfg.get("intervals", (2,)):
+                low = s - iv
+                if low < lo_pos:
+                    continue
+                if chords:
+                    tones = {(t + x) % 7 for x in CHORDS[chords[b]]["tones"]}
+                    if pc(low) not in tones or pc(s) not in tones:
+                        continue
+                    if chords[b] == "V7" and pc(low) == (t + 6) % 7:
+                        continue  # the bass has the leading note
+                opts.append(low)
+            if opts:
+                w = [cfg.get("weights", {}).get(s - low, 1.0) for low in opts]
+                out[(b, i)] = rng.choices(opts, w)[0]
+    return out
+
+
+def counter_rhythm(part, n, repeat, rng):
+    """Rhythm for the second voice: from part['counter_rhythms'], cadence in bar 4 of 8, long last bar."""
+    vocab = rhythm_vocab(part, "counter_rhythms")
+    table, cad, fin = RHYTHMS[part["meter"]]
+    bars = [list(rng.choice(vocab)) for _ in range(n)]
+    if n == 8:
+        bars[3] = list(rng.choice(cad))
+    bars[-1] = list(rng.choice(fin))
+    if repeat:
+        bars[4], bars[5] = list(bars[0]), list(bars[1])
+    return bars
+
+
+def timed(bars, notes, start=0):
+    """[(start, duration, step)] in eighths for a run of bars."""
+    out, pos = [], start
+    for r, m in zip(bars, notes):
+        for d, x in zip(r, m):
+            out.append((pos, d, x))
+            pos += d
+    return out
+
+
+def gen_counter(part, hand, main, rbars, positions, rng, prev=None, start_pcs=None, end_pcs=None,
+                copy=None):
+    """A second voice for `hand` against a fixed line `main` ([(start, dur, step)], eighths from the
+    first counter bar). Every attack is consonant with the other voice (3rds, 6ths, 5ths, 8ves);
+    a note the other voice moves to while this one holds may be a passing note on a weak beat.
+    No parallel 5ths or 8ves; contrary motion is preferred. Returns notes per bar, or None."""
+    L = BAR_LEN[part["meter"]]
+    strong = STRONG[part["meter"]]
+    upper = hand == "RH"
+    motion = part.get("counter_motion", COUNTER_MOTION)
+    slots = []
+    for b, r in enumerate(rbars):
+        pos = b * L
+        for i, d in enumerate(r):
+            slots.append((b, i, pos, d))
+            pos += d
+    n = len(slots)
+    idx_of = {(b, i): k for k, (b, i, _, _) in enumerate(slots)}
+    forced = {}
+    for dst, src in (copy or {}).items():
+        for i in range(len(rbars[dst])):
+            forced[idx_of[(dst, i)]] = idx_of[(src, i)]
+    mains = [x for _, _, x in main]
+
+    def main_at(t0):
+        for j, (a, d, x) in enumerate(main):
+            if a <= t0 < a + d:
+                return j, x
+        return None, None
+
+    def interval_ok(c, m):
+        if m is None:
+            return True
+        if (upper and c <= m) or (not upper and c >= m):
+            return False  # the voices never cross or meet
+        return abs(c - m) % 7 in CONSONANT
+
+    def passing(j):
+        return 0 < j < len(mains) - 1 and abs(mains[j] - mains[j - 1]) == 1 and abs(mains[j + 1] - mains[j]) == 1
+
+    cnt = [None] * n
+    budget = [6000]
+
+    def ok(k, c):
+        b, i, a, d = slots[k]
+        j, m = main_at(a)
+        if not interval_ok(c, m):
+            return False
+        for jj, (a2, d2, m2) in enumerate(main):  # the other voice moves while this note holds
+            if a < a2 < a + d and not interval_ok(c, m2):
+                if (a2 % L) in strong or not passing(jj):
+                    return False
+        if k == 0 and start_pcs is not None and pc(c) not in start_pcs:
+            return False
+        if k == n - 1 and end_pcs is not None and pc(c) not in end_pcs:
+            return False
+        if k >= 2 and cnt[k - 1] == cnt[k - 2] == c:
+            return False
+        if k >= 1 and m is not None:
+            pa = slots[k - 1][2]
+            _, pm = main_at(pa)
+            pc_ = cnt[k - 1]
+            if pm is not None and pc_ != c and pm != m and abs(c - m) % 7 == abs(pc_ - pm) % 7 in (0, 4):
+                return False  # parallel octaves or fifths
+        return True
+
+    def candidates(k):
+        b, i, a, d = slots[k]
+        lo, hi = pos_range(part, positions[b])
+        if k in forced:
+            v = cnt[forced[k]]
+            return [v] if lo <= v <= hi else []
+        last = cnt[k - 1] if k else prev
+        _, m = main_at(a)
+        weighted = []
+        for c in range(lo, hi + 1):
+            w = 1.0
+            if last is not None:
+                iv = abs(c - last)
+                if iv not in motion:
+                    continue
+                w = motion[iv]
+                if k:
+                    _, pm = main_at(slots[k - 1][2])
+                    if m is not None and pm is not None:
+                        dm, dc = (m > pm) - (m < pm), (c > last) - (c < last)
+                        w *= 2.0 if dm * dc < 0 else (1.2 if dm * dc == 0 else 1.0)
+            if m is not None and abs(c - m) % 7 in (2, 5):
+                w *= 1.5  # thirds and sixths sound fullest
+            weighted.append((c, w))
+        order = []
+        while weighted:
+            tot = sum(w for _, w in weighted)
+            r, acc = rng.random() * tot, 0
+            for j, (c, w) in enumerate(weighted):
+                acc += w
+                if r <= acc:
+                    order.append(c)
+                    weighted.pop(j)
+                    break
+        return order
+
+    def dfs(k):
+        budget[0] -= 1
+        if budget[0] < 0:
+            return False
+        if k == n:
+            return True
+        for c in candidates(k):
+            if ok(k, c):
+                cnt[k] = c
+                if dfs(k + 1):
+                    return True
+        cnt[k] = None
+        return False
+
+    if not dfs(0):
+        return None
+    out, k = [], 0
+    for r in rbars:
+        out.append(cnt[k:k + len(r)])
+        k += len(r)
+    return out
+
+
+def make_duet(part, bars, mel, plan, repeat, rng):
+    """Mode 'duet': the lead hand plays the melody, the other hand a counter-melody."""
+    t = tonic_pc(part)
+    lead = part.get("lead", "RH")
+    other = "LH" if lead == "RH" else "RH"
+    n = len(bars)
+    rbars = counter_rhythm(part, n, repeat, rng)
+    starts = {t} if other == "LH" else {t, (t + 2) % 7, (t + 4) % 7}
+    cnt = gen_counter(part, other, timed(bars, mel), rbars, plan[other], rng, start_pcs=starts,
+                      end_pcs={t}, copy={4: 0, 5: 1} if repeat else None)
+    if cnt is None:
+        return None
+    lead_bars = [list(zip(r, m)) for r, m in zip(bars, mel)]
+    other_bars = [list(zip(r, m)) for r, m in zip(rbars, cnt)]
+    return (lead_bars, other_bars) if lead == "RH" else (other_bars, lead_bars)
+
+
+def transpose_into(notes, lo, hi):
+    """Move a line by whole octaves so it fits lo..hi, or None."""
+    flat = [x for bar in notes for x in bar]
+    for k in range(-3, 4):
+        if all(lo <= x + 7 * k <= hi for x in flat):
+            return [[x + 7 * k for x in bar] for bar in notes]
+    return None
+
+
+def make_imitation(part, rng):
+    """Mode 'imitate': the right hand plays a two-bar tune, then the left hand plays it an octave
+    (or two) lower while the right hand adds a counter-melody. Eight bars do this twice, with the
+    left hand's counter-melody under the second tune. Returns (rh_bars, lh_bars, melody) or None."""
+    t = tonic_pc(part)
+    n = part["bars"]
+    vocab = rhythm_vocab(part)
+    _, cad, fin = RHYTHMS[part["meter"]]
+    rh, lh = part["rh"], part["lh"]
+    sub = dict(part, bars=2)
+    one = {"RH": [rh, rh], "LH": [lh, lh]}
+    llo, lhi = pos_range(part, lh)
+    L = BAR_LEN[part["meter"]]
+
+    def tune(last_bar, end_ok):
+        r = [list(rng.choice(vocab)), list(rng.choice(last_bar))]
+        m = gen_melody(sub, r, ["RH", "RH"], one, False, rng, end_ok=end_ok)
+        if m is None or len({x for bar in m for x in bar}) < 3:
+            return None, None, None
+        low = transpose_into(m, llo, lhi)
+        return (r, m, low) if low else (None, None, None)
+
+    def counter(hand, r_main, m_main, prev, end_pcs, last_fin):
+        rb = [list(rng.choice(rhythm_vocab(part, "counter_rhythms"))), list(rng.choice(last_fin))]
+        c = gen_counter(part, hand, timed(r_main, m_main), rb, [part["rh" if hand == "RH" else "lh"]] * 2,
+                        rng, prev=prev, end_pcs=end_pcs)
+        flat = [x for bar in c or [] for x in bar]
+        if not c or len(set(flat)) < min(3, len(flat)):
+            return None, None  # a counter-melody that only repeats one note is no melody
+        return rb, c
+
+    if n == 4:
+        ra, ma, la = tune(cad, {t})
+        if ma is None:
+            return None
+        rc, mc = counter("RH", ra, la, ma[-1][-1], {t}, cad)
+        if mc is None:
+            return None
+        rh_bars = [list(zip(r, m)) for r, m in zip(ra + rc, ma + mc)]
+        lh_bars = [None, None] + [list(zip(r, m)) for r, m in zip(ra, la)]
+        return rh_bars, lh_bars, ma + mc
+    ra, ma, la = tune(cad, {t, (t + 2) % 7, (t + 4) % 7})
+    if ma is None:
+        return None
+    rc, mc = counter("RH", ra, la, ma[-1][-1], {(t + 1) % 7, (t + 2) % 7, (t + 4) % 7}, cad)
+    if mc is None:
+        return None
+    rb_, mb, lb = tune(cad, {t})
+    if mb is None or abs(mb[0][0] - mc[-1][-1]) > 4:
+        return None
+    rd, md = counter("LH", rb_, mb, la[-1][-1], None, cad)
+    if md is None:
+        return None
+    re_, me = counter("RH", rb_, lb, mb[-1][-1], {t}, fin)
+    if me is None:
+        return None
+    rh_r, rh_m = ra + rc + rb_ + re_, ma + mc + mb + me
+    lh_r, lh_m = ra + rd + rb_, la + md + lb
+    rh_bars = [list(zip(r, m)) for r, m in zip(rh_r, rh_m)]
+    lh_bars = [None, None] + [list(zip(r, m)) for r, m in zip(lh_r, lh_m)]
+    return rh_bars, lh_bars, rh_m
+
+
+def validate_voices(part, ex):
+    """Duet and imitation: both hands end on the tonic, enough variety, consonant last chord."""
+    t = tonic_pc(part)
+    for staff in ("rh_bars", "lh_bars"):
+        notes = [x for bar in ex[staff] if bar for _, x in bar]
+        assert pc(notes[-1]) == t, "each hand must end on the tonic"
+        assert len(set(notes)) >= 3, "too little variety"
+    assert ex["rh_bars"][-1][-1][1] > ex["lh_bars"][-1][-1][1], "hands cross"
+
+
 # ---------------------------------------------------------------- validation
 def validate(part, ex):
     meter = part["meter"]
@@ -290,12 +719,18 @@ def validate(part, ex):
         for b, bar in enumerate(ex[staff]):
             if bar is None:
                 continue
+            if hand == "LH" and part.get("chords"):
+                continue  # broken-chord bass: checked by validate_chords
             pkey = part["lh"] if (hand == "LH" and part["mode"] == "together") else plan[hand][b]
             lo, hi = pos_range(part, pkey)
             for _, s in bar:
                 if s is None:
                     continue
                 assert lo <= s <= hi, f"{hand} note out of position: {s}"
+    if part["mode"] in ("duet", "imitate"):
+        validate_voices(part, ex)
+        if part["mode"] == "imitate":
+            return
     flat = [(s, ex["hands"][b], plan[ex["hands"][b]][b]) for b, bar in enumerate(ex["melody"]) for s in bar]
     shift_motion = part.get("shift_motion", DEFAULT_SHIFT_MOTION)
     for (a, ha, pa), (c, hc, pc_) in zip(flat, flat[1:]):
@@ -308,6 +743,10 @@ def validate(part, ex):
     assert len(set(sounding)) >= (4 if part["bars"] == 8 else 3), "too little variety"
     for b in ex.get("ties", ()):
         assert ex["melody"][b][-1] == ex["melody"][b + 1][0] is not None, "tie must join equal pitches"
+    if part.get("chords"):
+        validate_chords(part, ex)
+    if part.get("dyads"):
+        assert len(ex["dyads"]) >= part["dyads"].get("min", 2), "too few two-note chords"
 
 
 def add_ties(part, mel, hands, plan, repeat, rng):
@@ -420,7 +859,22 @@ def make_exercise(part, rng):
         bars, repeat = gen_rhythm(part, rng)
         hands = hand_plan(part, rng)
         plan = position_plan(part, repeat, rng)
-        mel = gen_melody(part, bars, hands, plan, repeat, rng)
+        chords = gen_chord_plan(part, len(bars), repeat, rng) if part.get("chords") else None
+        if part["mode"] == "imitate":
+            plan = position_plan(part, False, rng)
+            got = make_imitation(part, rng)
+            if got is None:
+                continue
+            rh_bars, lh_bars, mel = got
+            ex = {"rh_bars": rh_bars, "lh_bars": lh_bars, "melody": mel, "hands": ["RH"] * len(rh_bars),
+                  "plan": plan, "repeat": False, "ties": set(), "artic": {},
+                  "dyn": add_dynamics(part, len(rh_bars), rng)}
+            try:
+                validate(part, ex)
+            except AssertionError:
+                continue
+            return ex
+        mel = gen_melody(part, bars, hands, plan, repeat, rng, chords)
         if mel is None:
             continue
         ties = add_ties(part, mel, hands, plan, repeat, rng)
@@ -436,10 +890,21 @@ def make_exercise(part, rng):
             else:
                 lh_bars.append(notes)
                 rh_bars.append(None)
-        if part["mode"] == "together":
+        extra = {}
+        if part["mode"] == "together" and part.get("chords"):
+            lh_bars, extra["lh_fingers"] = gen_chord_bass(part, bars, chords)
+            extra["chords"] = chords
+        elif part["mode"] == "together":
             lh_bars = gen_bass(part, bars, mel)
+        elif part["mode"] == "duet":
+            got = make_duet(part, bars, mel, plan, repeat, rng)
+            if got is None:
+                continue
+            rh_bars, lh_bars = got
+        if part.get("dyads"):
+            extra["dyads"] = add_dyads(part, bars, mel, hands, plan, chords, ties, repeat, rng)
         ex = {"rh_bars": rh_bars, "lh_bars": lh_bars, "melody": mel, "hands": hands,
-              "plan": plan, "repeat": repeat, "ties": ties, "artic": artic, "dyn": dyn}
+              "plan": plan, "repeat": repeat, "ties": ties, "artic": artic, "dyn": dyn, **extra}
         try:
             validate(part, ex)
         except AssertionError:
@@ -451,6 +916,8 @@ def make_exercise(part, rng):
 def signature(ex):
     def key(bars):
         return tuple(tuple(b) if b else None for b in bars)
+    if ex.get("dyads"):
+        return (key(ex["rh_bars"]), key(ex["lh_bars"]), tuple(sorted(ex["dyads"].items())))
     return (key(ex["rh_bars"]), key(ex["lh_bars"]))
 
 
@@ -479,6 +946,8 @@ def staff_music(part, ex, hand, key_acc, melody_hand=True):
     together_bass = hand == "LH" and part["mode"] == "together"
     artic = ex.get("artic", {}) if melody_hand else {}
     dyn = ex.get("dyn", {}) if melody_hand else {}
+    fingers = ex.get("lh_fingers") if together_bass else None  # chord bass: fingers chosen per shape
+    dyads = ex.get("dyads", {}) if melody_hand else {}
     n = len(bars)
 
     # Build per-note tokens first, then add slurs/staccato by two-bar segment.
@@ -498,7 +967,10 @@ def staff_music(part, ex, hand, key_acc, melody_hand=True):
             suf = []
             if j == 0 and b in dyn:
                 suf.append(dyn[b])
-            if s is not None and not marked and (prev_none or new_pos):
+            if fingers is not None:
+                if (b, j) in fingers:
+                    suf.insert(0, "_" + str(fingers[(b, j)]))
+            elif s is not None and not marked and (prev_none or new_pos):
                 suf.insert(0, ("^" if hand == "RH" else "_") + str(finger_for(part, pkey, s)))
                 marked = True
             if s is not None and b in ties and j == len(bar) - 1 and melody_hand:
@@ -530,6 +1002,11 @@ def staff_music(part, ex, hand, key_acc, melody_hand=True):
                 toks.append(FULL_REST[meter])
             elif s is None:
                 toks.append("r" + DUR[d] + "".join(suf))
+            elif (cb, j) in dyads:
+                pair = note_name(part, ex, cb, dyads[(cb, j)], key_acc) + " " + note_name(part, ex, cb, s, key_acc)
+                toks.append("<" + pair + ">" + DUR[d] + "".join(suf))
+            elif part.get("minor"):
+                toks.append(note_name(part, ex, cb, s, key_acc) + DUR[d] + "".join(suf))
             else:
                 toks.append(lily_pitch(s, key_acc) + DUR[d] + "".join(suf))
         toks.append("|")
@@ -542,14 +1019,21 @@ def lily_exercise(part, ex, label):
     meter = part["meter"]
     key = part.get("key", "c \\major")
     key_acc = part.get("key_acc")
-    rh = staff_music(part, ex, "RH", key_acc)
-    lh = staff_music(part, ex, "LH", key_acc, melody_hand=part["mode"] != "together")
+    rh_mel, lh_mel = True, part["mode"] != "together"
+    if part["mode"] == "duet":
+        rh_mel = part.get("lead", "RH") == "RH"
+        lh_mel = not rh_mel
+    elif part["mode"] == "imitate":
+        lh_mel = False
+    rh = staff_music(part, ex, "RH", key_acc, melody_hand=rh_mel)
+    lh = staff_music(part, ex, "LH", key_acc, melody_hand=lh_mel)
+    acc = "\\accidentalStyle modern " if part.get("minor") else ""  # a natural sign after a raised 7th
     return f"""
 \\score {{
   \\header {{ piece = \\markup \\exLabel "{label}" }}
   \\new PianoStaff <<
-    \\new Staff = "up" {{ \\autoLineBreaksOff \\clef treble \\key {key} \\time {meter} {rh} \\bar "|." }}
-    \\new Staff = "down" {{ \\clef bass \\key {key} \\time {meter} {lh} \\bar "|." }}
+    \\new Staff = "up" {{ \\autoLineBreaksOff \\clef treble \\key {key} \\time {meter} {acc}{rh} \\bar "|." }}
+    \\new Staff = "down" {{ \\clef bass \\key {key} \\time {meter} {acc}{lh} \\bar "|." }}
   >>
   \\layout {{ }}
 }}
