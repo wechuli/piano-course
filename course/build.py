@@ -545,7 +545,8 @@ def piece_score_v6(pc_):
         code = (f'\\new Staff = "{st["name"]}" {{ {auto}\\clef {V6_CLEFS[st.get("clef", "treble")]} '
                 f"\\key {pkey} {tpre}{tsig}{pre}{music}{endbar} }}")
         if st.get("lyrics"):
-            code += f" \\addlyrics {{ {st['lyrics']} }}"
+            code += (" \\addlyrics \\with { \\override VerticalAxisGroup.nonstaff-unrelatedstaff-spacing.padding = #1.5 }"
+                     f" {{ {st['lyrics']} }}")
         (solo_codes if st.get("solo") else group_codes).append(code)
     body = (f"\\new {V6_GROUPS[pc_.get('group', 'piano')]} <<\n    "
             + "\n    ".join(group_codes) + "\n  >>")
@@ -653,6 +654,8 @@ def unit_pages(unit, vol=1):
   {para('Pieces are for playing more than once. Read each one first without stopping, like an exercise; then practise it until it sounds steady and musical.', 0)}
   \\vspace #0.5
 }}""")
+    if vol >= 6:
+        out.append("\\noPageBreak")  # keep the heading with the first piece
     for pc_ in content.PIECES:
         if vol >= 6:
             out.append(piece_score_v6(pc_))

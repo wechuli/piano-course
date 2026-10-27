@@ -356,6 +356,34 @@ def test_big():
     return scores
 
 
+def test_songs():
+    """Unit 6 (plan feature 7): a singer's line above the piano, intro, interlude, doubling."""
+    scores = []
+    block = dict(name="A", title="Block", count=2, bars=8, meter="4/4", texture="song", accomp="block",
+                 rhythms=["basic"], tempo=72, key=("f", "major"))
+    intro = dict(block, bars=11, meter="3/4", accomp="afterbeat", intro=2, interlude=1, key=("d", "major"))
+    arp = dict(intro, meter="4/4", accomp="arpeggio", key=("g", "minor"))
+    dbl = dict(block, bars=9, interlude=1, double_tune=True, key=("e", "minor"))
+    for part in (block, intro, arp, dbl):
+        for k, ex in enumerate(gen6.generate_part(dict(part), random.Random(6006), set())):
+            code = gen6.lily_exercise(part, ex, f"99.S{k}")[0]
+            voice = ex["voice"]
+            notes = [e for bar in voice for e in bar if e["n"]]
+            assert code.count(" la") == len(notes), "one neutral syllable per sung note"
+            sung = [gen5.midi(e["n"][0]) for e in notes]
+            assert max(sung) - min(sung) <= 14, "a singable range"
+            assert len(voice) == part["bars"] and len(ex["rh"][0]) == part["bars"]
+            if part.get("intro"):
+                assert not any(e["n"] for bar in voice[:2] for e in bar), "the piano introduction"
+            if part is dbl:
+                tops = {gen5.midi(max(e["n"], key=gen5.midi)) for bar in ex["rh"][0] for e in bar if e["n"]}
+                assert sum(m in tops for m in sung) >= 4, "the piano doubles the tune"
+            assert "\\addlyrics" in code and "Voice" in code
+            scores.append(code)
+    print("songs: block, after-beat, arpeggio, intro, interlude, doubling     OK")
+    return scores
+
+
 if __name__ == "__main__":
     test_passthrough()
     exs, scores = test_open_score()
@@ -368,6 +396,7 @@ if __name__ == "__main__":
     scores += test_meters()
     scores += test_harmony()
     scores += test_big()
+    scores += test_songs()
     test_build_compiles(scores)
     test_checker()
     print("OK")

@@ -1700,6 +1700,149 @@ def make_unit5(part, rng):
     raise RuntimeError(f"could not generate exercise for part {part['name']}")
 
 
+
+# ---------------------------------------------------------------- accompanying (Unit 6)
+# Feature 7. `texture: "song"`: a singer's line on a solo staff above the piano, sung to "la"
+# (neutral syllables only), with an accompaniment from the chord plan:
+#   accomp "block"     right-hand chords on every beat, the bass in long notes
+#   accomp "afterbeat" bass on the strong beats, right-hand chords on the others
+#   accomp "arpeggio"  right-hand broken chords in eighths over a long bass
+# `intro: 2` adds two bars of piano before the voice enters and `interlude: 1` a bar of piano
+# between the phrases; `double_tune: True` makes the piano's right hand double the singer's tune
+# in alternate two-bar groups. The voice rests for a quarter at the end of each phrase.
+SONG_ACC = {
+    ("block", "4/4"): (["4", "4", "4", "4"], [1, 1, 1, 1], ["2", "2"]),
+    ("block", "3/4"): (["4", "4", "4"], [1, 1, 1], ["2."]),
+    ("afterbeat", "4/4"): (["4", "4", "4", "4"], [0, 1, 0, 1], ["4", "4", "4", "4"]),
+    ("afterbeat", "3/4"): (["4", "4", "4"], [0, 1, 1], ["4", "4", "4"]),
+}
+
+
+def acc_chord(key, chord, prev=None, lo=28, hi=36):
+    """A close-position right-hand triad (or seventh chord without its fifth) between C4 and D5,
+    nearest to the previous one."""
+    tones = gen5.chord_degrees(chord)
+    pool = [s for s in range(lo, hi + 1) if key.degree(s) in tones]
+    cands = [pool[i:i + 3] for i in range(len(pool) - 2) if pool[i + 2] - pool[i] <= 6]
+    if prev:
+        cands.sort(key=lambda c: sum(abs(a - b) for a, b in zip(c, prev)))
+    else:
+        cands.sort(key=lambda c: abs(c[1] - 32))
+    return cands[0]
+
+
+def song_bar(key, chord, root, meter, kind, prev, tune_bar=None):
+    """One bar of accompaniment: (rh events, lh events, the right-hand chord used)."""
+    bar = gen5.METERS[meter][0]
+    ch = acc_chord(key, chord, prev)
+    notes = [gen5.spell(key, s, chord) for s in ch]
+    bass = gen5.spell(key, root, chord)
+    if tune_bar is not None:  # the right hand doubles the tune, with chord tones below it
+        rh = []
+        for e in tune_bar:
+            if not e["n"]:
+                rh.append(gen5.ev(e["d"], []))
+                continue
+            top = e["n"][0]
+            below = [gen5.spell(key, s, chord) for s in range(top[0] - 1, top[0] - 6, -1)
+                     if key.degree(s) in gen5.chord_degrees(chord)][:2]
+            ct = key.degree(top[0]) in gen5.chord_degrees(chord)
+            rh.append(gen5.ev(e["d"], [top] + (below if ct and e["d"] >= Fr(1, 4) else []), e["t"]))
+        half = bar / 2 if meter == "4/4" else bar
+        lh = [gen5.ev(half, [bass])] * (2 if meter == "4/4" else 1)
+        return rh, [dict(x) for x in lh], ch
+    if kind == "arpeggio":
+        n = 8 if meter == "4/4" else 6
+        order = [0, 1, 2, 1] * 2 if meter == "4/4" else [0, 1, 2, 1, 2, 1]
+        rh = [gen5.ev(bar / n, [notes[i]]) for i in order]
+        lh = [gen5.ev(bar, [bass])]
+        return rh, lh, ch
+    rtoks, on, ltoks = SONG_ACC[(kind, meter)]
+    rh = [gen5.ev(gen5.TOK[t], notes if o else []) for t, o in zip(rtoks, on)]
+    if kind == "afterbeat":
+        fifth = gen5.spell(key, root + 4 if root + 4 <= 26 else root - 3, chord)
+        lh = [gen5.ev(gen5.TOK[t], [bass] if i == 0 else ([fifth] if i == 2 and meter == "4/4" else []))
+              for i, t in enumerate(ltoks)]
+    else:
+        lh = [gen5.ev(gen5.TOK[t], [bass]) for t in ltoks]
+    return rh, lh, ch
+
+
+def make_song(part, key, rng):
+    meter = part["meter"]
+    bar = gen5.METERS[meter][0]
+    sung = part.get("sung", 8)
+    intro, inter = part.get("intro", 0), part.get("interlude", 0)
+    rbars = gen5.gen_rhythm(part, rng, sung, {})
+    plan = gen5.gen_chord_plan(part, key, sung, {}, rng)
+    roots = gen5.lh_roots(part, key, plan)
+    steps = gen5.gen_tune(part, key, rbars, plan, rng, 30, 38, bass=gen5.bass_midis(key, plan, roots))
+    if steps is None:
+        return None
+    tune = gen5.tune_events(key, rbars, steps, plan)
+    if not gen5.check_line(tune):
+        return None
+    if max(max(b) for b in steps) - min(min(b) for b in steps) > 8:
+        return None  # a singable range: a ninth at most
+    half = sung // 2
+    for b in (half - 1,):  # breathe: the last quarter of the first phrase is a rest
+        last = tune[b][-1]
+        if last["d"] < Fr(1, 2):
+            return None
+        last["d"] -= Fr(1, 4)
+        tune[b].append(gen5.ev(Fr(1, 4), []))
+    # the full layout: intro, phrase 1, interlude, phrase 2
+    I = gen5.tonic_chord(key)
+    V = "V7"
+    intro_plan = [I, V][:intro] if intro <= 2 else [I] * intro
+    inter_plan = [V] * inter
+    full_plan = intro_plan + plan[:half] + inter_plan + plan[half:]
+    full_roots = gen5.lh_roots(part, key, full_plan)
+    rest = lambda: [dict(gen5.full_rest(meter), pre=[])]
+    voice = [rest() for _ in intro_plan] + tune[:half] + [rest() for _ in inter_plan] + tune[half:]
+    voice_src = [None] * intro + list(range(half)) + [None] * inter + list(range(half, sung))
+    rh, lh, prev = [], [], None
+    for b, (c, r) in enumerate(zip(full_plan, full_roots)):
+        src = voice_src[b]
+        if b == len(full_plan) - 1:
+            top = next(s for s in range(33, 40) if key.degree(s) == 0)
+            ch = sorted({top} | {s for s in range(top - 5, top) if key.degree(s) in gen5.chord_degrees(c)})[-3:]
+            rh.append([gen5.ev(bar, [gen5.spell(key, s, c) for s in ch])])
+            lh.append([gen5.ev(bar, [gen5.spell(key, r, c)])])
+            continue
+        dbl = part.get("double_tune") and src is not None and (src // 2) % 2 == 1
+        r_, l_, prev = song_bar(key, c, r, meter, part["accomp"], prev, tune[src] if dbl else None)
+        rh.append(r_)
+        lh.append(l_)
+    n = len(full_plan)
+    syll = " ".join("la" for bar_ in voice for e in bar_ if e["n"])
+    staves = [{"name": "voice", "clef": "treble", "solo": True, "instrument": "Voice", "voices": [voice],
+               "lyrics": syll},
+              {"name": "up", "clef": "treble", "voices": [rh], "hand": "rh"},
+              {"name": "down", "clef": "bass", "voices": [lh], "hand": "lh"}]
+    breaks = {8: (3,), 9: (3,), 11: (5,), 12: (5,), 13: (6,)}.get(n, ())
+    return {"rh": [rh], "lh": [lh], "plan": full_plan, "staves": staves, "group": "piano",
+            "meters": [meter] * n, "breaks": breaks, "voice": voice}
+
+
+def make_unit6(part, rng):
+    key = gen5.Key(*part["key"])
+    for _ in range(400):
+        got = make_song(part, key, rng)
+        if not got:
+            continue
+        got["key"] = key
+        try:
+            validate6(part, key, got)
+            assert gen5.timeline([got["voice"]])[-1][2][0][0] % 7 == key.tpc, "the voice ends on the tonic"
+        except AssertionError as e:
+            gen5.STATS[str(e)] = gen5.STATS.get(str(e), 0) + 1
+            continue
+        got["v6"] = True
+        return got
+    raise RuntimeError(f"could not generate exercise for part {part['name']}")
+
+
 # ---------------------------------------------------------------- one exercise
 def make_exercise(part, rng):
     if part.get("texture") in THREE_VOICES:
@@ -1712,6 +1855,8 @@ def make_exercise(part, rng):
         return make_unit4(part, rng)
     if part.get("texture") == "big":
         return make_unit5(part, rng)
+    if part.get("texture") == "song":
+        return make_unit6(part, rng)
     return layout(part, gen5.make_exercise(part, rng))
 
 
@@ -1744,13 +1889,13 @@ def generate_unit(unit, seed=None):
 
 
 # ---------------------------------------------------------------- scores
-def staff_code(st, key, meter, tsig, first=False, n=None, transpose=None, checks=True, keystr=None):
+def staff_code(st, key, meter, tsig, first=False, n=None, transpose=None, checks=True, keystr=None, breaks=None):
     """One staff of a multi-staff score. The first printed staff carries the line breaks."""
     clef = CLEF[st.get("clef", "treble")]
     inner = ""
     if st.get("instrument"):
         inner += f'\\set Staff.instrumentName = "{st["instrument"]} " '
-    music = staff_str(st["voices"], gen5.breaks_for(n) if first else (), checks)
+    music = staff_str(st["voices"], ((breaks if breaks is not None else gen5.breaks_for(n)) if first else ()), checks)
     if st.get("hand") and "sustainOn" in music:
         inner += "\\set Staff.pedalSustainStyle = #'bracket "
     body = f"\\key {keystr or key.lily} {tsig}\\time {meter} \\accidentalStyle modern {inner}{music} \\bar \"|.\""
@@ -1759,7 +1904,8 @@ def staff_code(st, key, meter, tsig, first=False, n=None, transpose=None, checks
     auto = "\\autoLineBreaksOff " if first else ""
     out = f'\\new Staff = "{st["name"]}" {{ {auto}\\clef {clef} {body} }}'
     if st.get("lyrics"):
-        out += f' \\addlyrics {{ {st["lyrics"]} }}'
+        out += (' \\addlyrics \\with { \\override VerticalAxisGroup.nonstaff-unrelatedstaff-spacing.padding = #1.5 }'
+                f' {{ {st["lyrics"]} }}')
     return out
 
 
@@ -1778,11 +1924,11 @@ def score6(part, ex, label, own_tempo="", transpose=None):
     grouped = [st for st in staves if not st.get("solo")]
     codes, first = [], True
     for st in solo:
-        codes.append(staff_code(st, key, meter, tsig, first, n, transpose, checks, keystr))
+        codes.append(staff_code(st, key, meter, tsig, first, n, transpose, checks, keystr, ex.get("breaks")))
         first = False
     inner = []
     for st in grouped:
-        inner.append(staff_code(st, key, meter, tsig, first, n, transpose, checks, keystr))
+        inner.append(staff_code(st, key, meter, tsig, first, n, transpose, checks, keystr, ex.get("breaks")))
         first = False
     body = f"\\new {GROUP[group]} <<\n    " + "\n    ".join(inner) + "\n  >>"
     if ex.get("reduction"):

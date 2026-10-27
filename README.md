@@ -11,15 +11,15 @@ A print-ready A4 course book, typeset with LilyPond.
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
-| 6 · Reading Like a Professional | in progress: Units 1-5 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 5: 17 pp.) | 5 units, 120 exercises, 20 pieces |
+| 6 · Reading Like a Professional | in progress: Units 1-6 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 6: 18 pp.) | 6 units, 144 exercises, 24 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The five-volume course is complete. Next: Volume 6** (Levels 7-8, an extension beyond the
 original plan): the full plan is in "Volume 6 plan" below. The shared groundwork is in place
 (see "Groundwork (done)" in the plan): `course/gen6.py` multi-staff scores, the Volume 6
-checker and build changes, and `course/test_gen6.py`. Units 1-5 are finished: see the
-"Unit N (done)" sections in the plan. Next: Unit 6 (Accompanying).
+checker and build changes, and `course/test_gen6.py`. Units 1-6 are finished: see the
+"Unit N (done)" sections in the plan. Next: Unit 7 (Open Score, C Clefs and Transposing).
 All five volumes are protected by
 `course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
 original plan follows it for reference.
@@ -531,6 +531,34 @@ staves, 8va and 8vb, pedal).
   chords, sometimes above the other hand), too risky to excerpt faithfully. An original piece,
   Bells, models its opening on three staves; the Prelude is a spare.
 - 8va and 8vb are generated only in Part A (Parts B and C keep their notes on the staff).
+
+### Unit 6 (done)
+
+**Generator (`course/gen6.py`, section "accompanying").** Tested by `test_songs`. `texture: "song"`:
+a singer's line (8 bars of gen5 tune between E4 and F5, a ninth at most, a quarter rest at the end
+of the first phrase) on a solo staff named Voice, sung to "la" (one syllable per note, neutral
+syllables only), above an accompaniment built from the chord plan: `accomp: "block"` (right-hand
+close-position chords on every beat, nearest to the previous chord, over long bass notes),
+`"afterbeat"` (bass on the strong beats, chords after them) or `"arpeggio"` (right-hand broken
+chords in eighths). `intro: 2` adds two piano bars (I, V7) before the voice, `interlude: 1` a bar of
+V7 between the phrases; `double_tune: True` doubles the tune in the right hand (with chord tones
+below) in the singer's bars 3-4 and 7-8. The final right-hand chord has the tonic on top. Line
+breaks come from the exercise (`breaks`), passed to `score6`.
+
+**Pieces.** Schubert, Heidenroslein D. 257, the first verse with Goethe's words (Mutopia 1555, PD);
+Schubert, An die Musik D. 547, the first verse with Schober's words (Mutopia 1001, PD); Grieg, Ich
+liebe dich Op. 5 No. 3, the verse from bar 3 with Holstein's German words (Mutopia 586, PD); original
+Evening Song (sung to "la", with a fermata the pianist must follow).
+
+**Changes from plan.**
+- Erlkonig is left out: the Mutopia source (no. 1030) writes the left hand an octave low under a
+  `bass_8` clef and abbreviates the right hand's triplets as tremolos, so a faithful excerpt could
+  not be checked by ear here; its first verse is also far longer than a page. An original Evening
+  Song takes its place.
+- Ich liebe dich starts at bar 3 (the singer's first upbeat); Grieg's two-bar introduction has
+  three voices in the right hand. Its inner voices in bar 9 are kept.
+- `build.py` (Volume 6 only): the "Pieces" heading is kept on the page of the first piece
+  (`\noPageBreak`), and lyric lines get a little more space below them.
 
 ## Volume 5 plan (as written before it was built)
 
