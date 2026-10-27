@@ -13,10 +13,9 @@ A print-ready A4 course book, typeset with LilyPond.
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
-**Next: Volume 5 (Repertoire Reading).** Not planned in detail yet. Start by writing a
-"Volume 5 plan" section like the Volume 3 and 4 ones below (units, parts, generator features,
-pieces with verified sources), then build it unit by unit. Volumes 1-4 are protected by
-`course/check_identical.py` (see "Build").
+**Next: Volume 5.** The full plan is in "Volume 5 plan" below: units, parts, generator features,
+pieces with their Mutopia sources and licences, and the build order. Volumes 1-4 are protected
+by `course/check_identical.py` (see "Build").
 
 Note: the Volume 1 PDFs were built before two small layout tweaks (the "What is new" heading
 now stays with its first item, and keyboards widen to fit every key). Rebuilding Volume 1
@@ -30,7 +29,7 @@ would only change the page layout; exercises are identical.
 | 2 · Moving Hands (done) | 2 | Leaving five-finger positions, hand shifts and extensions, 1 sharp or flat keys and their relative minors, dotted quarters, slurs, simple dynamics | 10 |
 | 3 · Two Voices (done) | 3 | Real left-hand independence, Alberti and broken-chord basses, 6/8, keys up to 2 sharps or flats, simple counterpoint | 8–10 |
 | 4 · Patterns and Keys (done) | 4 | Chords in both hands, syncopation, sixteenths, ledger lines, changing key mid-piece | 8 |
-| 5 · Repertoire Reading | 5–6 | 3–4 voices, chromatic notes, all keys, chorales | 6–8 |
+| 5 · Repertoire Reading | 5–6 | 3–4 voices, chromatic notes, all keys, chorales | 8 |
 
 Volumes 1–2 are mostly generated exercises. Volumes 3–4 are about half generated, half
 re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
@@ -99,6 +98,162 @@ Changes from the plan: Soldiers' March moved from Unit 2 to Unit 6 (its dotted r
 sixteenths); Clementi Op. 36 No. 1, Mozart K. 331 and the Minuet in G (Anh. 116) were dropped
 were not used; Unit 3 reaches D6 (the plan said C6). Unit 8 has three
 pieces, so the volume has 24 pieces rather than about 28.
+
+## Volume 5 plan (Repertoire Reading, Levels 5-6)
+
+**Goal.** A Level 6 reader can sight-read real piano music of the standard of Schumann's Album
+for the Young, the easier Chopin Preludes and Bach's chorales: two voices in one hand, four-part
+harmony, chromatic notes, triplets, every key, pedal marks, clef changes and ornaments. This is
+the last volume, so the hand positions of Volumes 1-4 give way to reading by key, chord shape and
+pattern, as in real music.
+
+**Size.** 8 units. Each unit has 3 generated parts of 8 exercises (24 per unit, 192 in all; about a
+third fewer than Volume 4) and 4-6 pieces (35 in all, 26 of them from Mutopia), so roughly 130
+pages. The pieces are longer than before (12-24 bars) and are the heart of each unit;
+the exercises prepare the one new skill each piece needs.
+
+**Seeds** stay `volume * 1000 + unit id` (5001-5008).
+
+### Units
+
+| Unit | Title | New ("New:" line) | Parts (count) |
+| --- | --- | --- | --- |
+| 1 | Two Voices in One Hand | A tune and a held voice in the same hand: stems up and stems down | A: RH tune over a held lower voice in the same hand (half and whole notes a 3rd or 6th below), LH block chords; C, G; 4/4 (8). B: the same in 3/4, F and D, LH waltz (8). C: LH two voices (held bass, moving tenor in quarters) under a RH tune; G, F, B-flat (8) |
+| 2 | Chorales | Four voices on two staves; chords on every scale degree and in first inversion | A: three voices (two in the RH, bass in the LH), half notes; C, G, F (8). B: four voices (SATB), quarter notes, fermatas at phrase ends, I ii IV V V7 vi and first inversions; keys up to 2 sharps or flats (8). C: four voices in minor keys (A, D, E minor) with the raised leading note (8) |
+| 3 | Chromatic Notes | Chromatic passing and neighbour notes, V7 of V, melodic minor; accidentals last to the bar line | A: RH chromatic passing and neighbour notes over block chords; C, G, F (8). B: V7 of V (F-sharp in C, C-sharp in G, B-natural in F) with cancelling naturals (8). C: melodic minor, raised 6th and 7th going up, natural going down; A, D, E minor (8) |
+| 4 | Triplets and New Time Signatures | Eighth-note triplets; 3/8, 9/8, 12/8 and 2/2 (alla breve) | A: RH triplets over block and waltz basses in 4/4 and 3/4 (8). B: 3/8 (one beat in a bar) and 9/8 (8). C: 2/2 counted in two, and 12/8 (8) |
+| 5 | Four Sharps and Four Flats | E major, A-flat major, C-sharp minor (B-sharp) and F minor (E-natural) | A: E major (8). B: A-flat major (8). C: C-sharp minor and F minor, alternating (8) |
+| 6 | Every Key | Five, six and seven sharps or flats; enharmonic keys (F-sharp = G-flat) | A: B major and D-flat major (8). B: F-sharp and G-flat major as twins (the same exercise in both spellings), B-flat minor and G-sharp minor (8). C: round the circle of fifths: each exercise in a new key (8) |
+| 7 | Pedal, Clefs and the Whole Keyboard | Sustain pedal marks; the LH in the treble clef and the RH in the bass clef | A: wide pedalled LH broken chords (root, fifth, tenth), the pedal changing with each chord (8). B: Gymnopédie-style LH, a low bass note then a chord in the middle of the keyboard, pedalled; 3/4 (8). C: clef changes and crossing hands: hands take turns, each reading in the other clef (8) |
+| 8 | Counterpoint, Ornaments and Review | Sequences and imitation; trills, mordents and grace notes; review of the course | A: two-part counterpoint built from sequences (a one-bar motive repeated a step lower), the LH imitating (8). B: ornaments on cadence and strong-beat notes (8). C: review: 16-bar pieces in any key with everything from Volume 5 (8) |
+
+Unit 8 doubles as the review, so the course ends after eight units, as the five-volume plan says.
+
+### Generator features (all opt-in; Volumes 1-4 must stay byte-identical)
+
+Run `check_identical.py` after every change. Volume 5 options do nothing unless a part switches
+them on, and must not draw random numbers otherwise.
+
+1. **Voices in one staff (Unit 1).** A part option `voices={"rh": "held", "lh": "tenor"}` adds a
+   second voice to a staff: `ex["rh2"]` / `ex["lh2"]` hold `[(dur, step|None)]` per bar, and
+   `lily_exercise` writes `<< { upper } \\ { lower } >>` (stems up and down; rests for a silent
+   voice). `held`: the lower RH voice holds chord tones a 3rd or 6th below the tune, changing
+   with the chord (no crossing, no unisons, never above the tune). `tenor`: a held LH bass plus a
+   quarter-note tenor line on chord tones and passing notes. Hand span in one staff at most an
+   octave. This is the foundation for chorales.
+2. **Chorales (Unit 2).** `mode: "chorale"` (`voices: 3` or `4`). A chord vocabulary `CHORDS4`
+   by scale degree (I ii IV V V7 vi, and `6` for first inversion) with its own move table
+   (`CHORD_MOVES4`: ii -> V, IV -> V, vi -> ii or IV, V -> I or vi; cadences V-I and I-V at
+   fermatas). The soprano comes from `gen_melody` (chord tone on every beat); alto, tenor and
+   bass are found by a search over voicings, chord by chord: voice ranges (S C4-G5, A G3-D5,
+   T C3-G4, B E2-D4), S-A and A-T within an octave, T-B at most a 12th but each hand within an
+   octave, no crossing, no parallel 5ths or octaves, the leading note rising, the 7th falling,
+   common tones held, root doubled (third doubled allowed in first inversion of ii and vi). The
+   cheapest legal voicing (least total motion) wins, with a random tie-break. Minor uses the
+   existing `minor` spelling. `\fermata` at bars 2/4/6/8.
+3. **Chromatic notes (Unit 3).** Notes can carry an alteration: `ex["alter"][(bar, i)] = +1/-1`,
+   used by `spell()`. `chromatic={"passing": p, "neighbour": p}`: a chromatic passing note on a
+   weak eighth between two notes a whole tone apart (sharps going up, flats going down), or a
+   lower chromatic neighbour (E-D#-E). `secondary: ["V/V"]` adds V7 of V to the chord plan
+   (always followed by V or V7); its raised 4th is spelled in both hands, like the raised 7th of
+   `minor`. `melodic_minor: True` raises the 6th and 7th in rising lines to the tonic and keeps
+   them natural in falling lines. LilyPond's `modern` accidental style prints the courtesy
+   naturals in the next bar.
+4. **Triplets and new meters (Unit 4).** `grid: 3` counts durations in triplet eighths (a
+   quarter = 3). Straight eighths cannot occur in such parts. The rhythm tables `R44_T` and
+   `R34_T` mix quarters, halves and triplet groups (1+1+1, 2+1). `staff_music` wraps each beat's
+   triplet notes in `\tuplet 3/2 { }`. Bass patterns: `block`, `oompah`, `waltz` scale by the
+   grid; a new `"triplet"` pattern (bottom-middle-top triplets, the Moonlight pattern). Meters:
+   `3/8` (`BAR_LEN` 3), `9/8` (9), `12/8` (12), with rhythm tables built from `R68`, and `2/2`
+   (8, strong beats 0 and 4, `tempo_unit "2"`, printed as alla breve).
+5. **Every key (Units 5-6).** `KEY_E`, `KEY_AB`, `KEY_CSM`, `KEY_FM`, `KEY_B`, `KEY_DB`,
+   `KEY_FS`, `KEY_GB`, `KEY_BBM`, `KEY_GSM` (and the rest of the 15 major and 15 minor keys for
+   the circle-of-fifths part). Positions are no longer written by hand: a helper
+   `make_position(hand, tonic_name, octave)` builds the five-finger position and its chord shapes
+   from the key, so new keys cannot be mistyped. `twin: True` prints each exercise a second time
+   in the enharmonic key (same notes on the keyboard, every name changed). The keyboard pictures
+   already shade black keys with white finger numbers.
+6. **Pedal and wide basses (Unit 7).** `pedal: True` with `chords`: `\sustainOn` at the start
+   and `\sustainOff\sustainOn` at every chord change (bracket style), released at the end. New
+   bass patterns `"wide"` (root, fifth, tenth, fifth: needs the pedal) and `"leap"` (a low root on
+   beat 1, the chord an octave or more higher on beats 2-3). `bass_leap` up to 14 (two octaves)
+   for these.
+7. **Clef changes (Unit 7).** In `alt` mode, segments may use a high LH position (`LH_G4`, G4-D5)
+   or a low RH position (`RH_C3`, C3-G3); `clef_switch: True` prints `\clef treble` in the LH
+   staff (or `\clef bass` in the RH staff) for those segments and switches back afterwards.
+8. **Sequences and ornaments (Unit 8).** `sequence={"len": 1, "step": -1, "times": 3}`: bars 1-3
+   are a one-bar motive in both hands and its copies a step lower (the hand position moves with
+   it, so the finger numbers repeat), then a cadence; in 8 bars, a second sequence in bars 5-7.
+   `ornaments={"trill": p, "mordent": p, "grace": p}`: `\trill` on the cadence's penultimate
+   note when it is a quarter or longer, `\prall` (mordent) on strong-beat quarters, and
+   `\acciaccatura` grace notes a step above. `bars: 16`: two 8-bar phrases, the first ending on V
+   (half cadence), the second on I; bars 9-12 may repeat bars 1-4.
+9. **Checker and build.** `check_pieces.py` for Volume 5 checks what has been taught rather than
+   hand positions: keys (up to 3 sharps or flats until Unit 4, 4 in Unit 5, any from Unit 6),
+   meters and triplets (from Unit 4), pedal and clef changes (from Unit 7), ornaments (Unit 8),
+   each hand's range, its largest leap and its span within one chord or two voices (an octave,
+   unless `allow_span`). It must parse `<< { } \\ { } >>`, `\tuplet`, `\clef`, `\sustainOn/Off`,
+   `\trill`, `\prall`, `\mordent`, `\turn`, `\acciaccatura`, `\appoggiatura`, `\fermata` and
+   `\repeat volta`. `build.py`: `VOLUMES[5]` with its front matter; piece option `"long": True`
+   lets a piece break across pages at a system break; an "Ornaments" box in Unit 8 shows how each
+   sign is played.
+
+### Pieces
+
+Public-domain sources from Mutopia (every composer is long out of copyright). Each is
+transcribed from the downloaded `.ly`, rendered to check the notes, shortened or simplified to
+the unit's level (the credit says so), and checked with `check_pieces.py`. PD = public-domain
+engraving; CC = a CC BY-SA engraving: we retype the notes ourselves and name the source.
+
+| Unit | Piece | Mutopia id | Licence | Key, time | Notes |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Schumann, Melody, Op. 68 No. 1 | 647 | CC | C, 4/4 | RH tune with a second voice at cadences, LH bass plus an eighth-note inner voice |
+| 1 | Burgmüller, Consolation, Op. 100 No. 13 (opening) | 224 | PD | C, 4/4 | tune over sixteenths in the same hand; simplified |
+| 2 | Bach, chorale "Aus meines Herzens Grunde", BWV 269 | 378 | PD | G, 3/4 | first two phrases |
+| 2 | Bach, chorale "O Haupt voll Blut und Wunden" (St Matthew Passion) | 107 | PD | D minor, 4/4 | |
+| 2 | Bach, chorale "Ich dank dir, lieber Herre", BWV 347 | 379 | PD | A, 4/4 | source uses Italian note names |
+| 2 | Schumann, Chorale, Op. 68 No. 4 | 782 | CC | G, 4/4 | the chorale "Freue dich, o meine Seele" |
+| 3 | Schumann, First Loss, Op. 68 No. 16 (first part) | 676 | CC | E minor, 2/4 | D-sharp and chromatic inner voices |
+| 3 | Schumann, Poor Orphan, Op. 68 No. 6 (first part) | 687 | CC | A minor, 2/4 | RH two voices; chromatic |
+| 4 | Beethoven, Für Elise, WoO 59 (A section) | 931 | PD | A minor, 3/8 | chromatic neighbour D#-E; pedal marks left out until Unit 7 |
+| 4 | Burgmüller, Ballade, Op. 100 No. 15 (first part) | 227 | PD | C minor, 3/8 | |
+| 4 | Schumann, Of Foreign Lands and Peoples, Op. 15 No. 1 (first part) | 354 | PD | G, 2/4 | tune over triplets in the same hand |
+| 5 | Schubert, Moment musical No. 3, D. 780 (opening) | 1023 | PD | F minor, 2/4 | |
+| 5 | Schubert, Impromptu in A-flat, D. 935 No. 2 (opening) | 1195 | PD | A-flat, 3/4 | chordal; simplified |
+| 5 | Beethoven, "Moonlight" Sonata, Op. 27 No. 2, first movement (opening) | 276 | CC | C-sharp minor, 2/2 | triplets; simplified |
+| 6 | Chopin, Prelude in D-flat ("Raindrop"), Op. 28 No. 15 (opening) | 471 | PD | D-flat, 4/4 | simplified |
+| 6 | Schubert, Impromptu in G-flat, D. 899 No. 3 (opening) | 1193 | PD | G-flat, 4/2 | tune and a simplified bass; Schubert's 4/2 bars halved into 2/2 |
+| 7 | Satie, Gymnopédie No. 1 (first part) | 37 | PD | D, 3/4 | leap bass, pedal |
+| 7 | Chopin, Prelude in A, Op. 28 No. 7 | 470 | PD | A, 3/4 | complete (16 bars), pedal |
+| 7 | Schumann, Träumerei, Op. 15 No. 7 (first part) | 504 | PD | F, 4/4 | four voices, pedal |
+| 7 | Schumann, Little Piece, Op. 68 No. 5 | 653 | CC | C, 4/4 | LH moves into the treble clef |
+| 8 | Bach, Invention No. 8 in F, BWV 779 (opening) | 61 | PD | F, 3/4 | imitation and sequences |
+| 8 | Bach, Little Prelude in F, BWV 928 | 63 | PD | F, 4/4 | |
+| 8 | Bach notebook, Polonaise in D minor, BWV Anh. 128 | 1615 | PD | D minor, 3/4 | mordents, trills and appoggiaturas |
+| 8 | Burgmüller, Pastorale, Op. 100 No. 3 | 218 | PD | G, 6/8 | grace notes |
+| 8 | Bach, Prelude in C, BWV 846 (Well-Tempered Clavier I; opening) | 5 | PD | C, 4/4 | review: reading chord patterns |
+| 8 | Chopin, Prelude in C minor, Op. 28 No. 20 | 472 | PD | C minor, 4/4 | complete (13 bars); four-voice chords; the last piece of the course |
+
+That is 26 pieces from Mutopia. Each unit adds originals (8-16 bars) where the repertoire is
+thin: two each in Units 1, 3 and 6, one each in Units 4, 5 and 7, none in Units 2 and 8: 9
+originals, 35 pieces in all. Spare candidates, all checked on Mutopia: Bach Invention No. 4 in D minor (67, PD) and No. 13 in A minor (59, PD),
+Little Prelude in D minor BWV 926 (69, PD; mordents), Minuet in A minor Anh. 120 (1612, PD;
+trills), Polonaise in G minor Anh. 119 (1016, PD), Chopin Preludes Nos. 4 and 6 (468 and 469, PD), Tchaikovsky's March of the Wooden Soldiers (1806, PD),
+Mendelssohn's Venetian Gondola Song Op. 19 No. 6 (1679), Schumann's Sicilienne Op. 68 No. 11
+(783, CC). Already used in earlier volumes, so not used again: Anh. 114, 115, 121, 126, Op. 68
+Nos. 2, 3 and 10, Op. 39 Nos. 1 and 16, K. 545.
+
+Keys with five or more sharps or flats have little easy repertoire, which is why Unit 6 leans
+on the generator (the twin and circle-of-fifths parts) and on originals.
+
+### Build order
+
+Same routine as Volume 4: feature 9 (checker and build) first, then for each unit add its parts
+and features, write `content/v5unitNN.py`, run `check_pieces.py --vol 5 N`, build, look at every
+page, run `check_identical.py` (and `--add 5 N` once the unit is done), commit and push. Unit
+titles go into `VOLUME5` at the start, because the contents page prints them. The chorale search
+(feature 2) is the largest piece of new code; build it with a small test script that prints
+voicings and their rule checks before it goes into the book.
 
 ## Files
 
