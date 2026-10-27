@@ -286,7 +286,9 @@ def chord_shapes_markup(group):
 def chord_map_score(groups):
     """All the chord shapes as block chords on one bass staff, key by key."""
     music = []
-    for group in groups:
+    for gi, group in enumerate(groups):
+        if len(groups) >= 4 and gi and gi % 2 == 0:
+            music.append("\\break")  # four or more keys: two keys per line
         music.append(f"\\key {group[2]}")
         for c, name, ns, lily in chord_shapes(group):
             inner = " ".join(lily)

@@ -191,6 +191,7 @@ def gen_melody(part, bars, hands, plan, repeat, rng, chords=None, end_ok=None):
         tones = [{(t + x) % 7 for x in CHORDS[c]["tones"]} for c in chords]
         bar_start = [k for k, (b, i) in enumerate(slots) if i == 0]
         bass = [chord_notes(part, c)[0] for c in chords]
+        onset = [sum(bars[b][:i]) for b, i in slots]
 
     def where(k):
         b = slots[k][0]
@@ -226,6 +227,8 @@ def gen_melody(part, bars, hands, plan, repeat, rng, chords=None, end_ok=None):
             w = table[iv]
             if direction and (s - prev) * direction > 0:
                 w *= 1.6  # keep going the same way: produces scale fragments
+            if chords and part.get("lead_weight") and chords[slots[k][0]] == "V7" and pc(s) == lead:
+                w *= part["lead_weight"]  # favour the (raised) leading note in V7 bars
             weighted.append((s, w))
         order = []
         pool = weighted[:]
@@ -252,6 +255,8 @@ def gen_melody(part, bars, hands, plan, repeat, rng, chords=None, end_ok=None):
             b, i = slots[k]
             if (i == 0 or bars[b][i] >= 4) and pc(s) not in tones[b]:
                 return False
+            if part.get("beat_tones") and onset[k] in STRONG[part["meter"]] and pc(s) not in tones[b]:
+                return False  # chord tones on every strong beat (beats 1 and 3, or both beats of 6/8)
             if i == 0 and chords[b] == "V7" and pc(s) == lead:
                 return False  # the bass already has the leading note
             if i == 0 and b > 0:
