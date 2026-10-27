@@ -11,13 +11,15 @@ A print-ready A4 course book, typeset with LilyPond.
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
+| 6 · Reading Like a Professional | in progress: Unit 1 of 8 | `build/units/Read at Sight - Vol6 - Unit 1.pdf` (18 pp., with the front matter) | 1 unit, 24 exercises, 4 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The five-volume course is complete. Next: Volume 6** (Levels 7-8, an extension beyond the
 original plan): the full plan is in "Volume 6 plan" below. The shared groundwork is in place
 (see "Groundwork (done)" in the plan): `course/gen6.py` multi-staff scores, the Volume 6
-checker and build changes, and `course/test_gen6.py`. No Volume 6 units are written yet.
+checker and build changes, and `course/test_gen6.py`. Unit 1 (Three Voices) is finished: see
+"Unit 1 (done)" in the plan. Next: Unit 2 (Rhythm Against Rhythm).
 All five volumes are protected by
 `course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
 original plan follows it for reference.
@@ -365,6 +367,38 @@ it must print OK, and `check_identical.py` must stay identical).
   Answers appendix prints after Unit 8 whenever a built unit has `transpose` parts.
 - **`units.py`.** `VOLUME6` holds the eight units' ids, titles and "New:" lines; each unit's
   `parts` are filled in when that unit is built.
+
+### Unit 1 (done)
+
+**Generator (`course/gen6.py`, section "three voices").** Three new textures, tested by
+`test_three_voices` in `course/test_gen6.py`:
+- `texture: "trio"`: a bass on the chord roots, a tune by `gen_tune`, then a middle voice found by
+  `line_search` against both. `voices_ok` checks every pair of voices: consonant on strong beats,
+  dissonance only on a weak beat, no parallel 5ths or octaves, no crossing (`line_search` also
+  keeps each hand within an octave). RH: tune and middle voice; LH: bass.
+- `texture: "cross"`: as `trio`, but the middle voice changes hands bar by bar (one of the
+  `HAND_PATTERNS`, e.g. `RRLLRRL`, in a register that suits each hand) and is printed on the staff
+  of the hand that plays it, with whole-bar spacers in the other hand.
+- `texture: "fugue"` (8 bars): a two-bar subject in the soprano (bars 1-2, on I-V); the answer in
+  the alto (bars 3-4) in the dominant key, tonal when the subject starts on the fifth (the first
+  note answered by the tonic) and real otherwise, with the countersubject above it; a one-bar
+  codetta on V7 (bar 5); the subject in the bass (bars 6-7) under the countersubject; the tonic
+  chord (bar 8). Part options: `subject_start` (the scale degrees the subject may start on, counted
+  from 0: `0` = tonic, `4` = fifth) and `label_entries` (prints "subject", "answer",
+  "countersubject" at the entries).
+
+**Pieces.** Bach, Sinfonia No. 1, BWV 787, bars 1-6 and a closing chord (Mutopia 142, PD); Bach,
+Sinfonia No. 11, BWV 797, bars 1-16 (Mutopia 200, PD); Bach, Fugue in C minor, BWV 847, bars 1-8
+and a closing chord (Mutopia 1941, CC BY-SA 4.0); original Fugue in G (checked with `voices_ok`).
+
+**Changes from plan.**
+- The middle voice in Part B is printed on the staff of the hand that plays it, with spacers,
+  instead of `\change Staff` inside one voice: the exercises read the same and the layout is
+  simpler and safe from beam and collision problems. The pieces keep Bach's `\change Staff`.
+- The C minor fugue comes from Mutopia no. 1941 (CC BY-SA 4.0, typeset by Urs Metzger); no. 550 in
+  the table above is the Prelude.
+- The C minor fugue's alto is printed on the lower staff in bars 3-6 (a right-hand stretch of a tenth otherwise), and Sinfonia
+  No. 11 puts the lowest note of a few middle-voice arpeggios on the lower staff for the same reason.
 
 ## Volume 5 plan (as written before it was built)
 
