@@ -943,6 +943,8 @@ def validate(part, ex):
         validate_chords(part, ex)
     if part.get("rh_chords"):
         assert len(ex["dyads"]) >= part["rh_chords"].get("min", 2), "too few right-hand chords"
+    if part.get("anticip_prob"):
+        assert ex["ties"], "at least one tie across the bar line"
     if part.get("dyads"):
         assert len(ex["dyads"]) >= part["dyads"].get("min", 2), "too few two-note chords"
 

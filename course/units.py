@@ -748,7 +748,7 @@ VOLUME4 = [
               rhythms=["synco24", "basic24"], motion=STEPS_SKIPS, tempo=72, accents=True, repeat_prob=0.3),
          dict(name="C", title="Across the bar line", count=8, bars=8, mode="together", rh="RH_G", lh="LH_G",
               chords=V4C, beat_tones=True, bass="block2", chord_fingers=True, meter="4/4",
-              rhythms=["synco", "q_rich"], motion=STEPS_SKIPS, tempo=66, tonic=G4, anticip_prob=0.5,
+              rhythms="synco", motion=STEPS_SKIPS, tempo=66, tonic=G4, anticip_prob=0.9,
               accents=True, **KEY_G),
          dict(name="D", title="Syncopation in two voices", count=8, bars=8, mode="duet", rh="RH_F", lh="LH_F",
               meter="4/4", rhythms=["synco", "q_rich"], counter_rhythms="half", motion=STEPS_SKIPS, tempo=66,
