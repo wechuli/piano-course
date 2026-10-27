@@ -11,15 +11,15 @@ A print-ready A4 course book, typeset with LilyPond.
 | 3 · Two Voices | complete | `build/Read at Sight - Volume 3.pdf` (159 pp.) | 10 units, 342 exercises, 32 pieces |
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
-| 6 · Reading Like a Professional | in progress: Units 1-6 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 6: 18 pp.) | 6 units, 144 exercises, 24 pieces |
+| 6 · Reading Like a Professional | in progress: Units 1-7 of 8 | `build/units/Read at Sight - Vol6 - Unit N.pdf` (Unit 7: 20 pp.) | 7 units, 168 exercises, 28 pieces |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The five-volume course is complete. Next: Volume 6** (Levels 7-8, an extension beyond the
 original plan): the full plan is in "Volume 6 plan" below. The shared groundwork is in place
 (see "Groundwork (done)" in the plan): `course/gen6.py` multi-staff scores, the Volume 6
-checker and build changes, and `course/test_gen6.py`. Units 1-6 are finished: see the
-"Unit N (done)" sections in the plan. Next: Unit 7 (Open Score, C Clefs and Transposing).
+checker and build changes, and `course/test_gen6.py`. Units 1-7 are finished: see the
+"Unit N (done)" sections in the plan. Next: Unit 8 (Lead Sheets, Simplifying and Review).
 All five volumes are protected by
 `course/check_identical.py` (see "Build"). Volume 5 is described in "Volume 5 (done)" below; the
 original plan follows it for reference.
@@ -559,6 +559,30 @@ Evening Song (sung to "la", with a fermata the pianist must follow).
   three voices in the right hand. Its inner voices in bar 9 are kept.
 - `build.py` (Volume 6 only): the "Pieces" heading is kept on the page of the first piece
   (`\noPageBreak`), and lyric lines get a little more space below them.
+
+### Unit 7 (done)
+
+**Generator (`course/gen6.py`, sections "layouts" and "the Answers appendix").** Tested by
+`test_clefs_transposing` (and the groundwork's `test_open_score`, `test_answers`).
+- `texture: "chorale", staves: 4` with `clefs`: `"satb"` (the default: treble, treble, treble_8,
+  bass in a ChoirStaff), `"c_clefs"` (treble, alto, tenor, bass) or `"quartet"` (a StaffGroup:
+  Violin 1, Violin 2, Viola in the alto clef, Cello in the bass clef, changing to the tenor clef for
+  any bar that lies at A3 or above). The chorale itself is gen5's, so no randomness changes.
+- `transpose: {"by": "M2" | "m3" | ..., "dir": "up" | "down"}` on any part: the exercise is
+  printed by `score6` with the instruction ("Play it a tone higher: in G major", from
+  `transposed_key` and `transpose_text`), and `answer_scores` writes it out in the target key for
+  the Answers appendix at the end of the book.
+
+**Pieces.** Tallis, If ye love me, the first section (Mutopia 412, PD); Tallis, O nata lux de lumine,
+the first and last phrases, five voices (Mutopia 949, PD); Haydn, String Quartet Op. 76 No. 3, II, the
+theme (Mutopia 385, PD; the set of six quartets is in one Mutopia folder, nos. 383-388); original
+Chorale in the C Clefs (a gen5 chorale, seed 3, printed with the alto and tenor clefs).
+
+**Changes from plan.**
+- Victoria's O magnum mysterium is left out (a spare) in favour of the original Chorale in the C
+  Clefs: Mutopia's vocal scores all use modern clefs, so an original was needed to read the alto
+  and tenor clefs in four parts.
+- O nata lux has five voices, not four; its editorial accidentals are printed as normal ones.
 
 ## Volume 5 plan (as written before it was built)
 

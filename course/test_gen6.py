@@ -384,6 +384,33 @@ def test_songs():
     return scores
 
 
+def test_clefs_transposing():
+    """Unit 7 (plan feature 8): quartet and C-clef layouts of the chorale, and transposing parts."""
+    scores = []
+    quartet = dict(name="B", title="Quartet", count=2, bars=8, meter="4/4", texture="chorale", voices=4, staves=4,
+                   clefs="quartet", tempo=60, key=("d", "major"))
+    cclefs = dict(quartet, clefs="c_clefs", key=("f", "major"))
+    trans = dict(name="C", title="Transpose", count=2, bars=8, meter="4/4", rhythms="basic", bass="block", tempo=60,
+                 key=("f", "major"), transpose={"by": "M2", "dir": "up"})
+    for part in (quartet, cclefs, trans):
+        for k, ex in enumerate(gen6.generate_part(dict(part), random.Random(6007), set())):
+            code = gen6.lily_exercise(part, ex, f"99.Q{k}")[0]
+            if part is quartet:
+                assert "StaffGroup" in code and "\\clef alto" in code and "Violin 1" in code and "Cello" in code
+            if part is cclefs:
+                assert "\\clef alto" in code and "\\clef tenor" in code and "ChoirStaff" in code
+            if part is trans:
+                assert "Play it a tone higher: in G major" in code
+            scores.append(code)
+    assert gen6.transposed_key(gen5.Key("bes"), {"by": "M2", "dir": "down"}).text() == "A-flat major"
+    assert gen6.transposed_key(gen5.Key("c"), {"by": "m3", "dir": "up"}).text() == "E-flat major"
+    unit = {"id": 98, "parts": [dict(trans, count=2)]}
+    ans = gen6.answer_scores(unit, 1)
+    assert len(ans) == 2 and all("\\transpose c d" in a for a in ans), "the answers, a tone up"
+    print("open score layouts, C clefs, transposing     OK")
+    return scores + ans
+
+
 if __name__ == "__main__":
     test_passthrough()
     exs, scores = test_open_score()
@@ -397,6 +424,7 @@ if __name__ == "__main__":
     scores += test_harmony()
     scores += test_big()
     scores += test_songs()
+    scores += test_clefs_transposing()
     test_build_compiles(scores)
     test_checker()
     print("OK")

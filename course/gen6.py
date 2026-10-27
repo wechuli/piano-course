@@ -34,16 +34,37 @@ INTERVALS = {"m2": "des", "M2": "d", "m3": "ees", "M3": "e", "P4": "f", "P5": "g
 
 
 # ---------------------------------------------------------------- layouts
-def open_score(ex):
-    """Lay a gen5 chorale (SATB on two piano staves) out on four open-score staves."""
+OPEN_LAYOUTS = {  # names, instruments, clefs, group
+    "satb": (("soprano", "alto", "tenor", "bass"), ("Soprano", "Alto", "Tenor", "Bass"),
+             ("treble", "treble", "treble_8", "bass"), "choir"),
+    "c_clefs": (("soprano", "alto", "tenor", "bass"), ("Soprano", "Alto", "Tenor", "Bass"),
+                ("treble", "alto", "tenor", "bass"), "choir"),
+    "quartet": (("violinI", "violinII", "viola", "cello"), ("Violin 1", "Violin 2", "Viola", "Cello"),
+                ("treble", "treble", "alto", "bass"), "quartet"),
+}
+
+
+def open_score(ex, kind="satb"):
+    """Lay a gen5 chorale (SATB on two piano staves) out on four open-score staves: voices
+    (treble, treble, treble_8, bass), the C clefs (treble, alto, tenor, bass) or a string quartet
+    (violins, viola in the alto clef, cello in the bass clef, changing to the tenor clef for bars
+    that lie at A3 or above)."""
     voices = ex["rh"] + ex["lh"]
     assert len(voices) == 4, "open score needs a four-voice chorale"
-    names = ("soprano", "alto", "tenor", "bass")
-    instruments = ("Soprano", "Alto", "Tenor", "Bass")
-    clefs = ("treble", "treble", "treble_8", "bass")
+    names, instruments, clefs, group = OPEN_LAYOUTS[kind]
     ex["staves"] = [{"name": nm, "clef": cl, "instrument": ins, "voices": [v]}
                     for nm, cl, ins, v in zip(names, clefs, instruments, voices)]
-    ex["group"] = "choir"
+    ex["group"] = group
+    if kind == "quartet":
+        cello = [[dict(e, pre=list(e["pre"])) for e in bar] for bar in voices[3]]
+        clef = "bass"
+        for bar in cello:
+            ms = [gen5.midi(n) for e in bar for n in e["n"]]
+            want = "tenor" if ms and min(ms) >= 57 else "bass"
+            if want != clef:
+                bar[0]["pre"].insert(0, f"\\clef {want}")
+                clef = want
+        ex["staves"][3]["voices"] = [cello]
     return ex
 
 
@@ -58,7 +79,9 @@ def as_staves(ex):
 def layout(part, ex):
     """Apply the part's score layout to a finished (validated) gen5 exercise."""
     if part.get("staves") == 4 and part.get("texture") == "chorale":
-        open_score(ex)
+        open_score(ex, part.get("clefs", "satb"))
+    if part.get("transpose"):
+        ex["v6"] = True  # printed by score6, with the transposing instruction
     return ex
 
 
@@ -1958,7 +1981,28 @@ def lily_exercise(part, ex, label):
     own = ""
     if (p.get("tempo"), p.get("tempo_unit", "4")) != (part.get("tempo"), part.get("tempo_unit", "4")):
         own = gen5.tempo_markup(p["tempo"], p.get("tempo_unit", "4"))
+    if p.get("transpose"):
+        own += f' \\hspace #3 \\italic "{transpose_text(ex["key"], p["transpose"])}"'
     return [score6(p, ex, label, own)]
+
+
+INTERVAL_TEXT = {"m2": ("a half step", 1, 1), "M2": ("a tone", 1, 2), "m3": ("a minor third", 2, 3),
+                 "M3": ("a major third", 2, 4), "P4": ("a fourth", 3, 5), "P5": ("a fifth", 4, 7)}
+
+
+def transposed_key(key, spec):
+    """The key a transposition leads to: {"by": "M2", "dir": "up"} from G major is A major."""
+    _, dl, ds = INTERVAL_TEXT[spec["by"]]
+    sign = 1 if spec.get("dir", "up") == "up" else -1
+    L0, S0 = key_root(key)
+    return key_from(L0 + sign * dl, S0 + sign * ds, key.mode)
+
+
+def transpose_text(key, spec):
+    name, _, _ = INTERVAL_TEXT[spec["by"]]
+    k2 = transposed_key(key, spec)
+    where = "higher" if spec.get("dir", "up") == "up" else "lower"
+    return f"Play it {name} {where}: in {k2.text()}"
 
 
 # ---------------------------------------------------------------- the Answers appendix
