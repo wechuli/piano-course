@@ -1,0 +1,11 @@
+main: SchumannOp15No01.ly
+mutopia_path: ftp/SchumannR/O15/SchumannOp15No01/SchumannOp15No01.ly
+title: Kinderscenen
+mutopiatitle: Kinderscenen - Von fremden Ländern und Menschen
+composer: Robert Alexander Schumann
+mutopiacomposer: SchumannR
+source: Leichte Stucke, 1900
+maintainer: Ying-Chun Liu
+maintainerEmail: grandpaul@gmail.com
+copyright: Public Domain
+footer: Mutopia-2006/01/01-354

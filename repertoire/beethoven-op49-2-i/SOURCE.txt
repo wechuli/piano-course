@@ -1,0 +1,10 @@
+main: LVB_Sonate_49no2_1.ly
+mutopia_path: ftp/BeethovenLv/O49/LVB_Sonate_49no2_1/LVB_Sonate_49no2_1.ly
+title: Sonate Opus 49 No.2 - Part 1
+mutopiatitle: Sonata No. 20 (1st Movement: Allegro, ma non troppo)
+composer: Ludwig van Beethoven
+mutopiacomposer: BeethovenLv
+source: Breitkopf & Hartel (1862-1865)
+maintainer: Stelios Samelis
+copyright: Public Domain
+footer: Mutopia-2006/06/05-776

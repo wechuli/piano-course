@@ -1,0 +1,10 @@
+main: Fantasia.ly
+mutopia_path: ftp/MozartWA/KV397/Fantasia/Fantasia.ly
+title: Fantasy in D minor
+composer: W. A. Mozart
+mutopiacomposer: MozartWA
+source: 'Mozart Album: Zongorára' Budapest: Zeneműkiadó Vállalat, 1951
+maintainer: Andrés Necochea
+maintainerEmail: yayopoint@gmail.com
+license: Public Domain
+footer: Mutopia-2015/07/09-2034

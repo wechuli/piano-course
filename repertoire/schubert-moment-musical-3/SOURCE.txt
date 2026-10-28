@@ -1,0 +1,10 @@
+main: MomentsNo3.ly
+mutopia_path: ftp/SchubertF/D780/MomentsNo3/MomentsNo3.ly
+title: Moments Musicaux
+mutopiatitle: Moments Musicaux No. 3 in F Minor
+mutopiacomposer: SchubertF
+source: Sauer & Leidersdorf, Wien, 1827
+maintainer: Claude Chaudron
+maintainerEmail: claude.chaudron@yahoo.fr
+copyright: Public Domain
+footer: Mutopia-2007/08/11-1023

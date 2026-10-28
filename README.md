@@ -12,14 +12,15 @@ A print-ready A4 course book, typeset with LilyPond.
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
 | 6 · Reading Like a Professional | complete | `build/Read at Sight - Volume 6.pdf` (133 pp.) | 8 units, 192 exercises, 33 pieces |
-| 7 · Repertoire | planned (see "Volume 7 plan") | Books 7A and 7B | 71 complete pieces from Mutopia, Levels 7-10 |
+| 7 · Repertoire | Book 7A complete; 7B planned | `build/Read at Sight - Volume 7A.pdf` (148 pp.) | 7A: 45 complete pieces, Levels 7-8 (7B: 26 more, Levels 9-10) |
 
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The course is complete: six volumes.** Volume 6 (Levels 7-8, an extension beyond the original
 five-volume plan) is described in "Volume 6 (done)" below, followed by its plan as written before it
-was built, with a "Unit N (done)" section for each unit. **Next: Volume 7**, a repertoire book of 71
-complete pieces (no exercises), printed as two books by level: see "Volume 7 plan".
+was built, with a "Unit N (done)" section for each unit. **Volume 7**, a repertoire book of 71
+complete pieces (no exercises) printed as two books by level, is half done: **Book 7A (Levels 7-8, 45
+pieces) is finished** (see "Book 7A (done)" in the Volume 7 plan). Next: Book 7B (Levels 9-10).
 All six volumes are protected by
 `course/check_identical.py` (see "Build"). Volumes 5 and 6 are described in "Volume 5 (done)" and "Volume 6 (done)"
 below; the original plans follow them for reference.
@@ -38,7 +39,7 @@ would only change the page layout; exercises are identical.
 | 4 · Patterns and Keys (done) | 4 | Chords in both hands, syncopation, sixteenths, ledger lines, changing key mid-piece | 8 |
 | 5 · Repertoire Reading (done) | 5–6 | 3–4 voices, chromatic notes, all keys, chorales | 8 |
 | 6 · Reading Like a Professional (done) | 7–8 | Three-voice counterpoint, cross-rhythms, changing meters, chromatic harmony, big textures, accompanying, open score and C clefs, lead sheets | 8 |
-| 7 · Repertoire (planned) | 7–10 | Complete pieces to learn: Bach to Debussy and Joplin, 71 pieces in two books (7A: Levels 7–8, 7B: Levels 9–10) | 5 sections |
+| 7 · Repertoire (7A done) | 7–10 | Complete pieces to learn: Bach to Debussy and Joplin, 71 pieces in two books (7A: Levels 7–8, 7B: Levels 9–10) | 5 sections |
 
 Volumes 1–2 are mostly generated exercises. Volumes 3–4 are about half generated, half
 re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
@@ -406,6 +407,63 @@ Scriabin: Preludes Op. 16; Rachmaninoff: Preludes Op. 23 Nos. 4 and 5; Satie: Gy
 Gnossiennes 2-3, Trois valses distinguees; Debussy: Preludes Book 1, Nos. 1-4; Joplin: Solace, Bethena,
 Peacherine, Sugar Cane, Original Rags, Search-Light Rag; Albeniz: Rumores de la Caleta. About 70 more
 pieces: enough for a second repertoire volume later.
+
+### Book 7A (done)
+
+`build/Read at Sight - Volume 7A.pdf`: 148 pages. Title page, how to use the book, contents (with
+levels), then the five sections, each with its opening page, then 45 complete pieces (Levels 7-8),
+a "Pieces by level" index and a "Sources and licences" page. Built with `python3 rep7.py book A`.
+
+**How it is built (`course/rep7.py`).**
+- `rep7.py import SLUG ftp/...` copies one Mutopia source (its `.ly`/`.ily` files only) into
+  `repertoire/SLUG/`, runs `convert-ly`, and cleans it: removes `\header`, `\paper`, `\midi` (and any
+  MIDI-only `\score`), paper and staff-size settings, page geometry inside `\layout`, `\book`
+  wrappers, and the source's own `\break`/`\pageBreak`/`\noBreak`/`\noPageBreak` (made for its own page
+  size; `KEEP_BREAKS` lists sources that need theirs: Gnossienne No. 1, which is unbarred). Fingerings
+  written as text inside chords become `\finger`. `SOURCE.txt` keeps the Mutopia path, title,
+  typesetter and licence. `rep7.py reclean` re-applies the cleaning (it is idempotent).
+- Each piece is compiled **on its own** inside a wrapper (`build/rep7/piece--SLUG.ly`: the book's
+  paper, page header and page number, and the piece heading), because the sources reuse variable names
+  (`upper`, `lower`, ...) and could not share one file. The wrapper's name must differ from the source's,
+  or `\include` finds the wrapper itself (the first build hung on this). Instrument names are removed
+  by the layout (`Instrument_name_engraver`).
+- If a piece's last page holds only a system or two, `fit_piece` tries one page fewer with closer
+  systems and keeps it only if LilyPond did not have to squeeze a page (saved a page in two pieces).
+- The book is assembled from the separate PDFs with `pdfunite`; page counts do not depend on page
+  numbers, so a first pass counts pages and a second pass numbers them (contents, section pages and
+  the index carry the real numbers; checked with `pdftotext` against every piece's first page).
+- `rep7.py check [SLUG...]` compiles pieces alone and fails on any LilyPond warning or error.
+  Layout-quality messages from the beam and slur solvers ("may not find good beam slope", "cyclic
+  dependency ... Slur.control-points", "this Voice needs a \voiceXx setting") do not fail it but are
+  listed as places to look at; every one was looked at.
+- `rep7.py identical` / `rep7.py fingerprint A`: the Volume 7 counterpart of `check_identical.py`
+  (`course/fingerprints7.json`, a hash of the sources, headings and front and back matter).
+- Content: `content/v7secNN.py` holds each section's `TITLE`, `INTRO`, `ASKS` and its pieces (slug,
+  title, composer, dates, work, level, minutes, Mutopia number, licence, note). Book 7B will add its
+  Level 9-10 pieces to the same files.
+
+**Source fixes** (what `convert-ly` could not upgrade, or engraving slips): Moonlight I (auto-beam
+settings replaced by `beamExceptions`/`beatStructure`; text fingerings; bars 28-29 and 31 given one
+stem direction, the source's mixed stems made beams zigzag across the staff; a text moved off the
+staff), Nocturne Op. 9 No. 2 (`set-octavation` to `\ottava`; a stray slur end), K. 545 II (a
+phrasing slur closed one bar early in the second section) and III (phrasing slurs that started inside
+`<< \\ >>` and ended outside, shortened to stay inside; stray `#34`), Mendelssohn Op. 30 No. 6 (a
+duplicate phrasing slur; a missing pedal-down in bar 40), Schumann Op. 15 Nos. 1 and 7, Pathetique II and
+Elite Syncopations (removed properties: `\omit TupletNumber` instead, or dropped; text fingerings in
+Op. 15 No. 7 became `\finger`), Inventions 4 and 8 (the removed `old-relative` option), The Entertainer (the "INTRO:"
+mark, which printed in the margin, left out). The notes themselves were not changed.
+
+**Changes from plan.**
+- Built by `python3 rep7.py book A`, not `build.py --vol 7 --book A`: Volume 7 shares nothing with
+  the exercise volumes but a few text helpers, so `build.py` is untouched (Volumes 1-6 identical).
+- Every piece starts on a new page (pieces are compiled separately), so the book has 148 pages, not
+  about 135; a few short pieces have a half-empty last page.
+- All four sources marked *fix* in the tables for Book 7A (WTC I Prelude 2, Moonlight I, Prelude Op. 28
+  No. 7, Nocturne Op. 9 No. 2) were fixed; Prelude No. 7 and the WTC prelude needed only `convert-ly`
+  run correctly. Pages per piece differ from the tables (they were measured at each source's own
+  layout): 140 pages of music in all.
+- Titles were made consistent ("Venetian Gondola Song in G minor, Op. 19 No. 6"; the Grieg piece is
+  "In the Hall of the Mountain King", from the piano version of Peer Gynt Suite No. 1).
 
 ## Volume 6 (done)
 
@@ -1027,6 +1085,9 @@ course/test_gen6.py     Tests for the Volume 6 generator (run from course/; must
 course/build.py         Page template, keyboard diagrams, front matter, contents, book assembly
 course/check_pieces.py  Checks hand-written pieces against what each unit has taught
 course/check_identical.py  Regression check: finished units must not change (fingerprints.json)
+course/rep7.py          Volume 7 (repertoire): import Mutopia sources, check, build Books 7A/7B
+content/v7secNN.py      Volume 7 sections: intro texts and the pieces (title, level, note, source)
+repertoire/SLUG/        Volume 7 sources: cleaned Mutopia LilyPond files + SOURCE.txt (licence)
 content/unitNN.py       Hand-written text and pieces for unit NN (one file per unit)
 build/                  Output PDFs (plus the .ly source of the last build)
 ```
@@ -1049,6 +1110,9 @@ python3 build.py --vol 5 1 2 3 4 5 6 7 8        # Volume 5 book -> build/read-at
 python3 test_gen6.py                             # Volume 6 generator tests; must print OK
 python3 check_pieces.py --vol 6                  # Volume 6
 python3 build.py --vol 6 1 2 3 4 5 6 7 8        # Volume 6 book (Answers appendix after Unit 8)
+python3 rep7.py check                            # Volume 7: every piece compiles with no warning
+python3 rep7.py book A                           # Book 7A -> build/Read at Sight - Volume 7A.pdf
+python3 rep7.py identical                        # Volume 7 books must print "identical"
 python3 check_identical.py                       # every finished unit must print "identical"
 python3 check_identical.py --add 5 1             # record a newly finished unit (here Volume 5, Unit 1)
 ```

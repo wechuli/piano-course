@@ -1,0 +1,12 @@
+main: EliteSyncopations.ly
+mutopia_path: ftp/JoplinS/EliteSyncopations/EliteSyncopations.ly
+title: ELITE SYNCOPATIONS.
+mutopiatitle: Elite Syncopations
+composer: SCOTT JOPLIN.
+mutopiacomposer: JoplinS
+source: John Stark & Son
+maintainer: Benjamin Bloomfield
+maintainerEmail: bhb123@gmail.com
+license: Public Domain
+copyright: Public Domain
+footer: Mutopia-2008/09/19-1540

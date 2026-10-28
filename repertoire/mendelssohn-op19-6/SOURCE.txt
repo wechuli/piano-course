@@ -1,0 +1,12 @@
+main: Lieder-ohne-Worte-Venetianisches-Gondellied-Op19-No6.ly
+mutopia_path: ftp/Mendelssohn-BartholdyF/O19/Lieder-ohne-Worte-Venetianisches-Gondellied-Op19-No6/Lieder-ohne-Worte-Venetianisches-Gondellied-Op19-No6.ly
+title: Lieder ohne Worte
+mutopiatitle: Lieder ohne Worte: Venetianisches Gondellied, Op.19 No.6
+composer: F. Mendelssohn-Bartholdy
+mutopiacomposer: Mendelssohn-BartholdyF
+opus: Op.19 No.6
+source: Breitkopf & Härtel, 1874-77
+maintainer: Ryan Prince
+maintainerEmail: rprincerp@gmail.com
+copyright: Creative Commons Attribution 3.0
+footer: Mutopia-2009/06/12-1679

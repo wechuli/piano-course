@@ -1,0 +1,12 @@
+main: sonatensatz.ly
+mutopia_path: ftp/ScarlattiD/K11/sonatensatz/sonatensatz.ly
+title: Sonatensatz
+mutopiatitle: Sonata XI from the Essercizi per Gravicembalo
+composer: Johann Kuhnau (1660-1722)
+mutopiacomposer: ScarlattiD
+opus: 
+source: P.J. Tonger Musik Verlag, 19th century
+maintainer: Bas Wassink
+maintainerEmail: basvanlola@hotmail.com
+copyright: Public Domain
+footer: Mutopia-2013/01/08-141

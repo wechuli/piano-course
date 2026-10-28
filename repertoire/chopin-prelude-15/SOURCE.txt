@@ -1,0 +1,12 @@
+main: chopin_prelude_op28_no15.ly
+mutopia_path: ftp/ChopinFF/O28/Chop-28-15/Chop-28-15-lys/chopin_prelude_op28_no15.ly
+title: Prelude
+mutopiatitle: Prelude: Op. 28, No. 15
+composer: Frederic Chopin (1810-1849)
+mutopiacomposer: ChopinFF
+opus: Op.28, No.15
+source: Edition Peters
+maintainer: Magnus Lewis-Smith
+maintainerEmail: mlewissmith@users.sourceforge.net
+license: Public Domain
+footer: Mutopia-2015/01/16-471

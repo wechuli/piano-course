@@ -1,0 +1,12 @@
+main: w10-h-moll-cfi.ly
+mutopia_path: ftp/ChopinFF/O69/w10-h-moll-cfi/w10-h-moll-cfi.ly
+title: Walzer Nr. 10 h-moll
+mutopiatitle: Walzer h-moll
+composer: Frédéric Chopin (1810 - 1849)
+mutopiacomposer: ChopinFF
+opus: Opus 69 Nr. 2 (posth.)
+source: Peters, Herrmann Scholtz, 1900a
+maintainer: Roland Goretzki
+maintainerEmail: roland@roland-goretzki.de
+copyright: Public Domain
+footer: Mutopia-2013/03/23-511

@@ -1,0 +1,11 @@
+main: SchumannOp15No07.ly
+mutopia_path: ftp/SchumannR/O15/SchumannOp15No07/SchumannOp15No07.ly
+title: Kinderscenen
+mutopiatitle: Kinderscenen - Traümerei
+composer: Robert Alexander Schumann
+mutopiacomposer: SchumannR
+source: Leichte Stucke, 1900
+maintainer: Ying-Chun Liu
+maintainerEmail: PaulLiu.bbs@bbs.cis.nctu.edu.tw
+copyright: Public Domain
+footer: Mutopia-2005/12/27-504

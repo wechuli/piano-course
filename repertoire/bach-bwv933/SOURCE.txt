@@ -1,0 +1,12 @@
+main: bwv933.ly
+mutopia_path: ftp/BachJS/BWV933/bwv933/bwv933.ly
+title: Praeludium Nr. 1
+mutopiatitle: Praeludium Nr. 1
+composer: Johann Sebastian Bach (165-1750)
+mutopiacomposer: BachJS
+opus: BWV 933
+source: Bach-Gesellschaft Edition Band 36 / Ernst Naumann 1890
+maintainer: Hajo Dezelski
+maintainerEmail: dl1sdz (at) gmail.com
+copyright: Creative Commons Attribution-ShareAlike 3.0
+footer: Mutopia-2008/09/28-1537

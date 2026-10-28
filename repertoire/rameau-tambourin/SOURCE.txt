@@ -1,0 +1,11 @@
+main: tambourin.ly
+mutopia_path: ftp/RameauJP/tambourin/tambourin.ly
+title: Tambourin
+mutopiatitle: Tambourin
+composer: Jean-Philippe Rameau
+mutopiacomposer: RameauJP
+source: Durand, 1895
+maintainer: Ludovic Sardain
+maintainerEmail: ludovicsardain@hotmail.com
+license: Public Domain
+footer: Mutopia-2015/01/17-487

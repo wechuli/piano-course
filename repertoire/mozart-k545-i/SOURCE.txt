@@ -1,0 +1,12 @@
+main: K545-1.ly
+mutopia_path: ftp/MozartWA/KV545/K545-1/K545-1.ly
+title: Sonate 16 in C major
+mutopiatitle: Sonata Facile - First movement
+composer: W. A. Mozart
+mutopiacomposer: MozartWA
+opus: K 545
+source: IMSLP
+maintainer: Alejandro Sierra
+maintainerEmail: algsierra@gmail.com
+copyright: Creative Commons Attribution-ShareAlike 3.0
+footer: Mutopia-2013/09/01-998

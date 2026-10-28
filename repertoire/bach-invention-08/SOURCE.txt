@@ -1,0 +1,12 @@
+main: bach-invention-08.ly
+mutopia_path: ftp/BachJS/BWV779/bach-invention-08/bach-invention-08.ly
+title: Invention 08
+mutopiatitle: Invention 8
+composer: Johann Sebastian Bach (1685-1750)
+mutopiacomposer: BachJS
+opus: BWV 779
+source: Bach-Gesellschaft
+maintainer: Allen Garvin
+maintainerEmail: AGarvin@tribalddb.com
+copyright: Public Domain
+footer: Mutopia-2008/06/15-61

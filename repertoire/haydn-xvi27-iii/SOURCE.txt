@@ -1,0 +1,12 @@
+main: hob-xvi-27-iii-presto.ly
+mutopia_path: ftp/HaydnFJ/HOB-XVI-27/hob-xvi-27-iii-presto/hob-xvi-27-iii-presto.ly
+title: Sonata I
+mutopiatitle: Sonate I, III - Presto
+composer: Franz Joseph Haydn (1732-1809)
+mutopiacomposer: HaydnFJ
+opus: Hob. XVI:27
+source: C. F. Peters, 1880s
+maintainer: Bas Wassink
+maintainerEmail: basvanlola@zonnet.com
+copyright: Public Domain
+footer: Mutopia-2013/07/07-187

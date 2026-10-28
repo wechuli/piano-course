@@ -1,0 +1,11 @@
+main: waltz-op39-15.ly
+mutopia_path: ftp/BrahmsJ/O39/waltz-op39-15/waltz-op39-15.ly
+title: Waltz
+mutopiatitle: Waltz No. 15
+composer: Johannes Brahms, Op 39, No. 15
+mutopiacomposer: BrahmsJ
+source: Ed. R. Joseffy
+maintainer: Brian D. Rude
+maintainerEmail: brianrude@hotmail.com
+copyright: Public Domain
+footer: Mutopia-2006/07/30-794

@@ -1,0 +1,13 @@
+main: moonlight1-a4.ly
+mutopia_path: ftp/BeethovenLv/O27/moonlight/moonlight-lys/moonlight1-a4.ly
+title: Sonata No. 14, 'Moonlight'
+mutopiatitle: Sonata No. 14 “Moonlight” (1st Movement: Adagio sostenuto)
+composer: Ludwig van Beethoven
+mutopiacomposer: BeethovenLv
+opus: Op. 27, No. 2
+source: Berners, 1908 (edited by A. Winterberger)
+maintainer: Stewart Holmes
+maintainerEmail: stewart@stewartholmes.com
+mutopiacopyright: Creative Commons Attribution-ShareAlike 2.5
+copyright: 
+footer: Mutopia-2007/02/11-276

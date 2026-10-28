@@ -1,0 +1,12 @@
+main: chopin_nocturne_op9_n2.ly
+mutopia_path: ftp/ChopinFF/O9/chopin_nocturne_op9_n2/chopin_nocturne_op9_n2.ly
+title: Nocturne
+mutopiatitle: Nocturne
+composer: Frédéric Chopin
+mutopiacomposer: ChopinFF
+opus: Op. 9 N. 2
+source: G. Schirmer, New York, 1881
+maintainer: Renato Biolcati Rinaldi
+maintainerEmail: rebiolca@gmail.com
+copyright: Creative Commons Attribution-ShareAlike 3.0
+footer: Mutopia-2014/12/18-1590

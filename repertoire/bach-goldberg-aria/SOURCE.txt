@@ -1,0 +1,12 @@
+main: bwv-988-aria.ly
+mutopia_path: ftp/BachJS/BWV988/bwv-988-aria/bwv-988-aria.ly
+title: Aria con 30 Variazioni
+mutopiatitle: Goldberg Variations - Aria
+composer: Johann Sebastian Bach (1685-1750)
+mutopiacomposer: BachJS
+opus: BWV 988
+source: Bach-Gesellschaft
+maintainer: JD Erickson
+maintainerEmail: erickson.jd@gmail.com
+copyright: Creative Commons Attribution-ShareAlike 3.0
+footer: Mutopia-2013/01/22-979

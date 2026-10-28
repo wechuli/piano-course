@@ -1,0 +1,12 @@
+main: wtk1-prelude1.ly
+mutopia_path: ftp/BachJS/BWV846/wtk1-prelude1/wtk1-prelude1.ly
+title: Das Wohltemperierte Clavier I
+mutopiatitle: Das Wohltemperierte Clavier I, Praeludium I
+composer: Johann Sebastian Bach (1685-1750)
+mutopiacomposer: BachJS
+opus: BWV 846
+source: Unknown
+maintainer: Tobias Erbsland
+maintainerEmail: te@profzone.ch
+copyright: Public Domain
+footer: Mutopia-2011/09/12-5

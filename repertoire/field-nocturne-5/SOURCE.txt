@@ -1,0 +1,12 @@
+main: Field_Nocturne_5.ly
+mutopia_path: ftp/FieldJ/H37/Field_Nocturne_5/Field_Nocturne_5.ly
+title: Nocturne
+mutopiatitle: Nocturne
+composer: John Field
+mutopiacomposer: FieldJ
+opus: H.37
+source: Neue Musik-Zeitung, 1889
+maintainer: Alex Schreiber
+maintainerEmail: alexschreiber AT gmx DOT de
+license: Creative Commons Attribution-ShareAlike 4.0
+footer: Mutopia-2016/10/06-2137

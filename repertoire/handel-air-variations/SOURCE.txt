@@ -1,0 +1,11 @@
+main: 16-airmitvar.ly
+mutopia_path: ftp/HandelGF/Aylesford/16-airmitvar/16-airmitvar.ly
+title: Air mit Variationen
+mutopiatitle: Air
+composer: Georg Friedrich Händel (1685-1759)
+mutopiacomposer: HandelGF
+source: Edition Schott 1930
+maintainer: Bas Wassink
+maintainerEmail: basvanlola@hotmail.com
+copyright: Public Domain
+footer: Mutopia-2013/02/21-165

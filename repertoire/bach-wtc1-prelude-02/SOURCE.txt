@@ -1,0 +1,12 @@
+main: bwv847a.ly
+mutopia_path: ftp/BachJS/BWV847/bwv847a/bwv847a.ly
+title: Praeludium II
+mutopiatitle: Das Wohltemperierte Clavier I, Praeludium II
+composer: Johann Sebastian Bach (1685–1750)
+mutopiacomposer: BachJS
+opus: BWV 847
+source: Breitkopf & Hartel, 1866
+maintainer: Davide Castellone
+maintainerEmail: davide.castellone@gmail.com
+copyright: Public Domain
+footer: Mutopia-2006/07/02-550

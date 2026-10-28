@@ -1,0 +1,12 @@
+main: LiederOhneWorte_-_Op30_No6.ly
+mutopia_path: ftp/Mendelssohn-BartholdyF/O30/LiederOhneWorte_-_Op30_No6/LiederOhneWorte_-_Op30_No6.ly
+title: Lieder Ohne Worte
+mutopiatitle: Lieder ohne Worte: Venetianisches Gondellied, Op.30 No.6
+composer: Felix Mendelssohn Bartholdy
+mutopiacomposer: Mendelssohn-BartholdyF
+opus: Op.30 No.6
+source: Breitkopf & Härtel, 1874-1877
+maintainer: Ryan Prince
+maintainerEmail: rprincerp@gmail.com
+copyright: Public Domain
+footer: Mutopia-2010/02/03-1741

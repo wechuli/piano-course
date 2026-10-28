@@ -1,0 +1,12 @@
+main: Chop-28-4.ly
+mutopia_path: ftp/ChopinFF/O28/Chop-28-4/Chop-28-4.ly
+title: Prelude
+mutopiatitle: Prelude: Op. 28, No. 4 ('Suffocation')
+composer: Frederic Chopin (1810-1849)
+mutopiacomposer: ChopinFF
+opus: Op.28, No.4
+source: Peters, 1879
+maintainer: Magnus Lewis-Smith
+maintainerEmail: mlewissmith@users.sourceforge.net
+license: Public Domain
+footer: Mutopia-2016/10/28-468

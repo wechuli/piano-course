@@ -1,0 +1,11 @@
+main: no_1.ly
+mutopia_path: ftp/SatieE/Gnossienne/no_1/no_1.ly
+title: Gnossienne
+mutopiatitle: Gnossienne No. 1
+composer: Erik Satie (1866-1925)
+mutopiacomposer: SatieE
+source: EDITIONS SALABERT, 22, Rue Chauchat. Paris, 1913
+maintainer: Knute Snortum
+maintainerEmail: knute (at) snortum (dot) net
+license: Creative Commons Attribution-ShareAlike 4.0
+footer: Mutopia-2015/07/23-2035

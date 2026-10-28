@@ -1,0 +1,12 @@
+main: bach-invention-04.ly
+mutopia_path: ftp/BachJS/BWV775/bach-invention-04/bach-invention-04.ly
+title: Invention 4
+mutopiatitle: Invention 4
+composer: Johann Sebastian Bach (1685-1750)
+mutopiacomposer: BachJS
+opus: BWV 775
+source: Bach-Gesellschaft
+maintainer: Allen Garvin
+maintainerEmail: AGarvin@tribalddb.com
+copyright: Public Domain
+footer: Mutopia-2008/06/15-67

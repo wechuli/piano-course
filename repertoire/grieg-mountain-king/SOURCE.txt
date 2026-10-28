@@ -1,0 +1,10 @@
+main: Dans_l_antre_du_roi_de_la_montagne.ly
+mutopia_path: ftp/GriegE/O46/Dans_l_antre_du_roi_de_la_montagne/Dans_l_antre_du_roi_de_la_montagne.ly
+title: In the Hall of the Mountain King
+composer: Edvard Grieg
+mutopiacomposer: GriegE
+opus: op. 46, no. 4
+source: The University Society, 1918
+maintainer: Coyau
+copyright: Public Domain
+footer: Mutopia-2013/12/07-1888

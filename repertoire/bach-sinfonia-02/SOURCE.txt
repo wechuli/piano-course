@@ -1,0 +1,12 @@
+main: bwv788.ly
+mutopia_path: ftp/BachJS/BWV788/bwv788/bwv788.ly
+title: Sinfonia 2
+mutopiatitle: Sinfonia 2
+composer: Johann Sebastian Bach
+mutopiacomposer: BachJS
+opus: BWV 788
+source: Unknown
+maintainer: Olivier Vermersch
+maintainerEmail: olivier.vermersch (at) wanadoo.fr
+copyright: Public Domain
+footer: Mutopia-2008/06/15-140

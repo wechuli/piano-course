@@ -1,0 +1,10 @@
+main: LVB_Sonate_49no2_2.ly
+mutopia_path: ftp/BeethovenLv/O49/LVB_Sonate_49no2_2/LVB_Sonate_49no2_2.ly
+title: Sonate Opus 49 No.2 - Part 2
+mutopiatitle: Sonata No. 20 (2nd Movement: Tempo di Menuetto)
+composer: Ludwig van Beethoven
+mutopiacomposer: BeethovenLv
+source: Breitkopf & Hartel (1862-1865)
+maintainer: Stelios Samelis
+copyright: Public Domain
+footer: Mutopia-2006/06/05-777

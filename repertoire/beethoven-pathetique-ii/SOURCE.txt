@@ -1,0 +1,12 @@
+main: pathetique-2.ly
+mutopia_path: ftp/BeethovenLv/O13/pathetique-2/pathetique-2.ly
+title: Sonata No. 8 \"Pathétique\"
+mutopiatitle: Sonata No. 8 “Pathétique” (2nd Movement: Adagio cantabile)
+composer: L. van Beethoven
+mutopiacomposer: BeethovenLv
+opus: Op. 13
+source: Berners, 1908 (edited by A. Winterberger); Peters, 1910
+maintainer: Chris Sawer
+maintainerEmail: chris@mutopiaproject.org
+copyright: Public Domain
+footer: Mutopia-2011/10/25-295

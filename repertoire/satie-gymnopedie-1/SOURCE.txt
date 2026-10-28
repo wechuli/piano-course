@@ -1,0 +1,10 @@
+main: gymnopedie_1.ly
+mutopia_path: ftp/SatieE/gymnopedie_1/gymnopedie_1.ly
+mutopiatitle: Gymnopédie No. 1
+composer: Erik Satie
+mutopiacomposer: SatieE
+source: Dover Edition
+maintainer: Evin Robertson
+maintainerEmail: nitfol@my-deja.com
+license: Public Domain
+footer: Mutopia-2014/12/14-37

@@ -1,0 +1,12 @@
+main: bach-invention-13.ly
+mutopia_path: ftp/BachJS/BWV784/bach-invention-13/bach-invention-13.ly
+title: Invention 13
+mutopiatitle: Invention 13
+composer: Johann Sebastian Bach (1685-1750)
+mutopiacomposer: BachJS
+opus: BWV 784
+source: Bach-Gesellschaft
+maintainer: Allen Garvin
+maintainerEmail: AGarvin@tribalddb.com
+copyright: Public Domain
+footer: Mutopia-2008/06/15-59

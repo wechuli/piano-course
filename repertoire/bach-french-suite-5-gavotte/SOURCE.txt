@@ -1,0 +1,11 @@
+main: french-suite-5-gavotte.ly
+mutopia_path: ftp/BachJS/BWV816/french-suite-5/french-suite-5-lys/french-suite-5-gavotte.ly
+title: French Suite V: Gavotte
+mutopiatitle: French Suite no. 5 in G major
+composer: J. S. Bach (1685-1750)
+mutopiacomposer: BachJS
+opus: BWV 816
+maintainer: Joel Mayes
+maintainerEmail: joel_mayes@dingoblue.net.au
+copyright: Public Domain
+footer: Mutopia-2008/06/17-99

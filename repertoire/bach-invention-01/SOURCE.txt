@@ -1,0 +1,12 @@
+main: bach-invention-01.ly
+mutopia_path: ftp/BachJS/BWV772/bach-invention-01/bach-invention-01.ly
+title: Invention 1
+mutopiatitle: Invention 1
+composer: Johann Sebastian Bach (1685-1750)
+mutopiacomposer: BachJS
+opus: BWV 772
+source: Bach-Gesellschaft
+maintainer: jeff covey
+maintainerEmail: jeff.covey@pobox.com
+copyright: Creative Commons Attribution-ShareAlike 3.0
+footer: Mutopia-2008/06/15-40

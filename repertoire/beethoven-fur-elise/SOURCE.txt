@@ -1,0 +1,10 @@
+main: fur_Elise_WoO59.ly
+mutopia_path: ftp/BeethovenLv/WoO59/fur_Elise_WoO59/fur_Elise_WoO59.ly
+title: Für Elise
+mutopiatitle: Für Elise
+composer: Ludwig van Beethoven
+mutopiacomposer: BeethovenLv
+source: Breitkopf & Härtel, 1888
+maintainer: Stelios Samelis
+license: Public Domain
+footer: Mutopia-2015/08/18-931

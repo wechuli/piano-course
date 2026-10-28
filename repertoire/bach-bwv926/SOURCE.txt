@@ -1,0 +1,11 @@
+main: bach-praeludium-02.ly
+mutopia_path: ftp/BachJS/BWV926/bach-praeludium-02/bach-praeludium-02.ly
+title: Praeludium 2
+mutopiatitle: Praeludium 2
+composer: Johann Sebastian Bach (1685-1750)
+mutopiacomposer: BachJS
+opus: BWV 926
+source: Bach-Gesellschaft
+maintainer: Allen Garvin
+copyright: Public Domain
+footer: Mutopia-2009/02/22-69
