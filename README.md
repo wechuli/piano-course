@@ -14,6 +14,9 @@ A print-ready A4 course book, typeset with LilyPond.
 | 6 · Reading Like a Professional | complete | `build/Read at Sight - Volume 6.pdf` (133 pp.) | 8 units, 192 exercises, 33 pieces |
 | 7 · Repertoire | Book 7A complete; 7B planned | `build/Read at Sight - Volume 7A.pdf` (148 pp.) | 7A: 45 complete pieces, Levels 7-8 (7B: 26 more, Levels 9-10) |
 
+Start with `build/Read at Sight - Before You Begin.pdf` (5 pp., `python3 course/before.py`): where to look, the
+10-second scan, key and time signatures, metronome, fingering, reading habits, practice.
+
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The course is complete: six volumes.** Volume 6 (Levels 7-8, an extension beyond the original
