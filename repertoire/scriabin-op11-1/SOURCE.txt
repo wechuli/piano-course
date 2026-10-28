@@ -1,0 +1,10 @@
+main: Scriabin_prelude_op11no1.ly
+mutopia_path: ftp/ScriabinA/O11/Scriabin_prelude_op11no1/Scriabin_prelude_op11no1.ly
+title: Prelude, Op. 11 No. 1
+mutopiatitle: Prelude
+composer: Alexander Scriabin (1872-1915)
+mutopiacomposer: ScriabinA
+source: M.P. Belaieff (1895)
+maintainer: Keith OHara
+copyright: Public Domain
+footer: Mutopia-2010/12/21-1779

@@ -1,0 +1,10 @@
+main: SongWW_opus53no5.ly
+mutopia_path: ftp/Mendelssohn-BartholdyF/O53/SongWW_opus53no5/SongWW_opus53no5.ly
+title: Lied Ohne Worte - Opus 53 No. 5 - Volkslied
+mutopiatitle: Lied Ohne Worte - Opus 53 No. 5 - Volkslied
+composer: Felix Mendelssohn
+mutopiacomposer: Mendelssohn-BartholdyF
+source: Breitkopf & Härtel, Leipzig
+maintainer: Stelios Samelis
+copyright: Public Domain
+footer: Mutopia-2005/08/18-592

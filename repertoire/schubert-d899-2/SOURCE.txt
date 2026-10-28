@@ -1,0 +1,8 @@
+main: SchubertF-D899-2-Impromptu.ly
+mutopia_path: ftp/SchubertF/D899/SchubertF-D899-2-Impromptu/SchubertF-D899-2-Impromptu.ly
+mutopiatitle: Impromptu in Es-dur
+mutopiacomposer: SchubertF
+source: Breitkopf & Härtel, 1888
+maintainer: Ph. Raynaud
+copyright: Public Domain
+footer: Mutopia-2008/09/28-1551

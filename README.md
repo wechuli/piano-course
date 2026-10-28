@@ -12,7 +12,7 @@ A print-ready A4 course book, typeset with LilyPond.
 | 4 · Patterns and Keys | complete | `build/Read at Sight - Volume 4.pdf` (129 pp.) | 8 units, 272 exercises, 24 pieces |
 | 5 · Repertoire Reading | complete | `build/Read at Sight - Volume 5.pdf` (133 pp.) | 8 units, 196 exercises, 35 pieces |
 | 6 · Reading Like a Professional | complete | `build/Read at Sight - Volume 6.pdf` (133 pp.) | 8 units, 192 exercises, 33 pieces |
-| 7 · Repertoire | Book 7A complete; 7B planned | `build/Read at Sight - Volume 7A.pdf` (148 pp.) | 7A: 45 complete pieces, Levels 7-8 (7B: 26 more, Levels 9-10) |
+| 7 · Repertoire | complete (Books 7A and 7B) | `build/Read at Sight - Volume 7A.pdf` (148 pp.), `... 7B.pdf` (196 pp.) | 71 complete pieces: 7A Levels 7-8 (45), 7B Levels 9-10 (26) |
 
 Start with `build/Read at Sight - Before You Begin.pdf` (5 pp., `python3 course/before.py`): where to look, the
 10-second scan, key and time signatures, metronome, fingering, reading habits, practice.
@@ -22,8 +22,9 @@ Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 **The course is complete: six volumes.** Volume 6 (Levels 7-8, an extension beyond the original
 five-volume plan) is described in "Volume 6 (done)" below, followed by its plan as written before it
 was built, with a "Unit N (done)" section for each unit. **Volume 7**, a repertoire book of 71
-complete pieces (no exercises) printed as two books by level, is half done: **Book 7A (Levels 7-8, 45
-pieces) is finished** (see "Book 7A (done)" in the Volume 7 plan). Next: Book 7B (Levels 9-10).
+complete pieces (no exercises) printed as two books by level, is finished: **Book 7A** (Levels 7-8, 45
+pieces) and **Book 7B** (Levels 9-10, 26 pieces); see "Book 7A (done)" and "Book 7B (done)" in the
+Volume 7 plan.
 All six volumes are protected by
 `course/check_identical.py` (see "Build"). Volumes 5 and 6 are described in "Volume 5 (done)" and "Volume 6 (done)"
 below; the original plans follow them for reference.
@@ -42,7 +43,7 @@ would only change the page layout; exercises are identical.
 | 4 · Patterns and Keys (done) | 4 | Chords in both hands, syncopation, sixteenths, ledger lines, changing key mid-piece | 8 |
 | 5 · Repertoire Reading (done) | 5–6 | 3–4 voices, chromatic notes, all keys, chorales | 8 |
 | 6 · Reading Like a Professional (done) | 7–8 | Three-voice counterpoint, cross-rhythms, changing meters, chromatic harmony, big textures, accompanying, open score and C clefs, lead sheets | 8 |
-| 7 · Repertoire (7A done) | 7–10 | Complete pieces to learn: Bach to Debussy and Joplin, 71 pieces in two books (7A: Levels 7–8, 7B: Levels 9–10) | 5 sections |
+| 7 · Repertoire (done) | 7–10 | Complete pieces to learn: Bach to Debussy and Joplin, 71 pieces in two books (7A: Levels 7–8, 7B: Levels 9–10) | 5 sections |
 
 Volumes 1–2 are mostly generated exercises. Volumes 3–4 are about half generated, half
 re-engraved public-domain pieces. Volume 5 is mostly re-engraved repertoire.
@@ -467,6 +468,36 @@ mark, which printed in the margin, left out). The notes themselves were not chan
   layout): 140 pages of music in all.
 - Titles were made consistent ("Venetian Gondola Song in G minor, Op. 19 No. 6"; the Grieg piece is
   "In the Hall of the Mountain King", from the piano version of Peer Gynt Suite No. 1).
+
+### Book 7B (done)
+
+`build/Read at Sight - Volume 7B.pdf`: 196 pages, 26 complete pieces at Levels 9-10, in the same
+five sections and with the same front and back matter as 7A. Built with `python3 rep7.py book B`; its
+pieces are the Level 9-10 entries in the same `content/v7secNN.py` files.
+
+**Source fixes** (beyond what `rep7.py import` does on its own):
+- Moonlight III: a `%\break` in a comment became `%{}`, which LilyPond reads as the start of a block
+  comment, so the clean-up now drops breaks inside comments (`rep7.py`); obsolete spacing and
+  `SeparationItem` settings replaced or removed; 24 slur shapes hand-tuned for the source's page width
+  (`control-points`) removed, as they misfired at this width; the hidden notes that carry ties in bars
+  163-166 now also hide their flags and dots; each written-out arpeggio in those bars is beamed on its
+  own (auto-beaming joined it to the chord before it, one steep beam across the staff); piece option
+  `top_padding` (new) keeps a long slur in bar 186 clear of the page header.
+- Pathétique I: bar 10's 128th-note run printed in small notes with closer spacing (it ran off the
+  page); a duplicate slur at the return of the Grave.
+- Schubert D. 899 Nos. 2 and 4: `set-octavation` to `\ottava`; dashed-line crescendo text to plain text.
+- Tchaikovsky January: auto-beam settings replaced by `beamExceptions`/`beatStructure`; the bass voice
+  of bars 38-52 put in its own voice (its triplet stems clashed); removed properties dropped.
+- Schumann Romance: the source forced its own line breaks (`line-break-permission = ##f` with a break
+  voice) and printed instrument names; both removed.
+- Troldhaugen: removed `forced-distance` property.
+- Layout-only messages that remain (rest collisions in the Fugue, a spacing loop in K. 457) are listed
+  by `rep7.py check` as places to look at; all were looked at.
+
+**Changes from plan.**
+- 196 pages, not about 180: every piece starts on a new page, and the long movements (Moonlight III,
+  Pathétique I, Schubert D. 899 Nos. 2 and 4, Troldhaugen, Fantaisie-Impromptu) run to 11-17 pages each.
+- All six sources marked *fix* for Book 7B were fixed; none was replaced by a spare.
 
 ## Volume 6 (done)
 
@@ -1115,6 +1146,7 @@ python3 check_pieces.py --vol 6                  # Volume 6
 python3 build.py --vol 6 1 2 3 4 5 6 7 8        # Volume 6 book (Answers appendix after Unit 8)
 python3 rep7.py check                            # Volume 7: every piece compiles with no warning
 python3 rep7.py book A                           # Book 7A -> build/Read at Sight - Volume 7A.pdf
+python3 rep7.py book B                           # Book 7B -> build/Read at Sight - Volume 7B.pdf
 python3 rep7.py identical                        # Volume 7 books must print "identical"
 python3 check_identical.py                       # every finished unit must print "identical"
 python3 check_identical.py --add 5 1             # record a newly finished unit (here Volume 5, Unit 1)

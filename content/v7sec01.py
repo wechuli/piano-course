@@ -46,4 +46,10 @@ PIECES = [
     dict(slug='rameau-tambourin', title='Tambourin in E minor', composer='J.-P. Rameau', dates='1683-1764', work='Pièces de clavecin (1724)', level=8, minutes=2,
          mutopia='487', licence='PD',
          note=('A tambourin is a dance from Provence played on pipe and drum: the left hand imitates the drum with its repeated notes, the right hand the pipe. It is a rondeau: the opening tune returns between two episodes. Lively and strictly in time.')),
+    dict(slug='bach-wtc1-fugue-02', title='Fugue in C minor, BWV 847', composer='J. S. Bach', dates='1685-1750', work='The Well-Tempered Clavier, Book 1, No. 2 (1722)', level=9, minutes=2,
+         mutopia='1941', licence='CC BY-SA 4.0',
+         note=('The fugue that answers the Prelude in C minor (Book 7A): three voices, with a subject of bouncing sixteenths that every voice takes up in turn. Learn each voice alone, then in pairs, and keep the subject audible wherever it enters; the short episodes between entries are made from pieces of it.')),
+    dict(slug='scarlatti-k455', title='Sonata in G, K. 455', composer='D. Scarlatti', dates='1685-1757', work='', level=9, minutes=4,
+         mutopia='2104', licence='CC BY-SA 4.0',
+         note=('A brilliant late sonata in two halves, each repeated, full of the guitar-like repeated notes and quick hand crossings Scarlatti learned in Spain. Decide every fingering for the repeated notes first; keep the touch light and the pulse strict.')),
 ]

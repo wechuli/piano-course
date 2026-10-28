@@ -1,0 +1,11 @@
+main: rach-prelude-op3-no2.ly
+mutopia_path: ftp/RachmaninoffS/O3/rach-prelude-op3-no2/rach-prelude-op3-no2.ly
+title: Prelude in C# minor
+mutopiatitle: Prelude in C# minor
+mutopiacomposer: RachmaninoffS
+opus: Op. 3, No. 2
+source: Bosworth & Co. 1896; Universal Edition 1910
+maintainer: Petro Kostandy
+maintainerEmail: pmkost-at-gmail-dot-com
+license: Creative Commons Attribution-ShareAlike 4.0
+footer: Mutopia-2015/07/09-2033

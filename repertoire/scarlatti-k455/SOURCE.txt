@@ -1,0 +1,11 @@
+main: scarlatti-k455.ly
+mutopia_path: ftp/ScarlattiD/K455/scarlatti-k455/scarlatti-k455.ly
+title: Keyboard Sonata in G Major
+composer: Domenico Scarlatti (1685-1757)
+mutopiacomposer: ScarlattiD
+opus: K.455
+source: Italian Digital Library www.internetculturale.it
+maintainer: Knute Snortum
+maintainerEmail: knute (at) snortum (dot) net
+license: Creative Commons Attribution-ShareAlike 4.0
+footer: Mutopia-2016/01/25-2104

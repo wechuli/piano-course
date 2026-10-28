@@ -1,0 +1,11 @@
+main: sonata1.ly
+mutopia_path: ftp/MozartWA/KV457/sonata1/sonata1.ly
+title: Piano Sonata in C minor (KV. 457)
+mutopiatitle: Piano Sonata in C Minor - KV. 457 (1st Movement)
+composer: W.A. Mozart
+mutopiacomposer: MozartWA
+source: Schirmer, 1918, and Breitkopf & Härtel, 1878
+maintainer: Will Oram
+maintainerEmail: spamguy@foxchange.com
+license: Public Domain
+footer: Mutopia-2016/04/09-356

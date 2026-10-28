@@ -1,0 +1,12 @@
+main: liszt-consolation-no3.ly
+mutopia_path: ftp/LisztF/S.172/liszt-consolation-no3/liszt-consolation-no3.ly
+title: Consolation
+mutopiatitle: Consolation, S.172 No.3
+composer: F. Liszt
+mutopiacomposer: LisztF
+opus: S.172 No.3
+source: Breitkopf & Härtel, 1850
+maintainer: Ryan Prince
+maintainerEmail: rprincerp@gmail.com
+license: Creative Commons Attribution 3.0
+footer: Mutopia-2019/06/23-1647

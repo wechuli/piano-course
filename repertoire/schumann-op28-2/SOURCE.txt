@@ -1,0 +1,11 @@
+main: schumann-romanze-op28-2-a4.ly
+mutopia_path: ftp/SchumannR/O28/romanze-op28-2/romanze-op28-2-lys/schumann-romanze-op28-2-a4.ly
+title: Romanzen
+mutopiatitle: Romanzen
+composer: R. Schumann (1810-1856)
+mutopiacomposer: SchumannR
+opus: op. 28/2
+source: Ed. Peters
+maintainer: rune@zedeler.dk
+license: Public Domain
+footer: Mutopia-2014/11/20-314

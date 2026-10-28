@@ -1,0 +1,12 @@
+main: fuga2.ly
+mutopia_path: ftp/BachJS/BWV847/fuga2/fuga2.ly
+title: Fuga II
+mutopiatitle: Das Wohltemperierte Clavier I, Fuga II
+composer: Johann Sebastian Bach
+mutopiacomposer: BachJS
+opus: BWV 847
+source: Edition Peters
+maintainer: Urs Metzger
+maintainerEmail: urs@ursmetzger.de
+license: Creative Commons Attribution-ShareAlike 4.0
+footer: Mutopia-2014/03/02-1941

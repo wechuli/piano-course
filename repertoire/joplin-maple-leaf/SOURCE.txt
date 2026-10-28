@@ -1,0 +1,11 @@
+main: maple.ly
+mutopia_path: ftp/JoplinS/maple/maple.ly
+title: Maple Leaf Rag
+mutopiatitle: Maple Leaf Rag
+composer: Scott Joplin
+mutopiacomposer: JoplinS
+source: Reproduction of original edition (1899)
+maintainer: Chris Sawer
+maintainerEmail: chris@mutopiaproject.org
+copyright: Public Domain
+footer: Mutopia-2011/11/13-23

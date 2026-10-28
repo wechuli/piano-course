@@ -1,0 +1,12 @@
+main: pathetique-3.ly
+mutopia_path: ftp/BeethovenLv/O13/pathetique-3/pathetique-3.ly
+title: Sonata No. 8 \"Pathétique\"
+mutopiatitle: Sonata No. 8 “Pathétique” (3rd Movement: Rondo)
+composer: L. van Beethoven
+mutopiacomposer: BeethovenLv
+opus: Op. 13
+source: Berners, 1908 (edited by A. Winterberger)
+maintainer: Chris Sawer
+maintainerEmail: chris@mutopiaproject.org
+copyright: Public Domain
+footer: Mutopia-2013/01/08-296

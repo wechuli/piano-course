@@ -22,6 +22,7 @@ python check_pieces.py --vol 6            # must print OK (add --verbose to see 
 python build.py --vol 6 1                 # one unit (Unit 1 includes the front matter)
 python build.py --vol 6 1 2 3 4 5 6 7 8   # the whole book
 python check_identical.py                 # Volumes 1-6 must stay identical
+python rep7.py identical                  # Volume 7 books 7A and 7B must stay identical
 ```
 
 The build must print no `WARN:` lines (LilyPond reports bar-length errors as warnings).

@@ -1,0 +1,10 @@
+main: Tschaikowsky-op37.1.ly
+mutopia_path: ftp/TchaikovskyPI/O37/Tschaikowsky-op37.1/Tschaikowsky-op37.1.ly
+mutopiatitle: The Seasons: January
+composer: Петр И. Чайковский
+mutopiacomposer: TchaikovskyPI
+opus: op. 37,1
+source: Rob. Forberg, Leipzig
+maintainer: Till Rettig
+copyright: Public Domain
+footer: Mutopia-2007/11/26-1171

@@ -37,7 +37,8 @@ BENIGN = ("has been compressed", "page must be compressed", "compressing over-fu
 # Layout-quality messages from LilyPond's beam and slur solvers: the output is drawn, but the place
 # must be looked at. `check` lists them as "look at"; they do not fail the build.
 COSMETIC = ("may not find good beam slope", "weird stem size", "calculation-in-progress encountered for Slur",
-            "calculation-in-progress encountered for PhrasingSlur", "this Voice needs a \\voiceXx")
+            "calculation-in-progress encountered for PhrasingSlur", "this Voice needs a \\voiceXx",
+            "cannot resolve rest collision", "encountered for VerticalAxisGroup.adjacent-pure-heights")
 BOOKS = {"A": {"levels": (7, 8), "title": "Volume 7A  -  Repertoire, Levels 7-8"},
          "B": {"levels": (9, 10), "title": "Volume 7B  -  Repertoire, Levels 9-10"}}
 SECTIONS = [1, 2, 3, 4, 5]
@@ -144,7 +145,9 @@ def clean(t, keep_breaks=False):
     for a, b in sorted(blocks(t, "layout"), reverse=True):
         t = t[:a] + geom.sub("", t[a:b]) + t[b:]
     if not keep_breaks:  # the source's line and page breaks were made for its own page size
-        t = re.sub(r"(?<![A-Za-z])\\(?:break|pageBreak|noBreak|noPageBreak)(?![A-Za-z])", "{}", t)
+        brk = r"\\(?:break|pageBreak|noBreak|noPageBreak)(?![A-Za-z])"
+        t = re.sub(r"%" + brk, "%", t)                 # in a comment: drop (never leave "%{", a block comment)
+        t = re.sub(r"(?<![A-Za-z%])" + brk, "{}", t)
     t = cut(t, blocks(t, "header"))
     t = cut(t, blocks(t, "paper"))
     drop = []
@@ -245,7 +248,7 @@ def section_module(sec):
     return importlib.import_module(f"v7sec{sec:02d}")
 
 
-def paper(first_page, header_text, first_header=True, page_count=None):
+def paper(first_page, header_text, first_header=True, page_count=None, top_padding=None):
     tight = page_count is not None  # fitting one page fewer: closer systems
     cond = "" if first_header else "\\unless \\on-first-page "
     return rf"""
@@ -256,7 +259,7 @@ def paper(first_page, header_text, first_header=True, page_count=None):
   top-margin = 14\mm
   bottom-margin = 14\mm
   left-margin = 18\mm
-  right-margin = 18\mm
+  right-margin = 18\mm{"" if top_padding is None else f"\n  top-system-spacing.padding = {top_padding}"}
   indent = 0
   ragged-bottom = ##f
   ragged-last-bottom = ##t
@@ -313,7 +316,8 @@ def piece_heading(pc):
 
 def piece_file(pc, first_page, header_text, page_count=None):
     info = source_info(pc["slug"])
-    return (paper(first_page, header_text, True, page_count) + piece_heading(pc)
+    # top_padding (piece option): room above each page's first system, for slurs that rise into the header
+    return (paper(first_page, header_text, True, page_count, pc.get("top_padding")) + piece_heading(pc)
             + f'\\include "{info["main"]}"\n')
 
 
@@ -495,7 +499,7 @@ def section_page(sec, book):
 def index_markup(book, pages):
     """One \\markup per line, so that the index can run onto a second page."""
     out = ["\\markup \\column { \\fontsize #6 \\bold \"Pieces by level\" \\vspace #0.6 "
-           + para("A suggested order: start at the top of Level 7 and choose freely within a level. Mix the eras: a Baroque piece "
+           + para(f"A suggested order: start at the top of Level {BOOKS[book]['levels'][0]} and choose freely within a level. Mix the eras: a Baroque piece "
                   "trains the fingers and the ear for voices, a Romantic one the pedal and the singing tone.", 0) + " }"]
     for lev in BOOKS[book]["levels"]:
         ps = sorted((p for p in pieces(book) if p["level"] == lev), key=lambda p: pages[p["slug"]])

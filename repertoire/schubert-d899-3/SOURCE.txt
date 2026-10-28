@@ -1,0 +1,8 @@
+main: SchubertF-D899-3-Impromptu.ly
+mutopia_path: ftp/SchubertF/D899/SchubertF-D899-3-Impromptu/SchubertF-D899-3-Impromptu.ly
+mutopiatitle: Impromptu in Ges-dur
+mutopiacomposer: SchubertF
+source: Breitkopf & Härtel, 1888
+maintainer: Ph. Raynaud
+license: Public Domain
+footer: Mutopia-2015/11/26-1193

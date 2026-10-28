@@ -1,0 +1,12 @@
+main: troldhaugen.ly
+mutopia_path: ftp/GriegE/O65/troldhaugen/troldhaugen.ly
+title: Hochzeitstag auf Troldhaugen.
+mutopiatitle: Wedding-day at Troldhaugen
+composer: Edvard Grieg
+mutopiacomposer: GriegE
+opus: Op. 65, No. 6.
+source: Schirmer, 1903
+maintainer: David Whipple
+maintainerEmail: cubbieco@gmail.com
+copyright: Public Domain
+footer: Mutopia-2006/06/17-781

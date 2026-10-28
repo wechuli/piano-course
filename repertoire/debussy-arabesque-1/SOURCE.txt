@@ -1,0 +1,10 @@
+main: debussy_Arabesque_1.ly
+mutopia_path: ftp/DebussyC/L66/debussy_Arabesque_1/debussy_Arabesque_1.ly
+title: Première Arabesque
+mutopiatitle: Première Arabesque
+composer: Claude Debussy
+mutopiacomposer: DebussyC
+source: Durand et Fils (1904)
+maintainer: Keith OHara
+copyright: Public Domain
+footer: Mutopia-2011/10/25-1777

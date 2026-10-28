@@ -1,0 +1,12 @@
+main: nocturne_in_e_minor.ly
+mutopia_path: ftp/ChopinFF/O72/nocturne_in_e_minor/nocturne_in_e_minor.ly
+title: Nocturne
+mutopiatitle: Nocturne No. 19 in E minor
+composer: F. Chopin
+mutopiacomposer: ChopinFF
+opus: Op. 72, No. 1 (1827)
+source: Schirmer, 1915
+maintainer: Benjamin D. Esham
+maintainerEmail: bdesham@gmail.com
+license: Creative Commons Attribution-ShareAlike 4.0
+footer: Mutopia-2017/01/04-509

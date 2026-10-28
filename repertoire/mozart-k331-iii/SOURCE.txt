@@ -1,0 +1,11 @@
+main: KV331_3_RondoAllaTurca.ly
+mutopia_path: ftp/MozartWA/KV331/KV331_3_RondoAllaTurca/KV331_3_RondoAllaTurca-lys/KV331_3_RondoAllaTurca.ly
+title: Rondo Alla Turca
+mutopiatitle: Sonate Opus KV 331 - Rondo Alla Turca
+composer: W. A. Mozart
+mutopiacomposer: MozartWA
+source: IMSLP
+maintainer: Rune Zedeler and Chris Sawer
+maintainerEmail: chris@mutopiaproject.org
+license: Public Domain
+footer: Mutopia-2015/08/13-108

@@ -1,0 +1,12 @@
+main: pathetique-1.ly
+mutopia_path: ftp/BeethovenLv/O13/pathetique-1/pathetique-1.ly
+title: Sonata No. 8 “Pathétique”
+mutopiatitle: Sonata No. 8 “Pathétique” (1st Movement: Grave, Allegro molto e con brio)
+composer: L. van Beethoven
+mutopiacomposer: BeethovenLv
+opus: Op. 13
+source: G. Schirmer, 1894 and Berners, 1908
+maintainer: Chris Sawer
+maintainerEmail: chris@mutopiaproject.org
+copyright: Public Domain
+footer: Mutopia-2009/09/13-299

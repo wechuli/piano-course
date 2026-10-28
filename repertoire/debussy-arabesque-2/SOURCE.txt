@@ -1,0 +1,10 @@
+main: debussy_Arabesque_2.ly
+mutopia_path: ftp/DebussyC/L66/debussy_Arabesque_2/debussy_Arabesque_2.ly
+title: Deuxième Arabesque
+composer: Claude Debussy
+mutopiacomposer: DebussyC
+source: Paris: Durand et Schoenewerk, n.d.[1891]. Plates D.S. 4395-96
+maintainer: Knute Snortum
+maintainerEmail: knute (at) snortum (dot) net
+license: Creative Commons Attribution-ShareAlike 4.0
+footer: Mutopia-2014/12/14-1994
