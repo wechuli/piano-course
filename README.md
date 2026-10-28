@@ -17,6 +17,16 @@ A print-ready A4 course book, typeset with LilyPond.
 Start with `build/Read at Sight - Before You Begin.pdf` (5 pp., `python3 course/before.py`): where to look, the
 10-second scan, key and time signatures, metronome, fingering, reading habits, practice.
 
+Alongside the volumes: `build/Read at Sight - Technique.pdf` (32 pp., `python3 course/technique.py`):
+scales, arpeggios, chords, cadences and the chromatic scale in six stages, one per volume (Stage 6 with
+Volumes 6-7), ten minutes a day, with standard fingering throughout. Fingerings come from tables in
+`course/technique.py`; `course/test_technique.py` checks every scale against the published
+fourth-finger chart (B. Burt / Prof. Escandon, University of Miami) and the thumb rules, and the
+arpeggios against the same chart's arpeggio table (white-key minors also as in Baylor's open textbook
+"Piano Basics"). Black-key arpeggios start with 2 in the right hand (the chart's alternative is 3);
+E-flat minor (not in the chart) is fingered like F-sharp major, all three notes being black keys.
+The book's front page also gives the advice on learning pieces above your reading level.
+
 Single units are in `build/units/` (`Read at Sight - VolN - Unit M.pdf`).
 
 **The course is complete: six volumes.** Volume 6 (Levels 7-8, an extension beyond the original
@@ -1119,6 +1129,7 @@ course/test_gen6.py     Tests for the Volume 6 generator (run from course/; must
 course/build.py         Page template, keyboard diagrams, front matter, contents, book assembly
 course/check_pieces.py  Checks hand-written pieces against what each unit has taught
 course/check_identical.py  Regression check: finished units must not change (fingerprints.json)
+course/technique.py     Technique book (scales, arpeggios, chords); tests: course/test_technique.py
 course/rep7.py          Volume 7 (repertoire): import Mutopia sources, check, build Books 7A/7B
 content/v7secNN.py      Volume 7 sections: intro texts and the pieces (title, level, note, source)
 repertoire/SLUG/        Volume 7 sources: cleaned Mutopia LilyPond files + SOURCE.txt (licence)
@@ -1144,6 +1155,7 @@ python3 build.py --vol 5 1 2 3 4 5 6 7 8        # Volume 5 book -> build/read-at
 python3 test_gen6.py                             # Volume 6 generator tests; must print OK
 python3 check_pieces.py --vol 6                  # Volume 6
 python3 build.py --vol 6 1 2 3 4 5 6 7 8        # Volume 6 book (Answers appendix after Unit 8)
+python3 test_technique.py && python3 technique.py   # Technique book (tests must print OK)
 python3 rep7.py check                            # Volume 7: every piece compiles with no warning
 python3 rep7.py book A                           # Book 7A -> build/Read at Sight - Volume 7A.pdf
 python3 rep7.py book B                           # Book 7B -> build/Read at Sight - Volume 7B.pdf
